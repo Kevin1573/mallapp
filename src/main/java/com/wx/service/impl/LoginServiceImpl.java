@@ -3,12 +3,12 @@ package com.wx.service.impl;
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.wechat.pay.java.core.Config;
-import com.wechat.pay.java.service.payments.jsapi.JsapiServiceExtension;
-import com.wechat.pay.java.service.payments.jsapi.model.Amount;
-import com.wechat.pay.java.service.payments.jsapi.model.Payer;
-import com.wechat.pay.java.service.payments.jsapi.model.PrepayRequest;
-import com.wechat.pay.java.service.payments.jsapi.model.PrepayWithRequestPaymentResponse;
+//import com.wechat.pay.java.core.Config;
+//import com.wechat.pay.java.service.payments.jsapi.JsapiServiceExtension;
+//import com.wechat.pay.java.service.payments.jsapi.model.Amount;
+//import com.wechat.pay.java.service.payments.jsapi.model.Payer;
+//import com.wechat.pay.java.service.payments.jsapi.model.PrepayRequest;
+//import com.wechat.pay.java.service.payments.jsapi.model.PrepayWithRequestPaymentResponse;
 import com.wx.common.enums.PositionEnum;
 import com.wx.common.exception.BizException;
 import com.wx.common.model.request.LoginRequest;
@@ -40,8 +40,8 @@ public class LoginServiceImpl implements LoginService {
     private UserTokenMapper userTokenMapper;
     @Autowired
     private UserTokenService userTokenService;
-    @Autowired
-    private Config payConfig;
+//    @Autowired
+//    private Config payConfig;
     @Autowired
     private GoodsHistoryMapper goodsHistoryMapper;
     @Autowired

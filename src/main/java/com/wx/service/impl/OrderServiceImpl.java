@@ -7,16 +7,16 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.wechat.pay.java.core.Config;
-import com.wechat.pay.java.service.payments.jsapi.JsapiServiceExtension;
-import com.wechat.pay.java.service.payments.jsapi.model.Amount;
-import com.wechat.pay.java.service.payments.jsapi.model.Payer;
-import com.wechat.pay.java.service.payments.jsapi.model.PrepayRequest;
-import com.wechat.pay.java.service.payments.jsapi.model.PrepayWithRequestPaymentResponse;
-import com.wechat.pay.java.service.transferbatch.TransferBatchService;
-import com.wechat.pay.java.service.transferbatch.model.InitiateBatchTransferRequest;
-import com.wechat.pay.java.service.transferbatch.model.InitiateBatchTransferResponse;
-import com.wechat.pay.java.service.transferbatch.model.TransferDetailInput;
+//import com.wechat.pay.java.core.Config;
+//import com.wechat.pay.java.service.payments.jsapi.JsapiServiceExtension;
+//import com.wechat.pay.java.service.payments.jsapi.model.Amount;
+//import com.wechat.pay.java.service.payments.jsapi.model.Payer;
+//import com.wechat.pay.java.service.payments.jsapi.model.PrepayRequest;
+//import com.wechat.pay.java.service.payments.jsapi.model.PrepayWithRequestPaymentResponse;
+//import com.wechat.pay.java.service.transferbatch.TransferBatchService;
+//import com.wechat.pay.java.service.transferbatch.model.InitiateBatchTransferRequest;
+//import com.wechat.pay.java.service.transferbatch.model.InitiateBatchTransferResponse;
+//import com.wechat.pay.java.service.transferbatch.model.TransferDetailInput;
 import com.wx.common.enums.CompleteEnum;
 import com.wx.common.enums.PositionEnum;
 import com.wx.common.exception.BizException;
@@ -49,8 +49,8 @@ import java.util.*;
 @Slf4j
 public class OrderServiceImpl implements OrderService {
 
-    @Autowired
-    private Config payConfig;
+//    @Autowired
+//    private Config payConfig;
     @Autowired
     private UserTokenService userTokenService;
     @Autowired
@@ -288,11 +288,11 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public void closeOrder(CloseOrderRequest request) throws IOException {
-        com.wechat.pay.java.service.payments.jsapi.model.CloseOrderRequest requestWx = new com.wechat.pay.java.service.payments.jsapi.model.CloseOrderRequest();
-        requestWx.setOutTradeNo(request.getTradeNo());
-        requestWx.setMchid(Constants.MERCHANT_ID);
-        JsapiServiceExtension service = new JsapiServiceExtension.Builder().config(payConfig).build();
-        service.closeOrder(requestWx);
+//        com.wechat.pay.java.service.payments.jsapi.model.CloseOrderRequest requestWx = new com.wechat.pay.java.service.payments.jsapi.model.CloseOrderRequest();
+//        requestWx.setOutTradeNo(request.getTradeNo());
+//        requestWx.setMchid(Constants.MERCHANT_ID);
+//        JsapiServiceExtension service = new JsapiServiceExtension.Builder().config(payConfig).build();
+//        service.closeOrder(requestWx);
     }
 
     @Override

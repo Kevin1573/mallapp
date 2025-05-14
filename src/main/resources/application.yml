@@ -1,0 +1,35 @@
+server:
+  port: 9000
+#  ssl:
+#    client-auth: none
+#    enabled: true
+#    key-store: C:/root/wx/www.0563repai.top.pfx
+#    key-store-password: nlrfbtcy
+#    key-store-type: PKCS12
+spring:
+  datasource:
+    driver-class-name: com.mysql.jdbc.Driver
+    password: root123.
+    url: jdbc:mysql://121.199.4.252:3306/qlx
+    username: root
+
+wx:
+  pay:
+    appId: wx70559cc67cdc94cc #微信公众号或者小程序等的appid (V3商户模式需要)
+    mchId: 1715243805 #微信支付商户号 (V3商户模式需要)
+    mchKey: #微信支付商户密钥
+#    subAppId: #服务商模式下的子商户公众账号ID
+#    subMchId: #服务商模式下的子商户号
+    keyPath: "C:\Users\kevin\Downloads\WXCertUtil\cert\apiclient_cert.p12" # p12证书的位置，可以指定绝对路径，也可以指定类路径（以classpath:开头）
+    apiV3Key: "7Uhb6ygv5tfc4rdx3esz2wa1q0pl9okm" # apiV3 秘钥值 (V3商户模式需要)
+    certSerialNo: 4145FC26AA94354CF3DB18870420E0E80AED7A82 # apiV3 证书序列号值 (V3商户模式需要)
+    privateCertPath: "C:\Users\kevin\Downloads\WXCertUtil\cert\apiclient_cert.pem" # apiclient_cert.pem证书文件的绝对路径或者以classpath:开头的类路径. (V3商户模式需要)
+    privateKeyPath: "C:\Users\kevin\Downloads\WXCertUtil\cert\apiclient_key.pem" # apiclient_key.pem证书文件的绝对路径或者以classpath:开头的类路径. (V3商户模式需要)
+    publicKeyPath: "C:\Users\kevin\Downloads\pub_key.pem" # 微信支付公钥，pub_key.pem证书文件的绝对路径或者以classpath:开头的类路径. (V3商户模式需要)
+    publicKeyId: PUB_KEY_ID_0117152438052025051500351948001800 # 微信支付公钥ID (V3商户模式需要)
+
+logging:
+  level:
+    org.springframework.web: info
+    com.github.binarywang.demo.wx.pay: debug
+    com.github.binarywang.wxpay: debug

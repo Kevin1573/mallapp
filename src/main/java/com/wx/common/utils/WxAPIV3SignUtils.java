@@ -1,6 +1,6 @@
 package com.wx.common.utils;
 
-import com.wechat.pay.java.core.util.PemUtil;
+//import com.wechat.pay.java.core.util.PemUtil;
 import okhttp3.HttpUrl;
 
 import java.nio.charset.StandardCharsets;
@@ -36,7 +36,7 @@ public class WxAPIV3SignUtils {
         String nonceStr = generateNonceStr();
         long timestamp = System.currentTimeMillis() / 1000;
         String message = buildMessage(method, url, timestamp, nonceStr, body);
-        PrivateKey privateKey1 = PemUtil.loadPrivateKeyFromPath(Constants.PRIVATE_KEY_PATH);
+        PrivateKey privateKey1 = null;//PemUtil.loadPrivateKeyFromPath(Constants.PRIVATE_KEY_PATH);
         String signature = sign(message.getBytes(StandardCharsets.UTF_8), privateKey1);
 
         return schema + " " + "mchid=\"" + mchId + "\","

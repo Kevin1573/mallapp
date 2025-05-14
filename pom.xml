@@ -22,6 +22,7 @@
         <java.version>1.8</java.version>
         <spring-boot.version>2.3.12.RELEASE</spring-boot.version>
         <skipTests>true</skipTests>
+        <weixin-java-pay.version>4.7.0</weixin-java-pay.version>
     </properties>
 
 
@@ -115,10 +116,16 @@
             <optional>true</optional>
         </dependency>
 
+<!--        <dependency>-->
+<!--            <groupId>com.github.wechatpay-apiv3</groupId>-->
+<!--            <artifactId>wechatpay-java</artifactId>-->
+<!--            <version>0.2.12</version>-->
+<!--        </dependency>-->
+
         <dependency>
-            <groupId>com.github.wechatpay-apiv3</groupId>
-            <artifactId>wechatpay-java</artifactId>
-            <version>0.2.12</version>
+            <groupId>com.github.binarywang</groupId>
+            <artifactId>weixin-java-pay</artifactId>
+            <version>${weixin-java-pay.version}</version>
         </dependency>
 
         <dependency>
