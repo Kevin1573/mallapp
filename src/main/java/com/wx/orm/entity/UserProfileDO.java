@@ -17,11 +17,6 @@ public class UserProfileDO {
     private Long id;
 
     /**
-     * 微信返回的用户唯一标识
-     */
-    private String openid;
-
-    /**
      * 昵称
      */
     private String nickName;
@@ -39,33 +34,23 @@ public class UserProfileDO {
     /**
      * 用户职位
      */
-    private String position;
-
-    /**
-     * 用户地址
-     */
-    private String addr;
-
-    /**
-     * 邀请人id
-     */
-    private Long inviteUserId;
+    private int position;
 
     private Date createTime;
 
     private Date modifyTime;
 
     /**
-     * 商品积分
+     * 店铺名称
      */
-    private Long point;
+    private String from;
 
     /**
-     * 其他积分，辅销品+快递费积分
+     * 登录标示
      */
-    private Long realPoint;
+    private String token;
 
-    private Long costPoint;
 
-    private Long costRealPoint;
+
+
 }

@@ -50,5 +50,28 @@ public class GoodsDO {
      */
     private String ext;
 
-    private Double weight;
+    /**
+     * 品牌
+     */
+    private String brand;
+
+    /**
+     * 是否使用卡券
+     */
+    private Integer card;
+
+    /**
+     * 库存
+     */
+    private Integer inventory;
+
+    /**
+     * 规格
+     */
+    private String specifications;
+
+    /**
+     * 销量
+     */
+    private Integer sales;
 }
