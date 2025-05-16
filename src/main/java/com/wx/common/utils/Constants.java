@@ -35,6 +35,8 @@ public class Constants {
      */
     public static String API_V3_KEY = "7Uhb6ygv5tfc4rdx3esz2wa1q0pl9okm";
 
+    public static String PRIVATE_KEY = "68EE48914BD37392C6E2320FD07DAD71FD61F69F";
+
     public static String CALLBACK_URL = "http://g8a65b28.natappfree.cc/pay/v3/callback";
 
 
