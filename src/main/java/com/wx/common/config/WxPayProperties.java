@@ -1,7 +1,6 @@
 package com.wx.common.config;
 
 import lombok.Data;
-import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
  * wxpay pay properties.
@@ -9,7 +8,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  * @author Binary Wang
  */
 @Data
-@ConfigurationProperties(prefix = "wx.pay")
+//@ConfigurationProperties(prefix = "wx.pay")
 public class WxPayProperties {
   /**
    * 设置微信公众号或者小程序等的appid
@@ -78,5 +77,7 @@ public class WxPayProperties {
    * (V3商户模式需要，2024.08后的新商户验签需要用此公钥ID)
    */
   private String publicKeyId;
+
+  private String callbackUrl;
 
 }
