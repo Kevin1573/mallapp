@@ -3,7 +3,6 @@ package com.wx.controller;
 import com.alibaba.fastjson.JSON;
 import com.github.binarywang.wxpay.exception.WxPayException;
 import com.google.zxing.WriterException;
-import com.wechat.pay.java.core.notification.NotificationParser;
 import com.wechat.pay.java.core.notification.RequestParam;
 import com.wechat.pay.java.service.partnerpayments.nativepay.model.Transaction;
 import com.wechat.pay.java.service.payments.nativepay.NativePayService;
@@ -20,8 +19,6 @@ import java.io.IOException;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @RestController
@@ -29,7 +26,7 @@ import java.util.stream.Collectors;
 @AllArgsConstructor
 public class WxPayController {
     private NativePayService payService;
-    private NotificationParser notificationParser;
+//    private NotificationParser notificationParser;
 
     @PostMapping("/createOrderNative")
     public String createOrderNative(@RequestBody Map<String, String> params) throws WxPayException, IOException, WriterException {
@@ -50,38 +47,39 @@ public class WxPayController {
         request.setAttach(JSON.toJSONString(attachMap));
         try {
             PrepayResponse prepay = payService.prepay(request);
+            return QrCodeUtil.generateQrCodeBase64(prepay.getCodeUrl(), 300);
         } catch (Exception e) {
-            String message = e.getMessage();
-            // 正则表达式：匹配 Wechatpay-Serial 后面的值
-            Pattern pattern = Pattern.compile("Wechatpay-Serial=([^,]*)");
-            Matcher matcher = pattern.matcher(message);
-            if (matcher.find()) {
-                String serialValue = matcher.group(1);
-                System.out.println("Wechatpay-Serial value: " + serialValue);
-                if (!Constants.PLATFORM_KEY.equals(serialValue)) {
-                    return "平台密钥错误";
-                }
-            } else {
-                System.out.println("Wechatpay-Serial not found");
-                return "error";
-            }
-
-            // 正则表达式匹配 code_url 的值
-            Pattern pattern2 = Pattern.compile("\"code_url\"\\s*:\\s*\"([^\"]+)\"");
-            Matcher matcher2 = pattern2.matcher(message);
-            if (matcher2.find()) {
-                String codeUrl = matcher2.group(1);
-                String base64Image = QrCodeUtil.generateQrCodeBase64(codeUrl, 300);
-                System.out.println("Data URI: data:image/png;base64," + base64Image);
-
-                return base64Image;
-            } else {
-                System.out.println("code_url not found");
-            }
-            return message;
+            System.err.println("本次调用又出错了...");
+            //            // 正则表达式：匹配 Wechatpay-Serial 后面的值
+//            Pattern pattern = Pattern.compile("Wechatpay-Serial=([^,]*)");
+//            Matcher matcher = pattern.matcher(message);
+//            if (matcher.find()) {
+//                String serialValue = matcher.group(1);
+//                System.out.println("Wechatpay-Serial value: " + serialValue);
+//                if (!Constants.PLATFORM_KEY.equals(serialValue)) {
+//                    return "平台密钥错误";
+//                }
+//            } else {
+//                System.out.println("Wechatpay-Serial not found");
+//                return "error";
+//            }
+//
+//            // 正则表达式匹配 code_url 的值
+//            Pattern pattern2 = Pattern.compile("\"code_url\"\\s*:\\s*\"([^\"]+)\"");
+//            Matcher matcher2 = pattern2.matcher(message);
+//            if (matcher2.find()) {
+//                String codeUrl = matcher2.group(1);
+//                String base64Image = QrCodeUtil.generateQrCodeBase64(codeUrl, 300);
+//                System.out.println("Data URI: data:image/png;base64," + base64Image);
+//
+//                return base64Image;
+//            } else {
+//                System.out.println("code_url not found");
+//            }
+            return e.getMessage();
         }
-        return null;
     }
+
 
     @RequestMapping(value = "/callback", method = RequestMethod.POST)
     public String callback(HttpServletRequest request) {
@@ -104,11 +102,12 @@ public class WxPayController {
                     .build();
 
             // 3. 解析并验证通知
-            Transaction transaction = notificationParser.parse(requestParam, Transaction.class);
+//            Transaction transaction = notificationParser.parse(requestParam, Transaction.class);
 
             // 4. 处理业务逻辑
-            return processTransaction(transaction);
+//            return processTransaction(transaction);
 
+            return null;
         } catch (Exception e) {
             // 记录错误日志
             return buildErrorResponse("FAIL", "处理失败: " + e.getMessage());
