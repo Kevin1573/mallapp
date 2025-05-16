@@ -18,6 +18,7 @@ import com.github.binarywang.wxpay.service.WxPayService;
 //import io.swagger.annotations.Api;
 //import io.swagger.annotations.ApiOperation;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -27,6 +28,7 @@ import javax.servlet.http.HttpServletRequest;
 /**
  * @author Binary Wang
  */
+@Slf4j
 //@Api("微信支付V3部分接口示例")
 @RestController
 @RequestMapping("/pay/v3")
@@ -87,6 +89,13 @@ public class WxPayV3Controller {
     @PostMapping("/createOrder")
     public JsapiResult createOrder(@RequestBody WxPayUnifiedOrderV3Request request) throws WxPayException {
         return this.wxService.createOrderV3(TradeTypeEnum.JSAPI, request);
+    }
+
+    @PostMapping("/createOrderNative")
+    public JsapiResult createOrderNative(@RequestBody WxPayUnifiedOrderV3Request request) throws WxPayException {
+        return this.wxService.createOrderV3(TradeTypeEnum.NATIVE, request);
+
+//        return new JsapiResult();
     }
 
     /**

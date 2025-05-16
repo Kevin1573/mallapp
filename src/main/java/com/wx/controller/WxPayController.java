@@ -7,6 +7,7 @@ import com.github.binarywang.wxpay.bean.notify.WxPayRefundNotifyResult;
 import com.github.binarywang.wxpay.bean.notify.WxScanPayNotifyResult;
 import com.github.binarywang.wxpay.bean.request.*;
 import com.github.binarywang.wxpay.bean.result.*;
+import com.github.binarywang.wxpay.constant.WxPayConstants;
 import com.github.binarywang.wxpay.exception.WxPayException;
 import com.github.binarywang.wxpay.service.WxPayService;
 import lombok.AllArgsConstructor;
@@ -14,6 +15,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.io.File;
 import java.util.Date;
+
+import static com.github.binarywang.wxpay.constant.WxPayConstants.TradeType.Specific.NATIVE;
 
 
 /**
@@ -92,6 +95,15 @@ public class WxPayController {
   @PostMapping("/createOrder")
   public <T> T createOrder(@RequestBody WxPayUnifiedOrderRequest request) throws WxPayException {
     return this.wxService.createOrder(request);
+  }
+
+  @PostMapping("/createOrderNative")
+  public WxPayUnifiedOrderResult createOrderNative(@RequestBody WxPayUnifiedOrderRequest request) throws WxPayException {
+    // 设置交易类型为 NATIVE（二维码）
+    request.setTradeType(WxPayConstants.TradeType.NATIVE);
+
+    // 调用 V2 接口下单
+    return this.wxService.unifiedOrder(request);
   }
 
   /**
