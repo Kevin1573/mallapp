@@ -29,7 +29,7 @@ public class AlipayService {
                 "    \"total_amount\":" + totalAmount + "," +
                 "    \"subject\":\"" + subject + "\"," +
                 "    \"body\":\"商品描述\"," +
-                "    \"timeout_express\":\"90m\"" +
+                "    \"notify_url\":\"http://g8a65b28.natappfree.cc/alipay/notify\"" +
                 "  }";
         
         request.setBizContent(bizContent);

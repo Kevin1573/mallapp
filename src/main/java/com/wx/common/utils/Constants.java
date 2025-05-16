@@ -35,7 +35,7 @@ public class Constants {
      */
     public static String API_V3_KEY = "7Uhb6ygv5tfc4rdx3esz2wa1q0pl9okm";
 
-    public static String CALLBACK_URL = "http://g8a65b28.natappfree.cc/system/wxpay/callback";
+    public static String CALLBACK_URL = "http://g8a65b28.natappfree.cc/pay/v3/callback";
 
 
     public static String APP_ID = "wx70559cc67cdc94cc";
