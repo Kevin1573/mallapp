@@ -21,7 +21,6 @@ import com.wx.common.utils.HttpUtil;
 import com.wx.orm.entity.*;
 import com.wx.orm.mapper.*;
 import com.wx.service.LoginService;
-import com.wx.service.UserTokenService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -37,8 +36,6 @@ public class LoginServiceImpl implements LoginService {
 
     @Autowired
     private UserProfileMapper userProfileMapper;
-    @Autowired
-    private UserTokenService userTokenService;
 //    @Autowired
 //    private Config payConfig;
     @Autowired
@@ -48,7 +45,7 @@ public class LoginServiceImpl implements LoginService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public LoginResonse login(LoginRequest request) throws Exception {
+    public LoginResonse login(LoginRequest request) {
         LambdaQueryWrapper<UserProfileDO> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(UserProfileDO::getNickName, request.getUserName());
         queryWrapper.eq(UserProfileDO::getPassword, request.getPassword());
@@ -73,7 +70,7 @@ public class LoginServiceImpl implements LoginService {
     }
 
     @Override
-    public void register(LoginRequest request) throws Exception {
+    public void register(LoginRequest request) {
         LambdaQueryWrapper<UserProfileDO> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(UserProfileDO::getNickName, request.getUserName());
         List<UserProfileDO> userProfileDOS = userProfileMapper.selectList(queryWrapper);

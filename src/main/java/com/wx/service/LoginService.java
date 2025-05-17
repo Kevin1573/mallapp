@@ -13,14 +13,14 @@ public interface LoginService {
      * @param request 前端获取到的登陆code
      * @return 用户信息
      */
-    LoginResonse login(LoginRequest request) throws Exception;
+    LoginResonse login(LoginRequest request);
 
     /**
      * 注册接口
      *
      * @param request 前端获取到的登陆code
      */
-    void register(LoginRequest request) throws Exception;
+    void register(LoginRequest request);
 
     /**
      * 更新用户信息
