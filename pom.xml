@@ -116,16 +116,10 @@
             <optional>true</optional>
         </dependency>
 
-<!--        <dependency>-->
-<!--            <groupId>com.github.wechatpay-apiv3</groupId>-->
-<!--            <artifactId>wechatpay-java</artifactId>-->
-<!--            <version>0.2.12</version>-->
-<!--        </dependency>-->
-
         <dependency>
-            <groupId>com.github.binarywang</groupId>
-            <artifactId>weixin-java-pay</artifactId>
-            <version>4.7.0</version>
+            <groupId>com.github.wechatpay-apiv3</groupId>
+            <artifactId>wechatpay-java</artifactId>
+            <version>0.2.17</version>
         </dependency>
 
         <dependency>
@@ -146,6 +140,11 @@
             <version>3.4.1</version>
         </dependency>
 
+        <dependency>
+            <groupId>cn.hutool</groupId>
+            <artifactId>hutool-core</artifactId>
+            <version>5.8.37</version>
+        </dependency>
         <dependency>
             <groupId>com.squareup.okhttp3</groupId>
             <artifactId>okhttp</artifactId>
