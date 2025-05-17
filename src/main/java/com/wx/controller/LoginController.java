@@ -39,7 +39,7 @@ public class LoginController {
             return Response.success();
         } catch (Exception e) {
             log.error("Register exception, request = {}", JSON.toJSONString(request), e);
-            return Response.failure("Register exception");
+            return Response.failure(e.getMessage());
         }
     }
 

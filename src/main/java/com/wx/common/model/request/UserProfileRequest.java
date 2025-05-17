@@ -26,4 +26,6 @@ public class UserProfileRequest {
      * 用户地址
      */
     private String addr;
+
+    private Integer position;
 }

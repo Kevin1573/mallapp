@@ -25,7 +25,7 @@ public class RebateDO {
     private String description;
 
     /**
-     * 返利点
+     * 折扣点
      */
     private Double ratio;
 

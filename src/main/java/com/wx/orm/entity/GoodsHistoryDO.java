@@ -97,14 +97,4 @@ public class GoodsHistoryDO {
      */
     private Integer isPack;
 
-    /**
-     * 商品积分
-     */
-    private Long point;
-
-    /**
-     * 其他积分，辅销品+快递费积分
-     */
-    private Long realPoint;
-
 }

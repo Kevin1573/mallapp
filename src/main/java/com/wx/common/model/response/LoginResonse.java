@@ -18,15 +18,9 @@ public class LoginResonse {
 
     private String headUrl;
 
-    private String addr;
-
     /**
      * 用户职位
      */
     private String position;
-
-    private Long point;
-
-    private Long realPoint;
 
 }

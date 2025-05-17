@@ -5,13 +5,22 @@ import lombok.Data;
 @Data
 public class LoginRequest {
 
-    private String token;
+    private String userName;
 
-    private String loginCode;
+    private String password;
 
-    private String phoneCode;
+    /**
+     * 手机号码
+     */
+    private String phone;
+
+    /**
+     * 头像链接
+     */
+    private String headUrl;
 
     /**
      * 邀请人id
      */
-    private Long inviteUserId;}
+    private String from;
+}
