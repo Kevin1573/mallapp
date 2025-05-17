@@ -1,5 +1,6 @@
 package com.wx.service;
 
+import com.wx.common.model.request.EditPasswordRequest;
 import com.wx.common.model.request.LoginRequest;
 import com.wx.common.model.request.TokenRequest;
 import com.wx.common.model.request.UserProfileRequest;
@@ -36,4 +37,11 @@ public interface LoginService {
      * @return 用户信息
      */
     LoginResonse getUserInfoByToken(TokenRequest request);
+
+    /**
+     * 修改密码
+     *
+     * @param request
+     */
+    void editPassword(EditPasswordRequest request);
 }

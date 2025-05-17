@@ -1,28 +1,27 @@
 package com.wx.service.impl;
 
-import com.alibaba.fastjson2.JSON;
-import com.alibaba.fastjson2.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.wx.common.exception.BizException;
+import com.wx.common.model.request.EditPasswordRequest;
 import com.wx.common.model.request.LoginRequest;
 import com.wx.common.model.request.TokenRequest;
 import com.wx.common.model.request.UserProfileRequest;
 import com.wx.common.model.response.LoginResonse;
-import com.wx.common.utils.Constants;
-import com.wx.common.utils.HttpUtil;
 import com.wx.orm.entity.UserProfileDO;
 import com.wx.orm.mapper.GoodsHistoryMapper;
 import com.wx.orm.mapper.RebateMapper;
 import com.wx.orm.mapper.UserProfileMapper;
 import com.wx.service.LoginService;
+import com.wx.service.TokenService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
-import java.io.IOException;
-import java.util.*;
+import java.util.Date;
+import java.util.List;
+import java.util.UUID;
 
 @Service
 @Slf4j
@@ -30,12 +29,10 @@ public class LoginServiceImpl implements LoginService {
 
     @Autowired
     private UserProfileMapper userProfileMapper;
-//    @Autowired
-//    private Config payConfig;
-    @Autowired
-    private GoodsHistoryMapper goodsHistoryMapper;
     @Autowired
     private RebateMapper rebateMapper;
+    @Autowired
+    private TokenService tokenService;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -87,9 +84,7 @@ public class LoginServiceImpl implements LoginService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void updateUserProfile(UserProfileRequest request) {
-        LambdaQueryWrapper<UserProfileDO> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(UserProfileDO::getToken, request.getToken());
-        UserProfileDO userProfileDO = userProfileMapper.selectOne(queryWrapper);
+        UserProfileDO userProfileDO = tokenService.getUserByToken(request.getToken());
         userProfileDO.setHeadUrl(request.getHeadUrl());
         userProfileDO.setNickName(request.getNickName());
         userProfileDO.setPhone(request.getPhone());
@@ -100,9 +95,7 @@ public class LoginServiceImpl implements LoginService {
 
     @Override
     public LoginResonse getUserInfoByToken(TokenRequest request) {
-        LambdaQueryWrapper<UserProfileDO> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(UserProfileDO::getToken, request.getToken());
-        UserProfileDO userProfileDO = userProfileMapper.selectOne(queryWrapper);
+        UserProfileDO userProfileDO = tokenService.getUserByToken(request.getToken());
         LoginResonse resonse = new LoginResonse();
         resonse.setNickName(userProfileDO.getNickName());
         resonse.setPhone(userProfileDO.getPhone());
@@ -112,28 +105,16 @@ public class LoginServiceImpl implements LoginService {
         return resonse;
     }
 
-    // 获取微信调用凭证
-    private String getWxAccessToken() throws Exception {
-        Map<String, String> param = new HashMap<>();
-        param.put("grant_type", "client_credential");
-        param.put("appid", Constants.APP_ID);
-        param.put("secret", Constants.APP_SECRET);
-        String result = HttpUtil.get("https://api.weixin.qq.com/cgi-bin/token", param);
-        JSONObject jsonObject = JSON.parseObject(result);
-        return jsonObject.getString("access_token");
+    @Override
+    public void editPassword(EditPasswordRequest request) {
+        LambdaQueryWrapper<UserProfileDO> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(UserProfileDO::getNickName, request.getUserName());
+        queryWrapper.eq(UserProfileDO::getPassword, request.getOldPassword());
+        UserProfileDO userProfileDO = userProfileMapper.selectOne(queryWrapper);
+
+        userProfileDO.setPassword(request.getNewPassword());
+        userProfileMapper.updateById(userProfileDO);
     }
 
-    // 根据code获取手机号
-    private String getPhoneByCode(String code, String accessToken) throws IOException {
-        Map<String, Object> param = new HashMap<>();
-        param.put("code", code);
-        String result = HttpUtil.post("https://api.weixin.qq.com/wxa/business/getuserphonenumber?access_token=" + accessToken, param);
-        JSONObject jsonObject = JSON.parseObject(result);
-        JSONObject phoneInfo = jsonObject.getJSONObject("phone_info");
-        if (Objects.isNull(phoneInfo)) {
-            return null;
-        }
-        return phoneInfo.getString("purePhoneNumber");
-    }
 
 }
