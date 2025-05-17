@@ -16,6 +16,20 @@ spring:
     host: localhost
     port: 36379
 
+wechat:
+  payment:
+    default-merchant: DEFAULT_MCH
+    merchants:
+      - id: MCH_001
+        appId: wx001...
+        mchId: 160000001
+        apiV3Key: ${API_V3_KEY_1}
+        certPath: classpath:certs/mch1.pem
+      - id: MCH_002
+        appId: wx002...
+        mchId: 160000002
+        apiV3Key: ${API_V3_KEY_2}
+        certPath: classpath:certs/mch2.pem
 
 wx:
   pay:

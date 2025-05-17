@@ -116,8 +116,6 @@
             <optional>true</optional>
         </dependency>
 
-
-
         <dependency>
             <groupId>com.github.binarywang</groupId>
             <artifactId>weixin-java-pay</artifactId>
@@ -138,6 +136,12 @@
             <groupId>com.alipay.sdk</groupId>
             <artifactId>alipay-sdk-java</artifactId>
             <version>4.40.26.ALL</version>
+        </dependency>
+
+        <dependency>
+            <groupId>cn.hutool</groupId>
+            <artifactId>hutool-core</artifactId>
+            <version>5.8.37</version>
         </dependency>
 
         <!-- ZXing生成二维码 -->

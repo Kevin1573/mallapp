@@ -1,8 +1,6 @@
 package com.wx.controller;
 
 import com.alibaba.fastjson.JSON;
-import com.github.binarywang.wxpay.exception.WxPayException;
-import com.google.zxing.WriterException;
 import com.wechat.pay.java.core.notification.NotificationParser;
 import com.wechat.pay.java.core.notification.RequestParam;
 import com.wechat.pay.java.service.partnerpayments.nativepay.model.Transaction;
@@ -10,18 +8,21 @@ import com.wechat.pay.java.service.payments.nativepay.NativePayService;
 import com.wechat.pay.java.service.payments.nativepay.model.Amount;
 import com.wechat.pay.java.service.payments.nativepay.model.PrepayRequest;
 import com.wechat.pay.java.service.payments.nativepay.model.PrepayResponse;
+import com.wx.common.model.request.WxPaymentRequest;
 import com.wx.common.utils.Constants;
+import com.wx.common.utils.OrderUtil;
 import com.wx.common.utils.QrCodeUtil;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
-import java.io.IOException;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+@Slf4j
 @RestController
 @RequestMapping("/pay/v3")
 @AllArgsConstructor
@@ -30,27 +31,27 @@ public class WxPayController {
     private final NotificationParser notificationParser;
 
     @PostMapping("/createOrderNative")
-    public String createOrderNative(@RequestBody Map<String, String> params) throws WxPayException, IOException, WriterException {
+    public String createOrderNative(@RequestBody WxPaymentRequest paymentRequest) {
         // request.setXxx(val)设置所需参数，具体参数可见Request定义
         PrepayRequest request = new PrepayRequest();
         Amount amount = new Amount();
-        amount.setTotal(Integer.valueOf(params.get("amountTotal")));
+        amount.setTotal(paymentRequest.getAmountTotal());
         request.setAmount(amount);
         request.setAppid(Constants.APP_ID);
         request.setMchid(Constants.MERCHANT_ID);
-        request.setDescription(params.getOrDefault("description", ""));
+        request.setDescription(paymentRequest.getDescription());
         request.setNotifyUrl(Constants.CALLBACK_URL);
-        String orderId = "ORDER_" + System.currentTimeMillis();
+        String orderId = OrderUtil.snowflakeOrderNo();
         request.setOutTradeNo(orderId);
         Map<String, String> attachMap = new HashMap<>();
         attachMap.put("orderId", orderId);
-        attachMap.put("amountTotal", params.get("amountTotal"));
+        attachMap.put("mchId", paymentRequest.getMchid());
         request.setAttach(JSON.toJSONString(attachMap));
         try {
             PrepayResponse prepay = payService.prepay(request);
             return QrCodeUtil.generateQrCodeBase64(prepay.getCodeUrl(), 300);
         } catch (Exception e) {
-            System.err.println("本次调用又出错了...");
+            log.error("本次调用又出错了...", e);
             return e.getMessage();
         }
     }
@@ -98,6 +99,7 @@ public class WxPayController {
         String outTradeNo = transaction.getOutTradeNo();
         String transactionId = transaction.getTransactionId();
         int amount = transaction.getAmount().getTotal(); // 总金额(分)
+        log.info("订单支付成功：{}", transaction);
 
         try {
             // TODO: 实现你的业务逻辑
