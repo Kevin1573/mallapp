@@ -21,6 +21,8 @@ public class UserProfileDO {
      */
     private String nickName;
 
+    private String password;
+
     /**
      * 手机号码
      */
@@ -32,7 +34,7 @@ public class UserProfileDO {
     private String headUrl;
 
     /**
-     * 用户职位
+     * 用户职位,0默认普通用户
      */
     private int position;
 
