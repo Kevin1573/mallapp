@@ -8,7 +8,6 @@ import com.wx.common.model.request.TokenRequest;
 import com.wx.common.model.request.UserProfileRequest;
 import com.wx.common.model.response.LoginResonse;
 import com.wx.orm.entity.UserProfileDO;
-import com.wx.orm.mapper.GoodsHistoryMapper;
 import com.wx.orm.mapper.RebateMapper;
 import com.wx.orm.mapper.UserProfileMapper;
 import com.wx.service.LoginService;
@@ -38,15 +37,19 @@ public class LoginServiceImpl implements LoginService {
     @Transactional(rollbackFor = Exception.class)
     public LoginResonse login(LoginRequest request) {
         LambdaQueryWrapper<UserProfileDO> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(UserProfileDO::getNickName, request.getUserName());
-        queryWrapper.eq(UserProfileDO::getPassword, request.getPassword());
+        queryWrapper.and(qw -> qw
+                .eq(UserProfileDO::getPhone, request.getPhone())
+                .or()
+                .eq(UserProfileDO::getNickName, request.getUserName())
+        ).eq(UserProfileDO::getPassword, request.getPassword()); // 保留密码必须匹配的条件
+
         List<UserProfileDO> userProfileDOS = userProfileMapper.selectList(queryWrapper);
         if (CollectionUtils.isEmpty(userProfileDOS)) {
             throw new BizException("账号密码错误");
         }
 
         UserProfileDO userProfileDO1 = userProfileDOS.get(0);
-        if (!userProfileDO1.getFrom().equals(request.getFrom())) {
+        if (!userProfileDO1.getFromShopName().equals(request.getFrom())) {
             throw new BizException("账号密码错误");
         }
 
@@ -54,7 +57,7 @@ public class LoginServiceImpl implements LoginService {
         resonse.setHeadUrl(userProfileDO1.getHeadUrl());
         resonse.setUserId(userProfileDO1.getId());
         resonse.setToken(userProfileDO1.getToken());
-        resonse.setPosition(rebateMapper.selectById(userProfileDO1.getPosition()).getDescription());
+        //resonse.setPosition(rebateMapper.selectById(userProfileDO1.getPosition()).getDescription());
         resonse.setPhone(userProfileDO1.getPhone());
         resonse.setNickName(userProfileDO1.getNickName());
         return resonse;
@@ -74,10 +77,12 @@ public class LoginServiceImpl implements LoginService {
         userProfileDO.setPhone(request.getPhone());
         userProfileDO.setNickName(request.getUserName());
         userProfileDO.setPassword(request.getPassword());
-        userProfileDO.setFrom(request.getFrom());
+        userProfileDO.setFromShopName(request.getFrom());
         userProfileDO.setHeadUrl(request.getHeadUrl());
         userProfileDO.setToken(UUID.randomUUID().toString());
         userProfileDO.setPosition(0);
+        userProfileDO.setCreateTime(new Date());
+        userProfileDO.setModifyTime(new Date());
         userProfileMapper.insert(userProfileDO);
     }
 
@@ -96,13 +101,14 @@ public class LoginServiceImpl implements LoginService {
     @Override
     public LoginResonse getUserInfoByToken(TokenRequest request) {
         UserProfileDO userProfileDO = tokenService.getUserByToken(request.getToken());
-        LoginResonse resonse = new LoginResonse();
-        resonse.setNickName(userProfileDO.getNickName());
-        resonse.setPhone(userProfileDO.getPhone());
-        resonse.setHeadUrl(userProfileDO.getHeadUrl());
-        resonse.setPosition(rebateMapper.selectById(userProfileDO.getPosition()).getDescription());
-        resonse.setUserId(userProfileDO.getId());
-        return resonse;
+        LoginResonse response = new LoginResonse();
+        response.setNickName(userProfileDO.getNickName());
+        response.setToken(userProfileDO.getToken());
+        response.setPhone(userProfileDO.getPhone());
+        response.setHeadUrl(userProfileDO.getHeadUrl());
+        response.setPosition(rebateMapper.selectById(userProfileDO.getPosition()).getDescription());
+        response.setUserId(userProfileDO.getId());
+        return response;
     }
 
     @Override

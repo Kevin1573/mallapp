@@ -1,6 +1,7 @@
 package com.wx.controller;
 
 import com.alibaba.fastjson.JSON;
+import com.wx.common.exception.BizException;
 import com.wx.common.model.Response;
 import com.wx.common.model.request.EditPasswordRequest;
 import com.wx.common.model.request.LoginRequest;
@@ -8,20 +9,20 @@ import com.wx.common.model.request.TokenRequest;
 import com.wx.common.model.request.UserProfileRequest;
 import com.wx.common.model.response.LoginResonse;
 import com.wx.service.LoginService;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+@Slf4j
 @RestController
 @RequestMapping(value = "/login")
-@Slf4j
+@RequiredArgsConstructor
 public class LoginController {
 
-    @Autowired
-    private LoginService loginService;
+    private final LoginService loginService;
 
     @RequestMapping(value = "/login", method = {RequestMethod.POST})
     public Response<LoginResonse> login(@RequestBody LoginRequest request) {
@@ -38,9 +39,11 @@ public class LoginController {
         try {
             loginService.register(request);
             return Response.success();
+        } catch (BizException be) {
+            return Response.failure(be.getMessage());
         } catch (Exception e) {
             log.error("Register exception, request = {}", JSON.toJSONString(request), e);
-            return Response.failure(e.getMessage());
+            return Response.failure("注册出错了...");
         }
     }
 

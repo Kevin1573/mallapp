@@ -8,5 +8,8 @@ public class OrderGoodsResponse {
 
     private String outTradeNo;
 
+    private Double rebate;
+
+
 //    private PrepayWithRequestPaymentResponse response;
 }

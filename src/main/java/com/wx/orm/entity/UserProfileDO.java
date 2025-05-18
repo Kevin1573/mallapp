@@ -45,14 +45,11 @@ public class UserProfileDO {
     /**
      * 店铺名称
      */
-    private String from;
+    private String fromShopName;
 
     /**
      * 登录标示
      */
     private String token;
-
-
-
 
 }

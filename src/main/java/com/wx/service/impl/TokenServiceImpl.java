@@ -5,14 +5,16 @@ import com.wx.common.exception.BizException;
 import com.wx.orm.entity.UserProfileDO;
 import com.wx.orm.mapper.UserProfileMapper;
 import com.wx.service.TokenService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
 
 import java.util.Objects;
 
+@Service
+@RequiredArgsConstructor
 public class TokenServiceImpl implements TokenService {
 
-    @Autowired
-    private UserProfileMapper userProfileMapper;
+    private final UserProfileMapper userProfileMapper;
 
     @Override
     public UserProfileDO getUserByToken(String token) {

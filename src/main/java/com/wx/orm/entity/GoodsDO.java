@@ -74,4 +74,14 @@ public class GoodsDO {
      * 销量
      */
     private Integer sales;
+
+    /**
+     * 是否首次创建
+     */
+    private Boolean firstGoods;
+
+    /**
+     * 分类
+     */
+    private String category;
 }
