@@ -8,20 +8,20 @@ import com.wx.common.model.request.TokenRequest;
 import com.wx.common.model.request.UserProfileRequest;
 import com.wx.common.model.response.LoginResonse;
 import com.wx.service.LoginService;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+@Slf4j
 @RestController
 @RequestMapping(value = "/login")
-@Slf4j
+@RequiredArgsConstructor
 public class LoginController {
 
-    @Autowired
-    private LoginService loginService;
+    private final LoginService loginService;
 
     @RequestMapping(value = "/login", method = {RequestMethod.POST})
     public Response<LoginResonse> login(@RequestBody LoginRequest request) {

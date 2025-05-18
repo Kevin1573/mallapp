@@ -37,8 +37,12 @@ public class LoginServiceImpl implements LoginService {
     @Transactional(rollbackFor = Exception.class)
     public LoginResonse login(LoginRequest request) {
         LambdaQueryWrapper<UserProfileDO> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(UserProfileDO::getNickName, request.getUserName());
-        queryWrapper.eq(UserProfileDO::getPassword, request.getPassword());
+        queryWrapper.and(qw -> qw
+                .eq(UserProfileDO::getPhone, request.getPhone())
+                .or()
+                .eq(UserProfileDO::getNickName, request.getUserName())
+        ).eq(UserProfileDO::getPassword, request.getPassword()); // 保留密码必须匹配的条件
+
         List<UserProfileDO> userProfileDOS = userProfileMapper.selectList(queryWrapper);
         if (CollectionUtils.isEmpty(userProfileDOS)) {
             throw new BizException("账号密码错误");
@@ -95,13 +99,14 @@ public class LoginServiceImpl implements LoginService {
     @Override
     public LoginResonse getUserInfoByToken(TokenRequest request) {
         UserProfileDO userProfileDO = tokenService.getUserByToken(request.getToken());
-        LoginResonse resonse = new LoginResonse();
-        resonse.setNickName(userProfileDO.getNickName());
-        resonse.setPhone(userProfileDO.getPhone());
-        resonse.setHeadUrl(userProfileDO.getHeadUrl());
-        resonse.setPosition(rebateMapper.selectById(userProfileDO.getPosition()).getDescription());
-        resonse.setUserId(userProfileDO.getId());
-        return resonse;
+        LoginResonse response = new LoginResonse();
+        response.setNickName(userProfileDO.getNickName());
+        response.setToken(userProfileDO.getToken());
+        response.setPhone(userProfileDO.getPhone());
+        response.setHeadUrl(userProfileDO.getHeadUrl());
+        response.setPosition(rebateMapper.selectById(userProfileDO.getPosition()).getDescription());
+        response.setUserId(userProfileDO.getId());
+        return response;
     }
 
     @Override

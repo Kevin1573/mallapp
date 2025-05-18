@@ -1,10 +1,12 @@
 package com.wx.orm.entity;
 
 import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 import lombok.experimental.Accessors;
+import org.apache.ibatis.type.JdbcType;
 
 import java.util.Date;
 
@@ -96,5 +98,12 @@ public class GoodsHistoryDO {
      * 是否打包；1未打包，2已打包
      */
     private Integer isPack;
+
+    /**
+     * 商品列表 json 格式字符串
+     * 使用 @TableField 标注字段类型（非必须但推荐）
+     */
+    @TableField(value = "goods_list", jdbcType = JdbcType.VARCHAR)
+    private String goodsList;
 
 }

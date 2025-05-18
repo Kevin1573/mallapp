@@ -14,6 +14,7 @@ import com.wx.common.utils.AddrUtil;
 import com.wx.common.utils.LogisticsUtil;
 import com.wx.common.utils.OrderUtil;
 import com.wx.common.utils.WxAPIV3AesUtil;
+import com.wx.dto.GoodsNumItem;
 import com.wx.orm.entity.*;
 import com.wx.orm.mapper.*;
 import com.wx.service.OrderService;
@@ -59,46 +60,50 @@ public class OrderServiceImpl implements OrderService {
             throw new BizException("openid is error");
         }
         String tradeNo = OrderUtil.snowflakeOrderNo();
-
-        // 添加购买记录(兼容购物车组合下单)
-        double weight = 0;
-        List<OrderGoodsModelRequest> modelRequestList = request.getModelRequestList();
-        for (OrderGoodsModelRequest modelRequest : modelRequestList) {
+        // 1. 预收集所有商品信息
+        List<GoodsNumItem> goodsList = new ArrayList<>();
+        // 关键-初次创建的商品
+        GoodsDO firstCreateGoods = null;
+        for (OrderGoodsModelRequest modelRequest : request.getModelRequestList()) {
             GoodsDO goodsDO = goodsMapper.selectById(modelRequest.getGoodsId());
-            UserAddrDO userAddrDO = userAddrMapper.selectById(request.getAddrId());
-            JSONObject orderInfo = new JSONObject();
-            if (Objects.nonNull(userAddrDO)) {
-                orderInfo.put("name", userAddrDO.getName());
-                orderInfo.put("phone", userAddrDO.getPhone());
-                orderInfo.put("addr", userAddrDO.getProvince() + userAddrDO.getCity() + userAddrDO.getArea() + userAddrDO.getDetail());
+            Long num = modelRequest.getNum();
+            if (goodsDO.getFirstGoods()) {
+                firstCreateGoods = goodsDO;
             }
-
-            GoodsHistoryDO goodsHistoryDO = new GoodsHistoryDO()
-                    .setGoodsId(goodsDO.getId())
-                    .setUserId(userProfileDO.getId())
-                    .setIsComplete(CompleteEnum.FALSE.getCode())
-                    .setCreateTime(new Date())
-                    .setModifyTime(new Date())
-                    .setNum(modelRequest.getNum())
-                    .setTradeNo(tradeNo)
-                    .setGoodsPic(goodsDO.getGoodsPic())
-                    .setGoodsName(goodsDO.getName())
-                    .setGoodsPrice(goodsDO.getPrice())
-                    .setGoodsDescription(goodsDO.getDescription())
-                    .setIsPaySuccess(CompleteEnum.FALSE.getCode())
-                    .setAddrId(request.getAddrId())
-                    .setOrderInfo(JSON.toJSONString(orderInfo));
-
-            LambdaQueryWrapper<GoodsHistoryDO> newQuery = new LambdaQueryWrapper<>();
-            newQuery.eq(GoodsHistoryDO::getTradeNo, tradeNo);
-            List<GoodsHistoryDO> goodsHistoryDOList = goodsHistoryMapper.selectList(newQuery);
-            if (CollectionUtils.isNotEmpty(goodsHistoryDOList)) {
-                goodsHistoryDO.setCreateTime(goodsHistoryDOList.get(0).getCreateTime());
-                goodsHistoryDO.setModifyTime(goodsHistoryDOList.get(0).getModifyTime());
-            }
-            goodsHistoryMapper.insert(goodsHistoryDO);
-
+            goodsList.add(GoodsNumItem.builder().goodsDO(goodsDO).num(num).build());
         }
+        String goodsListJson = JSON.toJSONString(goodsList); // 转为JSON数组
+
+        // 2. 添加购买记录（更新goodsList字段）
+
+        UserAddrDO userAddrDO = userAddrMapper.selectById(request.getAddrId());
+        JSONObject orderInfo = new JSONObject();
+        if (Objects.nonNull(userAddrDO)) {
+            orderInfo.put("name", userAddrDO.getName());
+            orderInfo.put("phone", userAddrDO.getPhone());
+            orderInfo.put("addr", userAddrDO.getProvince() + userAddrDO.getCity() + userAddrDO.getArea() + userAddrDO.getDetail());
+        }
+
+        GoodsHistoryDO goodsHistoryDO = new GoodsHistoryDO()
+                .setUserId(userProfileDO.getId())
+                .setIsComplete(CompleteEnum.FALSE.getCode())
+                .setCreateTime(new Date())
+                .setModifyTime(new Date())
+                .setTradeNo(tradeNo)
+                .setIsPaySuccess(CompleteEnum.FALSE.getCode())
+                .setAddrId(request.getAddrId())
+                .setOrderInfo(JSON.toJSONString(orderInfo))
+                .setGoodsList(JSON.toJSONString(goodsListJson));
+
+        LambdaQueryWrapper<GoodsHistoryDO> newQuery = new LambdaQueryWrapper<>();
+        newQuery.eq(GoodsHistoryDO::getTradeNo, tradeNo);
+        List<GoodsHistoryDO> goodsHistoryDOList = goodsHistoryMapper.selectList(newQuery);
+        if (CollectionUtils.isNotEmpty(goodsHistoryDOList)) {
+            goodsHistoryDO.setCreateTime(goodsHistoryDOList.get(0).getCreateTime());
+            goodsHistoryDO.setModifyTime(goodsHistoryDOList.get(0).getModifyTime());
+        }
+        goodsHistoryMapper.insert(goodsHistoryDO);
+
 
         // 邮寄方式改为邮寄和自提，自提则没有快递费
         Double logisticsPrice = request.getFreight(); // 运费
@@ -150,7 +155,7 @@ public class OrderServiceImpl implements OrderService {
         // 记录订单使用积分、其他积分
         LambdaQueryWrapper<GoodsHistoryDO> hisQueryWrapper = new LambdaQueryWrapper<>();
         hisQueryWrapper.eq(GoodsHistoryDO::getTradeNo, tradeNo);
-        GoodsHistoryDO goodsHistoryDO = new GoodsHistoryDO();
+//        GoodsHistoryDO goodsHistoryDO = new GoodsHistoryDO();
 //        goodsHistoryDO.setPoint(point);
 //        goodsHistoryDO.setRealPoint(realPoint);
 //        goodsHistoryMapper.update(goodsHistoryDO, hisQueryWrapper);

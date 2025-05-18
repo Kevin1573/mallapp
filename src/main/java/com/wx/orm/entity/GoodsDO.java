@@ -75,4 +75,8 @@ public class GoodsDO {
      */
     private Integer sales;
 
+    /**
+     * 是否首次创建
+     */
+    private Boolean firstGoods;
 }
