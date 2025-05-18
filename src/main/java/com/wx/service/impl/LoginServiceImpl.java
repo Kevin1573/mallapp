@@ -81,6 +81,8 @@ public class LoginServiceImpl implements LoginService {
         userProfileDO.setHeadUrl(request.getHeadUrl());
         userProfileDO.setToken(UUID.randomUUID().toString());
         userProfileDO.setPosition(0);
+        userProfileDO.setCreateTime(new Date());
+        userProfileDO.setModifyTime(new Date());
         userProfileMapper.insert(userProfileDO);
     }
 

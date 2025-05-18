@@ -19,6 +19,7 @@ import com.wx.orm.entity.*;
 import com.wx.orm.mapper.*;
 import com.wx.service.OrderService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -111,8 +112,8 @@ public class OrderServiceImpl implements OrderService {
             throw new BizException("请输入正确的地址信息");
         }
 //        if (Objects.nonNull(request.getAddrId())) {
-            //UserAddrDO userAddrDO = userAddrMapper.selectById(request.getAddrId());
-            //logisticsPrice = LogisticsUtil.getLogisticsPrice((int) Math.ceil(weight), userAddrDO.getProvince());
+        //UserAddrDO userAddrDO = userAddrMapper.selectById(request.getAddrId());
+        //logisticsPrice = LogisticsUtil.getLogisticsPrice((int) Math.ceil(weight), userAddrDO.getProvince());
 //        }
 
         OrderGoodsResponse orderGoodsResponse = new OrderGoodsResponse();
@@ -177,12 +178,30 @@ public class OrderServiceImpl implements OrderService {
         // 分页查询数据
         Page<GoodsDO> page = new Page<>(request.getPage(), request.getLimit());
         LambdaQueryWrapper<GoodsDO> queryWrapper = new LambdaQueryWrapper<>();
-//        queryWrapper.eq(GoodsDO::getTypeId, 19);
+        // 1. 分类筛选
         queryWrapper.eq(null != request.getTypeId(), GoodsDO::getTypeId, request.getTypeId());
+
+        // 2. 品牌筛选（假设有 brand 字段）
+        if (StringUtils.isNotBlank(request.getBrand())) {
+            queryWrapper.eq(null != request.getBrand(), GoodsDO::getBrand, request.getBrand());
+        }
+
+        // 3. 预算区间筛选（新增逻辑）
+        if (StringUtils.isNotBlank(request.getBudget())) {
+            String[] budgetArr = request.getBudget().split(",");
+            if (budgetArr.length == 2) {
+                Double minBudget = Double.parseDouble(budgetArr[0]);
+                Double maxBudget = Double.parseDouble(budgetArr[1]);
+                queryWrapper.between(GoodsDO::getPrice, minBudget, maxBudget);
+            }
+        }
+
+        // 4. 排序逻辑  销量，1升序2降序
+        queryWrapper.orderBy(true, 1 == request.getInventory(), GoodsDO::getInventory);
         queryWrapper.orderByAsc(GoodsDO::getId);
+
         IPage<GoodsDO> goodsDOPage = goodsMapper.selectPage(page, queryWrapper);
 
-        // 处理数据
         List<GoodsDO> goodsDOList = goodsDOPage.getRecords();
         List<QueryGoodsModel> modelList = new ArrayList<>();
         for (GoodsDO goodsDO : goodsDOList) {
