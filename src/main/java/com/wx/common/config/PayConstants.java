@@ -23,7 +23,7 @@ public class PayConstants {
      * 商户API私钥路径
      */
 //    public static String PRIVATE_KEY_PATH = "/Users/gzj/1657722877_20231101_cert/apiclient_key.pem";
-    public static String PRIVATE_KEY_PATH = "D:\\code\\mallapp\\src\\main\\resources\\wxCert\\apiclient_key.pem";
+    public static String PRIVATE_KEY_PATH = "/root/mallapp/wxCert/apiclient_key.pem";
 
     /**
      * 商户证书序列号
@@ -37,7 +37,7 @@ public class PayConstants {
 
     public static String PRIVATE_KEY = "68EE48914BD37392C6E2320FD07DAD71FD61F69F";
 
-    public static String CALLBACK_URL = "http://g8a65b28.natappfree.cc/pay/v3/callback";
+    public static String CALLBACK_URL = "http://mallapp.pdcspace.com/pay/v3/callback";
 
 
     public static String APP_ID = "wx70559cc67cdc94cc";
