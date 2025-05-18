@@ -57,7 +57,7 @@ public class LoginServiceImpl implements LoginService {
         resonse.setHeadUrl(userProfileDO1.getHeadUrl());
         resonse.setUserId(userProfileDO1.getId());
         resonse.setToken(userProfileDO1.getToken());
-        resonse.setPosition(rebateMapper.selectById(userProfileDO1.getPosition()).getDescription());
+        //resonse.setPosition(rebateMapper.selectById(userProfileDO1.getPosition()).getDescription());
         resonse.setPhone(userProfileDO1.getPhone());
         resonse.setNickName(userProfileDO1.getNickName());
         return resonse;

@@ -51,6 +51,17 @@ public class OrderController {
 //        }
 //    }
 
+
+    @PostMapping("/getGoodsDetailById")
+    public Response<QueryGoodsByIdResponse> getGoodsDetailById(@RequestBody QueryGoodsByIdRequest request) {
+        try {
+            return Response.success(orderService.queryGoodsById(request));
+        } catch (Exception e) {
+            log.error("queryOrderStatus exception, request = {}", JSON.toJSONString(request), e);
+            return Response.failure("getGoodsDetailById exception");
+        }
+    }
+
     @RequestMapping(value = "/queryOrderStatus", method = {RequestMethod.POST})
     public Response<Boolean> queryOrderStatus(@RequestBody QueryOrderStatusRequest request) {
         try {

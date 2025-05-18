@@ -9,7 +9,7 @@ import com.wechat.pay.java.service.payments.nativepay.model.Amount;
 import com.wechat.pay.java.service.payments.nativepay.model.PrepayRequest;
 import com.wechat.pay.java.service.payments.nativepay.model.PrepayResponse;
 import com.wx.common.model.Response;
-import com.wx.common.model.request.WxPaymentRequest;
+import com.wx.common.model.request.PaymentRequest;
 import com.wx.common.utils.OrderUtil;
 import com.wx.common.utils.QrCodeUtil;
 import lombok.AllArgsConstructor;
@@ -34,7 +34,7 @@ public class WxPayController {
     private final NotificationParser notificationParser;
 
     @PostMapping("/createOrderNative")
-    public Response<String> createOrderNative(@RequestBody WxPaymentRequest paymentRequest) {
+    public Response<String> createOrderNative(@RequestBody PaymentRequest paymentRequest) {
         String from = paymentRequest.getFrom();
         if (StringUtils.isBlank(from)) {
             return Response.failure("from不能为空");
@@ -43,17 +43,17 @@ public class WxPayController {
         // 通过from 查出对应的商户配置
         PrepayRequest request = new PrepayRequest();
         Amount amount = new Amount();
-        amount.setTotal(paymentRequest.getAmountTotal());
+        amount.setTotal(10);
         request.setAmount(amount);
         request.setAppid(APP_ID);
         request.setMchid(MERCHANT_ID);
-        request.setDescription(paymentRequest.getDescription());
+        request.setDescription("商品描述(from db)");
         request.setNotifyUrl(CALLBACK_URL);
         String orderId = OrderUtil.snowflakeOrderNo();
         request.setOutTradeNo(orderId);
         Map<String, String> attachMap = new HashMap<>();
         attachMap.put("orderId", orderId);
-        attachMap.put("mchId", paymentRequest.getMchid());
+        attachMap.put("mchId", "购买商品所在的商户号(查db)");
         request.setAttach(JSON.toJSONString(attachMap));
         try {
             PrepayResponse prepay = payService.prepay(request);
@@ -65,6 +65,11 @@ public class WxPayController {
         }
     }
 
+    @PostMapping("/return")
+    public Response<String> returnUrl() {
+        // 处理支付成功后的逻辑
+        return Response.success("SUCCESS");
+    }
 
     @RequestMapping(value = "/callback", method = RequestMethod.POST)
     public String callback(HttpServletRequest request) {

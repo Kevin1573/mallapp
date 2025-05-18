@@ -3,12 +3,12 @@ package com.wx.controller;
 import com.alipay.api.AlipayApiException;
 import com.alipay.api.internal.util.AlipaySignature;
 import com.wx.common.config.AlipayConfig;
+import com.wx.common.model.Response;
+import com.wx.common.model.request.PaymentRequest;
+import com.wx.common.utils.OrderUtil;
 import com.wx.service.AlipayService;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.HashMap;
@@ -20,24 +20,21 @@ import java.util.Map;
 public class AlipayController {
 
     @GetMapping("/pay")
-    @ResponseBody
-    public String pay() {
+    public String pay(PaymentRequest request) {
         // 生成商户订单号
-        String outTradeNo = "ORDER_" + System.currentTimeMillis();
+        String outTradeNo = OrderUtil.snowflakeOrderNo();
         // 支付金额
         String totalAmount = "0.01";
-        // 订单标题
-        String subject = "测试商品";
 
         // 调用支付
-        return AlipayService.pagePay(outTradeNo, totalAmount, subject);
+        return AlipayService.pagePay(outTradeNo, totalAmount, request.getSubject());
     }
 
     // 支付成功同步回调
-    @GetMapping("/return")
-    public String returnUrl() {
+    @PostMapping("/return")
+    public Response<String> returnUrl() {
         // 处理支付成功后的逻辑
-        return "redirect:/success.html";
+        return Response.success("SUCCESS");
     }
 
     // 支付成功异步回调

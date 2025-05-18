@@ -4,6 +4,7 @@ import com.wx.common.model.Response;
 import com.wx.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -17,7 +18,7 @@ public class ProductController {
     private final ProductService productService;
 
     // 添加产品分类接口
-    @RequestMapping(value = "/category")
+    @PostMapping(value = "/category")
     public Response<List<String>> productCategory() {
         try {
             return Response.success(productService.queryProductCategory());
@@ -27,7 +28,7 @@ public class ProductController {
         }
     }
 
-    @RequestMapping(value = "/brand")
+    @PostMapping(value = "/brand")
     public Response<List<String>> productBrand() {
         try {
             return Response.success(productService.queryProductBrand());
