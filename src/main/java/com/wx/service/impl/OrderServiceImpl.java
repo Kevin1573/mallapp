@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.wx.common.enums.CompleteEnum;
+import com.wx.common.enums.OrderStatus;
 import com.wx.common.exception.BizException;
 import com.wx.common.model.request.*;
 import com.wx.common.model.response.*;
@@ -670,6 +671,16 @@ public class OrderServiceImpl implements OrderService {
         GoodsHistoryDO newHisDO = new GoodsHistoryDO();
         newHisDO.setIsPack(2);
         goodsHistoryMapper.update(newHisDO, hisQueryWrapper);
+    }
+
+    @Override
+    public void updateOrderStatus(String outTradeNo, OrderStatus orderStatus) {
+        if (OrderStatus.PAID == orderStatus) {
+            goodsHistoryMapper.updateById(new GoodsHistoryDO()
+                    .setTradeNo(outTradeNo)
+                    .setIsPaySuccess(2)
+                    .setIsComplete(2));
+        }
     }
 
     private Double addOtherMoneyByNum(Integer num, Double logisticsPrice) {
