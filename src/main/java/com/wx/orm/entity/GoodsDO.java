@@ -79,4 +79,9 @@ public class GoodsDO {
      * 是否首次创建
      */
     private Boolean firstGoods;
+
+    /**
+     * 分类
+     */
+    private String category;
 }

@@ -179,12 +179,10 @@ public class OrderServiceImpl implements OrderService {
         Page<GoodsDO> page = new Page<>(request.getPage(), request.getLimit());
         LambdaQueryWrapper<GoodsDO> queryWrapper = new LambdaQueryWrapper<>();
         // 1. 分类筛选
-        queryWrapper.eq(null != request.getTypeId(), GoodsDO::getTypeId, request.getTypeId());
+        queryWrapper.eq(StringUtils.isNotBlank(request.getCategory()), GoodsDO::getCategory, request.getCategory());
 
         // 2. 品牌筛选（假设有 brand 字段）
-        if (StringUtils.isNotBlank(request.getBrand())) {
-            queryWrapper.eq(null != request.getBrand(), GoodsDO::getBrand, request.getBrand());
-        }
+        queryWrapper.eq(StringUtils.isNotBlank(request.getBrand()), GoodsDO::getBrand, request.getBrand());
 
         // 3. 预算区间筛选（新增逻辑）
         if (StringUtils.isNotBlank(request.getBudget())) {
