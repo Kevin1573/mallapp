@@ -1,6 +1,7 @@
 package com.wx.controller;
 
 import com.alibaba.fastjson.JSON;
+import com.wx.common.exception.BizException;
 import com.wx.common.model.Response;
 import com.wx.common.model.request.EditPasswordRequest;
 import com.wx.common.model.request.LoginRequest;
@@ -38,9 +39,11 @@ public class LoginController {
         try {
             loginService.register(request);
             return Response.success();
+        } catch (BizException be) {
+            return Response.failure(be.getMessage());
         } catch (Exception e) {
             log.error("Register exception, request = {}", JSON.toJSONString(request), e);
-            return Response.failure(e.getMessage());
+            return Response.failure("注册出错了...");
         }
     }
 

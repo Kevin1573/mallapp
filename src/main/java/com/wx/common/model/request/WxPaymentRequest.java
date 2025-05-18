@@ -27,4 +27,6 @@ public class WxPaymentRequest {
     private String appid;
     // 后续扩展字段
     private String mchid; // 多商户预留
+
+    private String from;
 }

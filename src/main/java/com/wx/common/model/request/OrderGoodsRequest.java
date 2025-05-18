@@ -27,4 +27,6 @@ public class OrderGoodsRequest {
     private Double freight;
 
     private List<OrderGoodsModelRequest> modelRequestList;
+
+    private String from;
 }

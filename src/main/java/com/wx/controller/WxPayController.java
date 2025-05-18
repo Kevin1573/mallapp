@@ -8,11 +8,13 @@ import com.wechat.pay.java.service.payments.nativepay.NativePayService;
 import com.wechat.pay.java.service.payments.nativepay.model.Amount;
 import com.wechat.pay.java.service.payments.nativepay.model.PrepayRequest;
 import com.wechat.pay.java.service.payments.nativepay.model.PrepayResponse;
+import com.wx.common.model.Response;
 import com.wx.common.model.request.WxPaymentRequest;
 import com.wx.common.utils.OrderUtil;
 import com.wx.common.utils.QrCodeUtil;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
@@ -28,145 +30,151 @@ import static com.wx.common.config.PayConstants.*;
 @RequestMapping("/pay/v3")
 @AllArgsConstructor
 public class WxPayController {
-  private final NativePayService payService;
-  private final NotificationParser notificationParser;
+    private final NativePayService payService;
+    private final NotificationParser notificationParser;
 
-  @PostMapping("/createOrderNative")
-  public String createOrderNative(@RequestBody WxPaymentRequest paymentRequest) {
-    // request.setXxx(val)设置所需参数，具体参数可见Request定义
-    PrepayRequest request = new PrepayRequest();
-    Amount amount = new Amount();
-    amount.setTotal(paymentRequest.getAmountTotal());
-    request.setAmount(amount);
-    request.setAppid(APP_ID);
-    request.setMchid(MERCHANT_ID);
-    request.setDescription(paymentRequest.getDescription());
-    request.setNotifyUrl(CALLBACK_URL);
-    String orderId = OrderUtil.snowflakeOrderNo();
-    request.setOutTradeNo(orderId);
-    Map<String, String> attachMap = new HashMap<>();
-    attachMap.put("orderId", orderId);
-    attachMap.put("mchId", paymentRequest.getMchid());
-    request.setAttach(JSON.toJSONString(attachMap));
-    try {
-      PrepayResponse prepay = payService.prepay(request);
-      return QrCodeUtil.generateQrCodeBase64(prepay.getCodeUrl(), 300);
-    } catch (Exception e) {
-      log.error("本次调用又出错了...", e);
-      return e.getMessage();
-    }
-  }
+    @PostMapping("/createOrderNative")
+    public Response<String> createOrderNative(@RequestBody WxPaymentRequest paymentRequest) {
+        String from = paymentRequest.getFrom();
+        if (StringUtils.isBlank(from)) {
+            return Response.failure("from不能为空");
+        }
 
-
-  @RequestMapping(value = "/callback", method = RequestMethod.POST)
-  public String callback(HttpServletRequest request) {
-    try {
-      // 1. 获取请求头信息
-      Map<String, String> headers = getHeaders(request);
-      String timestamp = headers.get("Wechatpay-Timestamp");
-      String nonce = headers.get("Wechatpay-Nonce");
-      String signature = headers.get("Wechatpay-Signature");
-      String serial = headers.get("Wechatpay-Serial");
-      String body = getRequestBody(request);
-
-      // 2. 构造RequestParam
-      RequestParam requestParam = new RequestParam.Builder()
-              .serialNumber(serial)
-              .nonce(nonce)
-              .signature(signature)
-              .timestamp(timestamp)
-              .body(body)
-              .build();
-
-      // 3. 解析并验证通知
-      Transaction transaction = notificationParser.parse(requestParam, Transaction.class);
-
-      // 4. 处理业务逻辑
-      return processTransaction(transaction);
-
-    } catch (Exception e) {
-      // 记录错误日志
-      return buildErrorResponse("FAIL", "处理失败: " + e.getMessage());
-    }
-  }
-
-
-  private String processTransaction(Transaction transaction) {
-    // 验证订单状态
-    if (!Transaction.TradeStateEnum.SUCCESS.equals(transaction.getTradeState())) {
-      return buildErrorResponse("FAIL", "支付未成功");
+        // 通过from 查出对应的商户配置
+        PrepayRequest request = new PrepayRequest();
+        Amount amount = new Amount();
+        amount.setTotal(paymentRequest.getAmountTotal());
+        request.setAmount(amount);
+        request.setAppid(APP_ID);
+        request.setMchid(MERCHANT_ID);
+        request.setDescription(paymentRequest.getDescription());
+        request.setNotifyUrl(CALLBACK_URL);
+        String orderId = OrderUtil.snowflakeOrderNo();
+        request.setOutTradeNo(orderId);
+        Map<String, String> attachMap = new HashMap<>();
+        attachMap.put("orderId", orderId);
+        attachMap.put("mchId", paymentRequest.getMchid());
+        request.setAttach(JSON.toJSONString(attachMap));
+        try {
+            PrepayResponse prepay = payService.prepay(request);
+            String qrCodeBase64 = QrCodeUtil.generateQrCodeBase64(prepay.getCodeUrl(), 300);
+            return Response.success(qrCodeBase64);
+        } catch (Exception e) {
+            log.error("本次调用又出错了...", e);
+            return Response.failure("生成二维码异常...");
+        }
     }
 
-    String outTradeNo = transaction.getOutTradeNo();
-    String transactionId = transaction.getTransactionId();
-    int amount = transaction.getAmount().getTotal(); // 总金额(分)
-    log.info("订单支付成功：{}", transaction);
 
-    try {
-      // TODO: 实现你的业务逻辑
-      // 注意：必须做幂等处理，防止重复通知
-      boolean success = processOrder(outTradeNo, transactionId, amount);
+    @RequestMapping(value = "/callback", method = RequestMethod.POST)
+    public String callback(HttpServletRequest request) {
+        try {
+            // 1. 获取请求头信息
+            Map<String, String> headers = getHeaders(request);
+            String timestamp = headers.get("Wechatpay-Timestamp");
+            String nonce = headers.get("Wechatpay-Nonce");
+            String signature = headers.get("Wechatpay-Signature");
+            String serial = headers.get("Wechatpay-Serial");
+            String body = getRequestBody(request);
 
-      return success ? buildSuccessResponse() : buildErrorResponse("FAIL", "订单处理失败");
-    } catch (Exception e) {
-      return buildErrorResponse("FAIL", "系统异常: " + e.getMessage());
-    }
-  }
+            // 2. 构造RequestParam
+            RequestParam requestParam = new RequestParam.Builder()
+                    .serialNumber(serial)
+                    .nonce(nonce)
+                    .signature(signature)
+                    .timestamp(timestamp)
+                    .body(body)
+                    .build();
 
+            // 3. 解析并验证通知
+            Transaction transaction = notificationParser.parse(requestParam, Transaction.class);
 
-  private boolean processOrder(String outTradeNo, String transactionId, int amount) {
-    // 实现你的业务逻辑，例如：
-    // 1. 检查订单是否存在
-    // 2. 验证金额是否匹配
-    // 3. 更新订单状态
-    // 4. 记录支付信息
-    // 返回处理结果
-    System.out.println("处理订单：" + outTradeNo);
-    System.out.println("订单支付成功：" + transactionId);
-    System.out.println("支付金额：" + amount);
-    return true;
-  }
+            // 4. 处理业务逻辑
+            return processTransaction(transaction);
 
-  private String buildSuccessResponse() {
-    return "{\"code\": \"SUCCESS\", \"message\": \"OK\"}";
-  }
-
-  private String buildErrorResponse(String code, String message) {
-    return String.format("{\"code\": \"%s\", \"message\": \"%s\"}", code, message);
-  }
-
-  private String getRequestBody(HttpServletRequest request) throws Exception {
-    return request.getReader().lines()
-            .collect(Collectors.joining(System.lineSeparator()));
-  }
-
-
-  private Map<String, String> getHeaders(HttpServletRequest request) {
-    Map<String, String> headers = new HashMap<>();
-    Enumeration<String> headerNames = request.getHeaderNames();
-    while (headerNames.hasMoreElements()) {
-      String name = headerNames.nextElement();
-      headers.put(name, request.getHeader(name));
-    }
-    return headers;
-  }
-
-
-  private Map<String, String> convertRequestParamsToMap(HttpServletRequest request) {
-    Map<String, String> params = new HashMap<>();
-    Map<String, String[]> requestParams = request.getParameterMap();
-
-    for (String name : requestParams.keySet()) {
-      String[] values = requestParams.get(name);
-      String valueStr = "";
-      for (int i = 0; i < values.length; i++) {
-        valueStr = (i == values.length - 1) ? valueStr + values[i]
-                : valueStr + values[i] + ",";
-      }
-      params.put(name, valueStr);
+        } catch (Exception e) {
+            // 记录错误日志
+            return buildErrorResponse("FAIL", "处理失败: " + e.getMessage());
+        }
     }
 
-    return params;
-  }
+
+    private String processTransaction(Transaction transaction) {
+        // 验证订单状态
+        if (!Transaction.TradeStateEnum.SUCCESS.equals(transaction.getTradeState())) {
+            return buildErrorResponse("FAIL", "支付未成功");
+        }
+
+        String outTradeNo = transaction.getOutTradeNo();
+        String transactionId = transaction.getTransactionId();
+        int amount = transaction.getAmount().getTotal(); // 总金额(分)
+        log.info("订单支付成功：{}", transaction);
+
+        try {
+            // TODO: 实现你的业务逻辑
+            // 注意：必须做幂等处理，防止重复通知
+            boolean success = processOrder(outTradeNo, transactionId, amount);
+
+            return success ? buildSuccessResponse() : buildErrorResponse("FAIL", "订单处理失败");
+        } catch (Exception e) {
+            return buildErrorResponse("FAIL", "系统异常: " + e.getMessage());
+        }
+    }
+
+
+    private boolean processOrder(String outTradeNo, String transactionId, int amount) {
+        // 实现你的业务逻辑，例如：
+        // 1. 检查订单是否存在
+        // 2. 验证金额是否匹配
+        // 3. 更新订单状态
+        // 4. 记录支付信息
+        // 返回处理结果
+        System.out.println("处理订单：" + outTradeNo);
+        System.out.println("订单支付成功：" + transactionId);
+        System.out.println("支付金额：" + amount);
+        return true;
+    }
+
+    private String buildSuccessResponse() {
+        return "{\"code\": \"SUCCESS\", \"message\": \"OK\"}";
+    }
+
+    private String buildErrorResponse(String code, String message) {
+        return String.format("{\"code\": \"%s\", \"message\": \"%s\"}", code, message);
+    }
+
+    private String getRequestBody(HttpServletRequest request) throws Exception {
+        return request.getReader().lines()
+                .collect(Collectors.joining(System.lineSeparator()));
+    }
+
+
+    private Map<String, String> getHeaders(HttpServletRequest request) {
+        Map<String, String> headers = new HashMap<>();
+        Enumeration<String> headerNames = request.getHeaderNames();
+        while (headerNames.hasMoreElements()) {
+            String name = headerNames.nextElement();
+            headers.put(name, request.getHeader(name));
+        }
+        return headers;
+    }
+
+
+    private Map<String, String> convertRequestParamsToMap(HttpServletRequest request) {
+        Map<String, String> params = new HashMap<>();
+        Map<String, String[]> requestParams = request.getParameterMap();
+
+        for (String name : requestParams.keySet()) {
+            String[] values = requestParams.get(name);
+            String valueStr = "";
+            for (int i = 0; i < values.length; i++) {
+                valueStr = (i == values.length - 1) ? valueStr + values[i]
+                        : valueStr + values[i] + ",";
+            }
+            params.put(name, valueStr);
+        }
+
+        return params;
+    }
 
 }
