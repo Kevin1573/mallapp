@@ -8,7 +8,6 @@ import com.wx.common.model.request.TokenRequest;
 import com.wx.common.model.request.UserProfileRequest;
 import com.wx.common.model.response.LoginResonse;
 import com.wx.orm.entity.UserProfileDO;
-import com.wx.orm.mapper.GoodsHistoryMapper;
 import com.wx.orm.mapper.RebateMapper;
 import com.wx.orm.mapper.UserProfileMapper;
 import com.wx.service.LoginService;
@@ -46,7 +45,7 @@ public class LoginServiceImpl implements LoginService {
         }
 
         UserProfileDO userProfileDO1 = userProfileDOS.get(0);
-        if (!userProfileDO1.getFrom().equals(request.getFrom())) {
+        if (!userProfileDO1.getFromShopName().equals(request.getFrom())) {
             throw new BizException("账号密码错误");
         }
 
@@ -74,7 +73,7 @@ public class LoginServiceImpl implements LoginService {
         userProfileDO.setPhone(request.getPhone());
         userProfileDO.setNickName(request.getUserName());
         userProfileDO.setPassword(request.getPassword());
-        userProfileDO.setFrom(request.getFrom());
+        userProfileDO.setFromShopName(request.getFrom());
         userProfileDO.setHeadUrl(request.getHeadUrl());
         userProfileDO.setToken(UUID.randomUUID().toString());
         userProfileDO.setPosition(0);

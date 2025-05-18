@@ -8,10 +8,10 @@ server:
 #    key-store-type: PKCS12
 spring:
   datasource:
-    driver-class-name: com.mysql.jdbc.Driver
-    password: root123.
-    url: jdbc:mysql://121.199.4.252:3306/qlx
-    username: root
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://rm-wz97l2hlwpn29tj7uvo.mysql.rds.aliyuncs.com:3306/mall_app_rds?useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&rewriteBatchedStatements=true&nullCatalogMeansCurrent=true
+    username: mall_rds
+    password: Mall$%Rds+123
   redis:
     host: localhost
     port: 36379

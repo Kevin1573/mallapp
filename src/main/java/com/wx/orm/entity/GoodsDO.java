@@ -74,4 +74,5 @@ public class GoodsDO {
      * 销量
      */
     private Integer sales;
+
 }

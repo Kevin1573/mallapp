@@ -12,9 +12,19 @@ public class OrderGoodsRequest {
     private Long addrId;
 
     /**
+     * 优惠券
+     */
+    private Long couponId;
+
+    /**
      * 提货方式；1邮寄，2自提
      */
     private Integer logisticsType;
+
+    /**
+     * 运费
+     */
+    private Double freight;
 
     private List<OrderGoodsModelRequest> modelRequestList;
 }

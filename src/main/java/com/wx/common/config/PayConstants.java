@@ -23,7 +23,8 @@ public class PayConstants {
      * 商户API私钥路径
      */
 //    public static String PRIVATE_KEY_PATH = "/Users/gzj/1657722877_20231101_cert/apiclient_key.pem";
-    public static String PRIVATE_KEY_PATH = "/root/mallapp/wxCert/apiclient_key.pem";
+    public static String PRIVATE_KEY_PATH = "D:\\code\\mallapp\\src\\main\\resources\\wxCert\\apiclient_key.pem";
+//    public static String PRIVATE_KEY_PATH = "/root/mallapp/wxCert/apiclient_key.pem";
 
     /**
      * 商户证书序列号
