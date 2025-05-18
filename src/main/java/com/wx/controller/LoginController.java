@@ -2,6 +2,7 @@ package com.wx.controller;
 
 import com.alibaba.fastjson.JSON;
 import com.wx.common.model.Response;
+import com.wx.common.model.request.EditPasswordRequest;
 import com.wx.common.model.request.LoginRequest;
 import com.wx.common.model.request.TokenRequest;
 import com.wx.common.model.request.UserProfileRequest;
@@ -61,6 +62,17 @@ public class LoginController {
         } catch (Exception e) {
             log.error("getUserInfoByToken exception, request = {}", JSON.toJSONString(request), e);
             return Response.failure("getUserInfoByToken exception");
+        }
+    }
+
+    @RequestMapping(value = "/editPassword", method = {RequestMethod.POST})
+    public Response editPassword(@RequestBody EditPasswordRequest request) {
+        try {
+            loginService.editPassword(request);
+            return Response.success();
+        } catch (Exception e) {
+            log.error("editPassword exception, request = {}", JSON.toJSONString(request), e);
+            return Response.failure("editPassword exception");
         }
     }
 
