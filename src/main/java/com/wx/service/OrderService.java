@@ -139,13 +139,6 @@ public interface OrderService {
      */
     void setAddrDefaul(UserAddrRequest request);
 
-    /**
-     * 添加地址时的自动识别功能
-     * @param request
-     * @return
-     * @throws Exception
-     */
-    MatchAddrResponse match(UserAddrRequest request) throws Exception;
 
     /**
      * 退货

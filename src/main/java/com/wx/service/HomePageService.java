@@ -1,10 +1,8 @@
 package com.wx.service;
 
-import com.wx.common.model.request.SaveOrUpdateBannerRequest;
-import com.wx.common.model.request.SaveOrUpdateModuleRequest;
-import com.wx.common.model.response.SaveOrUpdateModuleResponse;
-
-import java.util.List;
+import com.wx.common.model.request.HomePageRequest;
+import com.wx.common.model.response.CompanyConfigResponse;
+import com.wx.common.model.response.HomePageResponse;
 
 /**
  * 首页配置
@@ -12,39 +10,18 @@ import java.util.List;
 public interface HomePageService {
 
     /**
-     * 新增或者更新首页banner列表
+     * 查看首页配置
      *
-     * @param request banner列表
+     * @param request
+     * @return
      */
-    void saveOrUpdateBanner(SaveOrUpdateBannerRequest request);
+    HomePageResponse queryPage(HomePageRequest request);
 
     /**
-     * 查看首页banner列表
+     * 查询公司信息
      *
-     * @return banner列表
+     * @param request
+     * @return
      */
-    String queryBanner();
-
-    /**
-     * 新增或者编辑首页模块
-     *
-     * @param request 模块信息
-     */
-    void saveOrUpdateModule(SaveOrUpdateModuleRequest request);
-
-    /**
-     * 查看首页模块列表
-     *
-     * @return 模块列表信息
-     */
-    List<SaveOrUpdateModuleResponse> queryModule();
-
-    /**
-     * 根据id删除模块
-     *
-     * @param request id
-     */
-    void deleteModuleById(SaveOrUpdateModuleRequest request);
-
-
+    CompanyConfigResponse queryCompanyConfig(HomePageRequest request);
 }

@@ -9,7 +9,10 @@ public class UserAddrRequest {
 
     private String token;
 
-    private String addr;
+    private String province;
+    private String city;
+    private String area;
+    private String detail;
 
     private String name;
 
