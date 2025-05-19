@@ -22,14 +22,9 @@ public class QueryOrderHistoryModel {
     private Integer isComplete;
 
     /**
-     * 是否退货；1未退货，2已退货
+     * 订单状态
      */
-    private Integer isReturn;
-
-    /**
-     * 是否打包；1未打包，2已打包
-     */
-    private Integer isPack;
+    private Integer status;
 
     /**
      * 物流信息
