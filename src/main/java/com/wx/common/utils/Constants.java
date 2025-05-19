@@ -30,6 +30,10 @@ public class Constants {
 
     public static String WX_LOGIN_URL = "https://api.weixin.qq.com/sns/jscode2session";
 
+    public static final String ACCESS_KEY_ID = "";
+
+    public static final String ACCESS_KEY_SECRET = "";
+
     public static final String ROLE_ARN = "acs:ram::1275758408595557:role/aliyunoss";
 
     public static final String ROLE_SESSION_NAME = "adminSession";
