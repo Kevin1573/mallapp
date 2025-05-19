@@ -199,6 +199,9 @@ public class OrderServiceImpl implements OrderService {
         queryWrapper.orderBy(true, 1 == request.getInventory(), GoodsDO::getInventory);
         queryWrapper.orderByAsc(GoodsDO::getId);
 
+        // 5. 查询主规格商品
+        queryWrapper.eq(GoodsDO::getFirstGoods, true);
+
         IPage<GoodsDO> goodsDOPage = goodsMapper.selectPage(page, queryWrapper);
 
         List<GoodsDO> goodsDOList = goodsDOPage.getRecords();
