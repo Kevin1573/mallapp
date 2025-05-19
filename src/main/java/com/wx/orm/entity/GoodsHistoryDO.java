@@ -8,6 +8,7 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 import org.apache.ibatis.type.JdbcType;
 
+import java.math.BigDecimal;
 import java.util.Date;
 
 @TableName("goods_history")
@@ -106,4 +107,8 @@ public class GoodsHistoryDO {
     @TableField(value = "goods_list", jdbcType = JdbcType.VARCHAR)
     private String goodsList;
 
+    /**
+     * 支付金额
+     */
+    private BigDecimal payAmount;
 }

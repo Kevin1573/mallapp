@@ -1,6 +1,7 @@
 package com.wx.service.impl;
 
 import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -15,7 +16,6 @@ import com.wx.common.utils.AddrUtil;
 import com.wx.common.utils.LogisticsUtil;
 import com.wx.common.utils.OrderUtil;
 import com.wx.common.utils.WxAPIV3AesUtil;
-import com.wx.dto.GoodsNumItem;
 import com.wx.orm.entity.*;
 import com.wx.orm.mapper.*;
 import com.wx.service.OrderService;
@@ -63,7 +63,7 @@ public class OrderServiceImpl implements OrderService {
         }
         String tradeNo = OrderUtil.snowflakeOrderNo();
         // 1. 预收集所有商品信息
-        List<GoodsNumItem> goodsList = new ArrayList<>();
+        List<QueryOrderGoodsModel> goodsList = new ArrayList<>();
         // 关键-初次创建的商品
         GoodsDO firstCreateGoods = null;
         for (OrderGoodsModelRequest modelRequest : request.getModelRequestList()) {
@@ -72,7 +72,19 @@ public class OrderServiceImpl implements OrderService {
             if (goodsDO.getFirstGoods()) {
                 firstCreateGoods = goodsDO;
             }
-            goodsList.add(GoodsNumItem.builder().goodsDO(goodsDO).num(num).build());
+            QueryOrderGoodsModel queryOrderGoodsModel = new QueryOrderGoodsModel();
+            queryOrderGoodsModel.setId(goodsDO.getId());
+            queryOrderGoodsModel.setBrand(goodsDO.getBrand());
+            queryOrderGoodsModel.setCategory(goodsDO.getCategory());
+            queryOrderGoodsModel.setDescription(goodsDO.getDescription());
+            queryOrderGoodsModel.setFirstGoods(goodsDO.getFirstGoods());
+            queryOrderGoodsModel.setGoodsPic(goodsDO.getGoodsPic());
+            queryOrderGoodsModel.setName(goodsDO.getName());
+            queryOrderGoodsModel.setPrice(goodsDO.getPrice());
+            queryOrderGoodsModel.setSales(goodsDO.getSales());
+            queryOrderGoodsModel.setNum(num);
+
+            goodsList.add(queryOrderGoodsModel);
         }
         String goodsListJson = JSON.toJSONString(goodsList); // 转为JSON数组
 
@@ -408,19 +420,16 @@ public class OrderServiceImpl implements OrderService {
         List<GoodsHistoryDO> goodsHistoryDOList = goodsHistoryMapper.selectList(queryWrapper);
 
         List<QueryOrderGoodsModel> queryOrderGoodsModelList = new ArrayList<>();
-        double totalPrice = 0.0;
         for (GoodsHistoryDO goodsHistoryDO : goodsHistoryDOList) {
-            QueryOrderGoodsModel queryOrderGoodsModel = new QueryOrderGoodsModel();
-            queryOrderGoodsModel.setId(goodsHistoryDO.getId());
-            queryOrderGoodsModel.setGoodsDes(goodsHistoryDO.getGoodsDescription());
-            queryOrderGoodsModel.setGoodsName(goodsHistoryDO.getGoodsName());
-            queryOrderGoodsModel.setGoodsPrice(goodsHistoryDO.getGoodsPrice());
-            queryOrderGoodsModel.setGoodsPic(goodsHistoryDO.getGoodsPic());
-            queryOrderGoodsModel.setNum(goodsHistoryDO.getNum());
-            queryOrderGoodsModelList.add(queryOrderGoodsModel);
-            totalPrice += goodsHistoryDO.getGoodsPrice() * goodsHistoryDO.getNum();
+            String goodsList = goodsHistoryDO.getGoodsList();
+            JSONArray goodsListJson = JSON.parseArray(goodsList);
+            List<QueryOrderGoodsModel> queryOrderGoodsModels = goodsListJson.toJavaList(QueryOrderGoodsModel.class);
+            queryOrderGoodsModelList.addAll(queryOrderGoodsModels);
         }
 
+        double totalPrice = queryOrderGoodsModelList.stream()
+                .mapToDouble(goods -> goods.getPrice() * goods.getNum())
+                .sum();
         GoodsHistoryDO goodsHistoryDO1 = goodsHistoryDOList.get(0);
         com.alibaba.fastjson.JSONObject orderInfo = com.alibaba.fastjson.JSON.parseObject(goodsHistoryDO1.getOrderInfo());
         QueryOrderHistoryModel queryOrderHistoryModel = new QueryOrderHistoryModel();

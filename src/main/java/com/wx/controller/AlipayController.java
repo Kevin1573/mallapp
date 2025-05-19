@@ -3,22 +3,34 @@ package com.wx.controller;
 import com.alipay.api.AlipayApiException;
 import com.alipay.api.internal.util.AlipaySignature;
 import com.wx.common.config.AlipayConfig;
+import com.wx.common.enums.OrderStatus;
 import com.wx.common.model.Response;
+import com.wx.common.model.request.GetOrderDetailByTradeNo;
 import com.wx.common.model.request.PaymentRequest;
+import com.wx.common.model.request.ReturnRequest;
+import com.wx.common.model.response.QueryOrderHistoryModel;
+import com.wx.common.model.response.ReturnResponse;
 import com.wx.common.utils.OrderUtil;
+import com.wx.orm.entity.UserProfileDO;
 import com.wx.service.AlipayService;
+import com.wx.service.OrderService;
+import com.wx.service.TokenService;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 @Slf4j
 @RestController
 @RequestMapping("/alipay")
+@RequiredArgsConstructor
 public class AlipayController {
-
+    private final OrderService orderService;
+    private final TokenService tokenService;
     @GetMapping("/pay")
     public String pay(PaymentRequest request) {
         // 生成商户订单号
@@ -32,9 +44,32 @@ public class AlipayController {
 
     // 支付成功同步回调
     @PostMapping("/return")
-    public Response<String> returnUrl() {
+    public Response<ReturnResponse> returnUrl(ReturnRequest request) {
         // 处理支付成功后的逻辑
-        return Response.success("SUCCESS");
+        String token = request.getToken();
+        if (Objects.isNull(token)) {
+            return Response.failure("token不能为空");
+        }
+        if (Objects.isNull(request.getFrom())) {
+            return Response.failure("from不能为空");
+        }
+        UserProfileDO userByToken = tokenService.getUserByToken(token);
+        if (Objects.isNull(userByToken)) {
+            return Response.failure("没有登录");
+        }
+
+        QueryOrderHistoryModel orderDetailById = orderService.getOrderDetailById(GetOrderDetailByTradeNo.builder().tradeNo(request.getTradeNo()).build());
+        if (Objects.isNull(orderDetailById)) {
+            return Response.failure("订单不存在");
+        }
+        if (orderDetailById.getIsPaySuccess() == 2) {
+            ReturnResponse returnResponse = new ReturnResponse(request.getTradeNo(), "微信支付", OrderStatus.PAID.name(),
+                    orderDetailById.getPayAmount(), orderDetailById.getOrderTime());
+
+            return Response.success(returnResponse);
+        }
+        // 处理支付成功后的逻辑
+        return Response.failure(OrderStatus.WAITING_PAYMENT.name());
     }
 
     // 支付成功异步回调

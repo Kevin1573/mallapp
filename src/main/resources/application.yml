@@ -12,9 +12,12 @@ spring:
     url: jdbc:mysql://rm-wz97l2hlwpn29tj7uvo.mysql.rds.aliyuncs.com:3306/mall_app_rds?useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&rewriteBatchedStatements=true&nullCatalogMeansCurrent=true
     username: mall_rds
     password: Mall$%Rds+123
-  redis:
-    host: localhost
-    port: 36379
+
+#  autoconfigure:
+#    exclude: org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
+  # redis:
+#    host: localhost
+#    port: 36379
 
 
 wx:

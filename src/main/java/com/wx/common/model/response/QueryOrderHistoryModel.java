@@ -3,6 +3,7 @@ package com.wx.common.model.response;
 import com.wx.common.model.request.QueryOrderGoodsModel;
 import lombok.Data;
 
+import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
 
@@ -13,7 +14,8 @@ public class QueryOrderHistoryModel {
      * 下单时间
      */
     private Date orderTime;
-
+    // 已支付成功，1未支付，2支付成功
+    private Integer isPaySuccess;
     /**
      * 定单是否发货完成，1未完成 2完成
      */
@@ -66,6 +68,8 @@ public class QueryOrderHistoryModel {
     private String realPhone;
 
     private List<QueryOrderGoodsModel> goodsModelList;
+
+    private BigDecimal payAmount;
 
 }
 

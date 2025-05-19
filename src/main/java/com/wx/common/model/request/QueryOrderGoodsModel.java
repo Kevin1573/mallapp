@@ -1,25 +1,32 @@
 package com.wx.common.model.request;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
 @Data
 public class QueryOrderGoodsModel {
 
     private Long id;
-
-    /**
-     * 订单图片
-     */
+    private String brand;
+    private String category;
+    private String description;
+    private Boolean firstGoods;
     private String goodsPic;
-
-    /**
-     * 订单描述
-     */
-    private String goodsDes;
-
-    private String goodsName;
-
-    private Double goodsPrice;
-
+    private String name;
+    private double price;
+    private int sales; // 销量
     private Long num;
+    public QueryOrderGoodsModel() {}
+    @JsonCreator // 方案一：带参构造+注解
+    public QueryOrderGoodsModel(
+            @JsonProperty("id") Long id,
+            @JsonProperty("name") String name,
+            @JsonProperty("price") Double price,
+            @JsonProperty("num") Long num) {
+        this.id = id;
+        this.name = name;
+        this.price = price;
+        this.num = num;
+    }
 }

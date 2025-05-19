@@ -12,10 +12,14 @@ import com.wx.common.enums.OrderStatus;
 import com.wx.common.model.Response;
 import com.wx.common.model.request.GetOrderDetailByTradeNo;
 import com.wx.common.model.request.PaymentRequest;
+import com.wx.common.model.request.ReturnRequest;
 import com.wx.common.model.response.QueryOrderHistoryModel;
+import com.wx.common.model.response.ReturnResponse;
 import com.wx.common.utils.OrderUtil;
 import com.wx.common.utils.QrCodeUtil;
+import com.wx.orm.entity.UserProfileDO;
 import com.wx.service.OrderService;
+import com.wx.service.TokenService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -25,6 +29,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static com.wx.common.config.PayConstants.*;
@@ -37,6 +42,7 @@ public class WxPayController {
     private final NativePayService payService;
     private final OrderService orderService;
     private final NotificationParser notificationParser;
+    private final TokenService tokenService;
 
     @PostMapping("/createOrderNative")
     public Response<String> createOrderNative(@RequestBody PaymentRequest paymentRequest) {
@@ -78,9 +84,31 @@ public class WxPayController {
     }
 
     @PostMapping("/return")
-    public Response<String> returnUrl() {
+    public Response<ReturnResponse> returnUrl(ReturnRequest request) {
+        String token = request.getToken();
+        if (Objects.isNull(token)) {
+            return Response.failure("token不能为空");
+        }
+        if (Objects.isNull(request.getFrom())) {
+            return Response.failure("from不能为空");
+        }
+        UserProfileDO userByToken = tokenService.getUserByToken(token);
+        if (Objects.isNull(userByToken)) {
+            return Response.failure("没有登录");
+        }
+
+        QueryOrderHistoryModel orderDetailById = orderService.getOrderDetailById(GetOrderDetailByTradeNo.builder().tradeNo(request.getTradeNo()).build());
+        if (Objects.isNull(orderDetailById)) {
+            return Response.failure("订单不存在");
+        }
+        if (orderDetailById.getIsPaySuccess() == 2) {
+            ReturnResponse returnResponse = new ReturnResponse(request.getTradeNo(), "微信支付", OrderStatus.PAID.name(),
+                    orderDetailById.getPayAmount(), orderDetailById.getOrderTime());
+
+            return Response.success(returnResponse);
+        }
         // 处理支付成功后的逻辑
-        return Response.success("SUCCESS");
+        return Response.failure(OrderStatus.WAITING_PAYMENT.name());
     }
 
     @RequestMapping(value = "/callback", method = RequestMethod.POST)
