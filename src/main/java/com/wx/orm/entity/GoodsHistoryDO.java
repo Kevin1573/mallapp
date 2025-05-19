@@ -111,4 +111,7 @@ public class GoodsHistoryDO {
      * 支付金额
      */
     private BigDecimal payAmount;
+
+    private String payway;
+
 }

@@ -4,6 +4,7 @@ package com.wx.service;
 import com.alibaba.fastjson2.JSONObject;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.wx.common.enums.OrderStatus;
+import com.wx.common.enums.PaywayEnums;
 import com.wx.common.model.request.*;
 import com.wx.common.model.response.*;
 import com.wx.orm.entity.UserAddrDO;
@@ -160,4 +161,6 @@ public interface OrderService {
     void packorder(OrderRequest request);
 
     void updateOrderStatus(String outTradeNo, OrderStatus orderStatus);
+
+    void updatePayway(String tradeNo, PaywayEnums paywayEnums);
 }

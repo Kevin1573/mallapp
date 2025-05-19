@@ -135,7 +135,7 @@ public class AdminSericeImpl implements AdminService {
         }
 
         // 根据查询出来的订单号，封装数据(key:订单号， value:订单详情列表)
-        List<QueryOrderHistoryModel> data = new ArrayList<>();
+        List<QueryOrderHistoryModel> recordList = new ArrayList<>();
         for (String tradeNo : tradeNoList) {
             // 根据订单号查询对应的订单列表
             LambdaQueryWrapper<GoodsHistoryDO> tradeNoQuery = new LambdaQueryWrapper<>();
@@ -179,11 +179,11 @@ public class AdminSericeImpl implements AdminService {
             queryOrderHistoryModel.setAddr(orderInfo.getString("addr"));
             queryOrderHistoryModel.setPhone(orderInfo.getString("phone"));
             queryOrderHistoryModel.setUserName(orderInfo.getString("name"));
-            data.add(queryOrderHistoryModel);
+            recordList.add(queryOrderHistoryModel);
         }
 
         QueryOrderHistoryResponse response = new QueryOrderHistoryResponse();
-        response.setData(data);
+        response.setRecords(recordList);
         response.setPage(request.getPage());
         response.setTotal(historyDOPage.getTotal());
         response.setLimit(request.getLimit());

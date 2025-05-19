@@ -11,6 +11,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wx.common.enums.CompleteEnum;
 import com.wx.common.enums.OrderStatus;
+import com.wx.common.enums.PaywayEnums;
 import com.wx.common.exception.BizException;
 import com.wx.common.model.request.*;
 import com.wx.common.model.response.*;
@@ -699,12 +700,33 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public void updateOrderStatus(String outTradeNo, OrderStatus orderStatus) {
-        if (OrderStatus.PAID == orderStatus) {
+        if (OrderStatus.COMPLETED == orderStatus) {
             goodsHistoryMapper.updateById(new GoodsHistoryDO()
                     .setTradeNo(outTradeNo)
                     .setIsPaySuccess(2)
                     .setIsComplete(2));
+        } else if (OrderStatus.PAID == orderStatus) {
+            goodsHistoryMapper.updateById(new GoodsHistoryDO()
+                    .setTradeNo(outTradeNo)
+                    .setIsPaySuccess(2)
+                    .setIsComplete(1)
+            );
+        } else if (OrderStatus.WAITING_PAYMENT == orderStatus) {
+            goodsHistoryMapper.updateById(new GoodsHistoryDO()
+                    .setTradeNo(outTradeNo)
+                    .setIsPaySuccess(1)
+                    .setIsComplete(1)
+            );
         }
+    }
+
+    @Override
+    public void updatePayway(String tradeNo, PaywayEnums paywayEnums) {
+        // update order payway to wxPay
+        goodsHistoryMapper.updateById(new GoodsHistoryDO()
+                .setTradeNo(tradeNo)
+                .setPayway(paywayEnums.getCode())
+        );
     }
 
     private Double addOtherMoneyByNum(Integer num, Double logisticsPrice) {
