@@ -13,12 +13,12 @@ public class ProductServiceImpl implements ProductService {
     private final GoodsMapper goodsMapper;
 
     @Override
-    public List<String> queryProductCategory() {
+    public List<String> queryProductCategory(String fromMall) {
         return goodsMapper.queryProductCategory();
     }
 
     @Override
-    public List<String> queryProductBrand() {
+    public List<String> queryProductBrand(String fromMall) {
         return goodsMapper.queryProductBrand();
     }
 }

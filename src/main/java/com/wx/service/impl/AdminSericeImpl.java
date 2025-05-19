@@ -42,14 +42,11 @@ public class AdminSericeImpl implements AdminService {
     private UserProfileMapper userProfileMapper;
     @Autowired
     private TokenService tokenService;
-    //    @Autowired
-//    private GoodsTypeMapper goodsTypeMapper;
+
     @Autowired
     private RebateMapper rebateMapper;
     @Autowired
     private UserAddrMapper userAddrMapper;
-//    @Autowired.
-//    private UserPointHisMapper userPointHisMapper;
 
     @Override
     public void initData() {
@@ -85,8 +82,6 @@ public class AdminSericeImpl implements AdminService {
                 .setName(request.getName())
                 .setExt(request.getExtList())
                 .setPrice(request.getPrice())
-                .setTypeId(request.getTypeId())
-//                .setWeight(request.getWeight())
                 .setCreateTime(new Date())
                 .setModifyTime(new Date());
         goodsMapper.insert(goodsDO);

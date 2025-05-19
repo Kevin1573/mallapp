@@ -36,11 +36,6 @@ public class GoodsDO {
      */
     private String name;
 
-    /**
-     * 商品类型id
-     */
-    private Long typeId;
-
     private Date createTime;
 
     private Date modifyTime;
@@ -54,6 +49,11 @@ public class GoodsDO {
      * 品牌
      */
     private String brand;
+
+    /**
+     * 品牌主图
+     */
+    private String brandPic;
 
     /**
      * 是否使用卡券

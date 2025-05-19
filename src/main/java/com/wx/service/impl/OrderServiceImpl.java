@@ -31,9 +31,6 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.*;
 
-/**
- * “goods_history”与“goods”通过字段‘goods_id’关联；
- */
 @Service
 @Slf4j
 public class OrderServiceImpl implements OrderService {
@@ -224,7 +221,6 @@ public class OrderServiceImpl implements OrderService {
             model.setDescription(goodsDO.getDescription());
             model.setGoodsPic(goodsDO.getGoodsPic());
             model.setPrice(goodsDO.getPrice());
-            model.setTypeId(goodsDO.getTypeId());
             model.setName(goodsDO.getName());
             model.setExt(goodsDO.getExt());
             modelList.add(model);
@@ -318,12 +314,11 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public void addShoppingCar(AddShoppingCarRequest request) {
-        // 查询出对应的用户信息和商品信息
-        // String openid = "openid";//userTokenService.getOpenidByToken(request.getToken());
         LambdaQueryWrapper<UserProfileDO> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(UserProfileDO::getToken, request.getToken());
         UserProfileDO userProfileDO = userProfileMapper.selectOne(queryWrapper);
         if (Objects.isNull(userProfileDO)) {
-            throw new BizException("openid is error");
+            throw new BizException("token is error");
         }
 
         LambdaQueryWrapper<ShoppingCarDO> carQuery = new LambdaQueryWrapper<>();
@@ -479,10 +474,6 @@ public class OrderServiceImpl implements OrderService {
 //            weight += goodsDO.getWeight() * modelRequest.getNum();
             price += goodsDOPrice * modelRequest.getNum();
 
-            // 计算指定商品总数量
-            if (14 == goodsDO.getTypeId()) {
-                num += modelRequest.getNum();
-            }
         }
 
         BigDecimal newDecimal = new BigDecimal(0);

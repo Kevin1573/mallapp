@@ -9,7 +9,7 @@ import java.util.List;
 
 @Mapper
 public interface GoodsMapper extends BaseMapper<GoodsDO> {
-    @Select("select distinct category from goods")
+    @Select("select distinct category from goods where")
     List<String> queryProductCategory();
 
     @Select("select distinct brand from goods")

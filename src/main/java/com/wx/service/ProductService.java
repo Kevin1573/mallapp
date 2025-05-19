@@ -4,7 +4,7 @@ import java.util.List;
 
 public interface ProductService {
 
-    List<String> queryProductCategory();
+    List<String> queryProductCategory(String fromMall);
 
-    List<String> queryProductBrand();
+    List<String> queryProductBrand(String fromMall);
 }

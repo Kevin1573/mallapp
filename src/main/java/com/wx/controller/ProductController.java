@@ -21,7 +21,7 @@ public class ProductController {
     @PostMapping(value = "/category")
     public Response<List<String>> productCategory() {
         try {
-            return Response.success(productService.queryProductCategory());
+            return Response.success(productService.queryProductCategory(""));
         } catch (Exception e) {
             log.error("ProductCategory exception", e);
             return Response.failure("查询分类出错了...");
@@ -31,7 +31,7 @@ public class ProductController {
     @PostMapping(value = "/brand")
     public Response<List<String>> productBrand() {
         try {
-            return Response.success(productService.queryProductBrand());
+            return Response.success(productService.queryProductBrand(""));
         } catch (Exception e) {
             log.error("ProductCategory exception", e);
             return Response.failure("查询品牌出错了...");
