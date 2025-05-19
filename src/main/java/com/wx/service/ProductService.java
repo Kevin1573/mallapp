@@ -1,10 +1,12 @@
 package com.wx.service;
 
+import com.wx.common.model.request.ProductRequest;
+
 import java.util.List;
 
 public interface ProductService {
 
-    List<String> queryProductCategory(String fromMall);
+    List<String> queryProductCategory(ProductRequest request);
 
-    List<String> queryProductBrand(String fromMall);
+    List<String> queryProductBrand(ProductRequest request);
 }

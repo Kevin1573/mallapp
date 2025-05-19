@@ -377,12 +377,11 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public List<QueryCarOrdersResponse> queryCarOrder(AddShoppingCarRequest request) {
         // 查询出对应的用户信息和商品信息
-        // String openid = userTokenService.getOpenidByToken(request.getToken());
         LambdaQueryWrapper<UserProfileDO> queryWrapper = new LambdaQueryWrapper<>();
-//        queryWrapper.eq(UserProfileDO::getOpenid, openid);
+        queryWrapper.eq(UserProfileDO::getToken, request.getToken());
         UserProfileDO userProfileDO = userProfileMapper.selectOne(queryWrapper);
         if (Objects.isNull(userProfileDO)) {
-            throw new BizException("openid is error");
+            throw new BizException("token is error");
         }
 
         LambdaQueryWrapper<ShoppingCarDO> carQuery = new LambdaQueryWrapper<>();
@@ -526,9 +525,8 @@ public class OrderServiceImpl implements OrderService {
     @Transactional(rollbackFor = Exception.class)
     public void addOrUpdateUserAddr(UserAddrRequest request) throws Exception {
         // 查询出对应的用户信息
-//        String openid = userTokenService.getOpenidByToken(request.getToken());
         LambdaQueryWrapper<UserProfileDO> queryWrapper = new LambdaQueryWrapper<>();
-//        queryWrapper.eq(UserProfileDO::getOpenid, openid);
+        queryWrapper.eq(UserProfileDO::getToken, request.getToken());
         UserProfileDO userProfileDO = userProfileMapper.selectOne(queryWrapper);
 
         // 设置默认地址
@@ -540,23 +538,15 @@ public class OrderServiceImpl implements OrderService {
             userAddrMapper.update(userAddrDO, addrQuery);
         }
 
-        org.springframework.boot.configurationprocessor.json.JSONObject match = AddrUtil.matchAddr(request.getAddr());
         UserAddrDO userAddrDO = new UserAddrDO();
         userAddrDO.setUserId(userProfileDO.getId());
         userAddrDO.setName(request.getName());
         userAddrDO.setPhone(request.getPhone());
         userAddrDO.setIsDefault(request.getIsDefault());
-        userAddrDO.setProvince(match.getString("province"));
-        userAddrDO.setCity(match.getString("city"));
-        userAddrDO.setArea(match.getString("district"));
-        String detail = request.getAddr().replaceAll(match.getString("province"), "");
-        if (!"[]".equals(match.getString("city")) && detail.contains(match.getString("city"))) {
-            detail = detail.replaceAll(match.getString("city"), "");
-        }
-        if (!"[]".equals(match.getString("district")) && detail.contains(match.getString("district"))) {
-            detail = detail.replaceAll(match.getString("district"), "");
-        }
-        userAddrDO.setDetail(detail);
+        userAddrDO.setProvince(request.getProvince());
+        userAddrDO.setCity(request.getCity());
+        userAddrDO.setArea(request.getArea());
+        userAddrDO.setDetail(request.getDetail());
         if (Objects.isNull(request.getId())) {
             userAddrDO.setCreateTime(new Date());
             userAddrDO.setModifyTime(new Date());
@@ -576,9 +566,8 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public List<UserAddrDO> selectUserAddrList(UserAddrRequest request) {
         // 查询出对应的用户信息和商品信息
-//        String openid = userTokenService.getOpenidByToken(request.getToken());
         LambdaQueryWrapper<UserProfileDO> queryWrapper = new LambdaQueryWrapper<>();
-//        queryWrapper.eq(UserProfileDO::getOpenid, openid);
+        queryWrapper.eq(UserProfileDO::getToken, request.getToken());
         UserProfileDO userProfileDO = userProfileMapper.selectOne(queryWrapper);
 
         LambdaQueryWrapper<UserAddrDO> addrQuery = new LambdaQueryWrapper<>();
@@ -591,9 +580,8 @@ public class OrderServiceImpl implements OrderService {
     @Transactional
     public void setAddrDefaul(UserAddrRequest request) {
         // 查询出对应的用户信息
-//        String openid = userTokenService.getOpenidByToken(request.getToken());
         LambdaQueryWrapper<UserProfileDO> queryWrapper = new LambdaQueryWrapper<>();
-//        queryWrapper.eq(UserProfileDO::getOpenid, openid);
+        queryWrapper.eq(UserProfileDO::getToken, request.getToken());
         UserProfileDO userProfileDO = userProfileMapper.selectOne(queryWrapper);
 
         // 将之前的地址都设置为非默认
@@ -606,49 +594,6 @@ public class OrderServiceImpl implements OrderService {
         UserAddrDO newUserAddr = userAddrMapper.selectById(request.getId());
         userAddrDO.setIsDefault("1");
         userAddrMapper.updateById(newUserAddr);
-    }
-
-    @Override
-    public MatchAddrResponse match(UserAddrRequest request) throws Exception {
-        MatchAddrResponse response = new MatchAddrResponse();
-        List<String> addrList = Arrays.asList(request.getAddr().split("，"));
-        if (addrList.size() < 3) {
-            addrList = Arrays.asList(request.getAddr().split(","));
-        }
-        if (addrList.size() < 3) {
-            addrList = Arrays.asList(request.getAddr().split(" "));
-        }
-
-        for (String param : addrList) {
-            // 识别手机号
-            if (AddrUtil.isPhoneNum(param)) {
-                if (param.length() == 11) {
-                    response.setPhone(param);
-                    continue;
-                }
-            }
-
-            // 识别姓名
-            if (AddrUtil.isName(param)) {
-                response.setName(param);
-                continue;
-            }
-
-            // 识别地址
-            org.springframework.boot.configurationprocessor.json.JSONObject match = AddrUtil.matchAddr(request.getAddr());
-            response.setProvince(match.getString("province"));
-            response.setCity(match.getString("city"));
-            response.setArea(match.getString("district"));
-            String detail = param.replaceAll(match.getString("province"), "");
-            if (!"[]".equals(match.getString("city")) && detail.contains(match.getString("city"))) {
-                detail = detail.replaceAll(match.getString("city"), "");
-            }
-            if (!"[]".equals(match.getString("district")) && detail.contains(match.getString("district"))) {
-                detail = detail.replaceAll(match.getString("district"), "");
-            }
-            response.setDetail(detail);
-        }
-        return response;
     }
 
     @Override

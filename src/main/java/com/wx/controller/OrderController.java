@@ -208,17 +208,6 @@ public class OrderController {
             return Response.failure("setAddrDefaul exception");
         }
     }
-
-    @RequestMapping(value = "/match", method = {RequestMethod.POST})
-    public Response<MatchAddrResponse> match(@RequestBody UserAddrRequest request) {
-        try {
-            return Response.success(orderService.match(request));
-        } catch (Exception e) {
-            log.error("match exception, request = {}", JSON.toJSONString(request), e);
-            return Response.failure("match exception");
-        }
-    }
-
     @RequestMapping(value = "/returnOrder", method = {RequestMethod.POST})
     public Response<String> returnOrder(@RequestBody OrderRequest request) {
         try {

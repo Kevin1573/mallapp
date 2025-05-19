@@ -3,11 +3,8 @@ package com.wx.controller;
 import com.alibaba.fastjson.JSON;
 import com.wx.common.model.Response;
 import com.wx.common.model.request.HomePageRequest;
-import com.wx.common.model.request.SaveOrUpdateBannerRequest;
-import com.wx.common.model.request.SaveOrUpdateModuleRequest;
 import com.wx.common.model.response.CompanyConfigResponse;
 import com.wx.common.model.response.HomePageResponse;
-import com.wx.common.model.response.SaveOrUpdateModuleResponse;
 import com.wx.service.HomePageService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,8 +12,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.List;
 
 @RestController
 @RequestMapping(value = "/page")

@@ -1,10 +1,12 @@
 package com.wx.controller;
 
 import com.wx.common.model.Response;
+import com.wx.common.model.request.ProductRequest;
 import com.wx.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -19,9 +21,9 @@ public class ProductController {
 
     // 添加产品分类接口
     @PostMapping(value = "/category")
-    public Response<List<String>> productCategory() {
+    public Response<List<String>> productCategory(@RequestBody ProductRequest request) {
         try {
-            return Response.success(productService.queryProductCategory(""));
+            return Response.success(productService.queryProductCategory(request));
         } catch (Exception e) {
             log.error("ProductCategory exception", e);
             return Response.failure("查询分类出错了...");
@@ -29,11 +31,11 @@ public class ProductController {
     }
 
     @PostMapping(value = "/brand")
-    public Response<List<String>> productBrand() {
+    public Response<List<String>> productBrand(@RequestBody ProductRequest request) {
         try {
-            return Response.success(productService.queryProductBrand(""));
+            return Response.success(productService.queryProductBrand(request));
         } catch (Exception e) {
-            log.error("ProductCategory exception", e);
+            log.error("ProductBrand exception", e);
             return Response.failure("查询品牌出错了...");
         }
     }
