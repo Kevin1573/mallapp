@@ -8,10 +8,14 @@ import com.wechat.pay.java.service.payments.nativepay.NativePayService;
 import com.wechat.pay.java.service.payments.nativepay.model.Amount;
 import com.wechat.pay.java.service.payments.nativepay.model.PrepayRequest;
 import com.wechat.pay.java.service.payments.nativepay.model.PrepayResponse;
+import com.wx.common.enums.OrderStatus;
 import com.wx.common.model.Response;
+import com.wx.common.model.request.GetOrderDetailByTradeNo;
 import com.wx.common.model.request.PaymentRequest;
+import com.wx.common.model.response.QueryOrderHistoryModel;
 import com.wx.common.utils.OrderUtil;
 import com.wx.common.utils.QrCodeUtil;
+import com.wx.service.OrderService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -31,6 +35,7 @@ import static com.wx.common.config.PayConstants.*;
 @AllArgsConstructor
 public class WxPayController {
     private final NativePayService payService;
+    private final OrderService orderService;
     private final NotificationParser notificationParser;
 
     @PostMapping("/createOrderNative")
@@ -39,7 +44,14 @@ public class WxPayController {
         if (StringUtils.isBlank(from)) {
             return Response.failure("from不能为空");
         }
-
+        String tradeNo = paymentRequest.getTradeNo();
+        if (StringUtils.isBlank(tradeNo)) {
+            return Response.failure("tradeNo不能为空");
+        }
+        QueryOrderHistoryModel orderHistory = orderService.getOrderDetailById(GetOrderDetailByTradeNo.builder().tradeNo(tradeNo).build());
+        if (orderHistory != null && orderHistory.getIsComplete() == 2) {
+            return Response.failure("订单已支付");
+        }
         // 通过from 查出对应的商户配置
         PrepayRequest request = new PrepayRequest();
         Amount amount = new Amount();
@@ -137,6 +149,10 @@ public class WxPayController {
         System.out.println("处理订单：" + outTradeNo);
         System.out.println("订单支付成功：" + transactionId);
         System.out.println("支付金额：" + amount);
+
+        // 更新订单状态
+        orderService.updateOrderStatus(outTradeNo, OrderStatus.PAID);
+
         return true;
     }
 

@@ -2,10 +2,10 @@ package com.wx.service;
 
 
 import com.alibaba.fastjson2.JSONObject;
+import com.wx.common.enums.OrderStatus;
 import com.wx.common.model.request.*;
 import com.wx.common.model.response.*;
 import com.wx.orm.entity.UserAddrDO;
-import org.springframework.boot.configurationprocessor.json.JSONException;
 
 import java.io.IOException;
 import java.util.List;
@@ -158,4 +158,5 @@ public interface OrderService {
      */
     void packorder(OrderRequest request);
 
+    void updateOrderStatus(String outTradeNo, OrderStatus orderStatus);
 }
