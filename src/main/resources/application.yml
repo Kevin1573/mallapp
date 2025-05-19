@@ -16,8 +16,11 @@ spring:
 #  autoconfigure:
 #    exclude: org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
   # redis:
+  profiles:
+    active: prod
 #    host: localhost
 #    port: 36379
+
 
 wx:
   pay:

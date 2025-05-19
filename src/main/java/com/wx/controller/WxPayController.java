@@ -1,6 +1,7 @@
 package com.wx.controller;
 
 import com.alibaba.fastjson.JSON;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.wechat.pay.java.core.notification.NotificationParser;
 import com.wechat.pay.java.core.notification.RequestParam;
 import com.wechat.pay.java.service.partnerpayments.nativepay.model.Transaction;
@@ -45,7 +46,7 @@ public class WxPayController {
     private final TokenService tokenService;
 
     @PostMapping("/createOrderNative")
-    public Response<String> createOrderNative(@RequestBody PaymentRequest paymentRequest) {
+    public Response<String> createOrderNative(@RequestBody PaymentRequest paymentRequest) throws JsonProcessingException {
         String from = paymentRequest.getFrom();
         if (StringUtils.isBlank(from)) {
             return Response.failure("from不能为空");
@@ -84,14 +85,12 @@ public class WxPayController {
     }
 
     @PostMapping("/return")
-    public Response<ReturnResponse> returnUrl(ReturnRequest request) {
+    public Response<ReturnResponse> returnUrl(@RequestBody ReturnRequest request) throws JsonProcessingException {
         String token = request.getToken();
         if (Objects.isNull(token)) {
             return Response.failure("token不能为空");
         }
-        if (Objects.isNull(request.getFrom())) {
-            return Response.failure("from不能为空");
-        }
+
         UserProfileDO userByToken = tokenService.getUserByToken(token);
         if (Objects.isNull(userByToken)) {
             return Response.failure("没有登录");

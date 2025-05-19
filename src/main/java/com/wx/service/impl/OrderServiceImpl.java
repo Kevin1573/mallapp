@@ -1,12 +1,14 @@
 package com.wx.service.impl;
 
 import com.alibaba.fastjson2.JSON;
-import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wx.common.enums.CompleteEnum;
 import com.wx.common.enums.OrderStatus;
 import com.wx.common.exception.BizException;
@@ -416,17 +418,25 @@ public class OrderServiceImpl implements OrderService {
 
     }
 
+    private final ObjectMapper objectMapper = new ObjectMapper();
+
     @Override
-    public QueryOrderHistoryModel getOrderDetailById(GetOrderDetailByTradeNo request) {
+    public QueryOrderHistoryModel getOrderDetailById(GetOrderDetailByTradeNo request) throws JsonProcessingException {
         LambdaQueryWrapper<GoodsHistoryDO> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(GoodsHistoryDO::getTradeNo, request.getTradeNo());
         List<GoodsHistoryDO> goodsHistoryDOList = goodsHistoryMapper.selectList(queryWrapper);
 
         List<QueryOrderGoodsModel> queryOrderGoodsModelList = new ArrayList<>();
         for (GoodsHistoryDO goodsHistoryDO : goodsHistoryDOList) {
-            String goodsList = goodsHistoryDO.getGoodsList();
-            JSONArray goodsListJson = JSON.parseArray(goodsList);
-            List<QueryOrderGoodsModel> queryOrderGoodsModels = goodsListJson.toJavaList(QueryOrderGoodsModel.class);
+            String goodsListJsonStr = goodsHistoryDO.getGoodsList();
+            String normalizedJson = goodsListJsonStr
+                    .replace("\\\"", "\"")
+                    .replace("\"[", "[")
+                    .replace("]\"", "]");
+            List<QueryOrderGoodsModel> queryOrderGoodsModels = objectMapper.readValue(
+                    normalizedJson,
+                    new TypeReference<List<QueryOrderGoodsModel>>() {}
+            );
             queryOrderGoodsModelList.addAll(queryOrderGoodsModels);
         }
 
@@ -448,6 +458,8 @@ public class OrderServiceImpl implements OrderService {
         queryOrderHistoryModel.setUserName(orderInfo.getString("name"));
         queryOrderHistoryModel.setIsReturn(goodsHistoryDO1.getIsReturn());
         queryOrderHistoryModel.setIsPack(goodsHistoryDO1.getIsPack());
+        queryOrderHistoryModel.setPayAmount(goodsHistoryDO1.getPayAmount());
+        queryOrderHistoryModel.setIsPaySuccess(goodsHistoryDO1.getIsPaySuccess());
         return queryOrderHistoryModel;
     }
 
