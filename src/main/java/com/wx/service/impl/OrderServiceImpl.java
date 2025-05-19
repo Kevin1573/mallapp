@@ -15,7 +15,6 @@ import com.wx.common.enums.PayWayEnums;
 import com.wx.common.exception.BizException;
 import com.wx.common.model.request.*;
 import com.wx.common.model.response.*;
-import com.wx.common.utils.AddrUtil;
 import com.wx.common.utils.LogisticsUtil;
 import com.wx.common.utils.OrderUtil;
 import com.wx.common.utils.WxAPIV3AesUtil;
@@ -33,7 +32,10 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Objects;
 
 @Service
 @Slf4j
