@@ -10,7 +10,7 @@ import com.wechat.pay.java.service.payments.nativepay.model.Amount;
 import com.wechat.pay.java.service.payments.nativepay.model.PrepayRequest;
 import com.wechat.pay.java.service.payments.nativepay.model.PrepayResponse;
 import com.wx.common.enums.OrderStatus;
-import com.wx.common.enums.PaywayEnums;
+import com.wx.common.enums.PayWayEnums;
 import com.wx.common.model.Response;
 import com.wx.common.model.request.GetOrderDetailByTradeNo;
 import com.wx.common.model.request.PaymentRequest;
@@ -63,7 +63,7 @@ public class WxPayController {
 
         // update order status to waiting payment, update pay_way to wxPay
         orderService.updateOrderStatus(tradeNo, OrderStatus.WAITING_PAYMENT);
-        orderService.updatePayway(tradeNo, PaywayEnums.WECHAT);
+        orderService.updatePayway(tradeNo, PayWayEnums.WECHAT);
         // 通过from 查出对应的商户配置
         PrepayRequest request = new PrepayRequest();
         Amount amount = new Amount();

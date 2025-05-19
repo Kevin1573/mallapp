@@ -11,7 +11,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wx.common.enums.CompleteEnum;
 import com.wx.common.enums.OrderStatus;
-import com.wx.common.enums.PaywayEnums;
+import com.wx.common.enums.PayWayEnums;
 import com.wx.common.exception.BizException;
 import com.wx.common.model.request.*;
 import com.wx.common.model.response.*;
@@ -457,8 +457,6 @@ public class OrderServiceImpl implements OrderService {
         queryOrderHistoryModel.setAddr(orderInfo.getString("addr"));
         queryOrderHistoryModel.setPhone(orderInfo.getString("phone"));
         queryOrderHistoryModel.setUserName(orderInfo.getString("name"));
-        queryOrderHistoryModel.setIsReturn(goodsHistoryDO1.getIsReturn());
-        queryOrderHistoryModel.setIsPack(goodsHistoryDO1.getIsPack());
         queryOrderHistoryModel.setPayAmount(goodsHistoryDO1.getPayAmount());
         queryOrderHistoryModel.setIsPaySuccess(goodsHistoryDO1.getIsPaySuccess());
         return queryOrderHistoryModel;
@@ -668,9 +666,9 @@ public class OrderServiceImpl implements OrderService {
         }
 
         GoodsHistoryDO goodsHistoryDO = goodsHistoryDOS.get(0);
-        if (goodsHistoryDO.getIsPack() == 2) {
-            return "订单已打包，无法退货";
-        }
+//        if (goodsHistoryDO.getIsPack() == 2) {
+//            return "订单已打包，无法退货";
+//        }
 
         UserProfileDO userProfileDO = userProfileMapper.selectById(goodsHistoryDO.getUserId());
 //        userProfileDO.setPoint(userProfileDO.getPoint() + goodsHistoryDO.getPoint());
@@ -683,7 +681,7 @@ public class OrderServiceImpl implements OrderService {
         LambdaQueryWrapper<GoodsHistoryDO> hisQueryWrapper = new LambdaQueryWrapper<>();
         hisQueryWrapper.eq(GoodsHistoryDO::getTradeNo, request.getTradeNo());
         GoodsHistoryDO newHisDO = new GoodsHistoryDO();
-        newHisDO.setIsReturn(2);
+//        newHisDO.setIsReturn(2);
         goodsHistoryMapper.update(newHisDO, hisQueryWrapper);
 
         return "退货成功";
@@ -694,7 +692,7 @@ public class OrderServiceImpl implements OrderService {
         LambdaQueryWrapper<GoodsHistoryDO> hisQueryWrapper = new LambdaQueryWrapper<>();
         hisQueryWrapper.eq(GoodsHistoryDO::getTradeNo, request.getTradeNo());
         GoodsHistoryDO newHisDO = new GoodsHistoryDO();
-        newHisDO.setIsPack(2);
+//        newHisDO.setIsPack(2);
         goodsHistoryMapper.update(newHisDO, hisQueryWrapper);
     }
 
@@ -721,11 +719,11 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public void updatePayway(String tradeNo, PaywayEnums paywayEnums) {
+    public void updatePayway(String tradeNo, PayWayEnums paywayEnums) {
         // update order payway to wxPay
         goodsHistoryMapper.updateById(new GoodsHistoryDO()
                 .setTradeNo(tradeNo)
-                .setPayway(paywayEnums.getCode())
+                .setPayWay(paywayEnums.getValue())
         );
     }
 

@@ -104,22 +104,18 @@ public class AdminSericeImpl implements AdminService {
         // 查询订单历史信息(考虑到购物车组合下单，这里先分页查询出订单号列表，再去查询填充数据)
         QueryWrapper<GoodsHistoryDO> queryWrapper = new QueryWrapper<>();
         queryWrapper.select("DISTINCT (trade_no), create_time");
-        if (Objects.nonNull(request.getIsComplete())) {
-            queryWrapper.eq("is_complete", request.getIsComplete());
+
+        if (Objects.nonNull(request.getStatus())) {
+            queryWrapper.eq("status", request.getStatus());
+        } else {
+            throw new BizException("请传入订单状态");
         }
-        if (Objects.nonNull(request.getIsReturn())) {
-            queryWrapper.eq("is_return", request.getIsReturn());
-        }
-        if (Objects.nonNull(request.getIsPack())) {
-            queryWrapper.eq("is_pack", request.getIsPack());
-        }
+
 //        if (Objects.nonNull(request.getNickname())) {
 //            queryWrapper.apply("JSON_EXTRACT(order_info, '$.name') = {0}", request.getNickname());
 //        }
         queryWrapper.orderByDesc("create_time");
 
-        LambdaQueryWrapper<GoodsHistoryDO> hisQuery = new LambdaQueryWrapper<>();
-        hisQuery.eq(GoodsHistoryDO::getIsComplete, request.getIsComplete());
         if (Objects.nonNull(user)) {
             queryWrapper.eq("user_id", user.getId());
         }
@@ -152,7 +148,8 @@ public class AdminSericeImpl implements AdminService {
                             .replace("]\"", "]");
                     List<QueryOrderGoodsModel> queryOrderGoodsModels = objectMapper.readValue(
                             normalizedJson,
-                            new TypeReference<List<QueryOrderGoodsModel>>() {}
+                            new TypeReference<List<QueryOrderGoodsModel>>() {
+                            }
                     );
                     queryOrderGoodsModelList.addAll(queryOrderGoodsModels);
                 } catch (JsonProcessingException e) {

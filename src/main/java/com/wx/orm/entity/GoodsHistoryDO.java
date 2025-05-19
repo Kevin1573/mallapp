@@ -91,16 +91,6 @@ public class GoodsHistoryDO {
     private String orderInfo;
 
     /**
-     * 是否退货；1未退货，2已退货
-     */
-    private Integer isReturn;
-
-    /**
-     * 是否打包；1未打包，2已打包
-     */
-    private Integer isPack;
-
-    /**
      * 商品列表 json 格式字符串
      * 使用 @TableField 标注字段类型（非必须但推荐）
      */
@@ -112,6 +102,8 @@ public class GoodsHistoryDO {
      */
     private BigDecimal payAmount;
 
-    private String payway;
+    // 支付方式 1-wxpay 2-alipay
+    @TableField(value = "pay_way", jdbcType = JdbcType.TINYINT)
+    private Integer payWay;
 
 }
