@@ -2,6 +2,7 @@ package com.wx.controller;
 
 import com.alipay.api.AlipayApiException;
 import com.alipay.api.internal.util.AlipaySignature;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.wx.common.config.AlipayConfig;
 import com.wx.common.enums.OrderStatus;
 import com.wx.common.model.Response;
@@ -44,14 +45,11 @@ public class AlipayController {
 
     // 支付成功同步回调
     @PostMapping("/return")
-    public Response<ReturnResponse> returnUrl(ReturnRequest request) {
+    public Response<ReturnResponse> returnUrl(@RequestBody ReturnRequest request) throws JsonProcessingException {
         // 处理支付成功后的逻辑
         String token = request.getToken();
         if (Objects.isNull(token)) {
             return Response.failure("token不能为空");
-        }
-        if (Objects.isNull(request.getFrom())) {
-            return Response.failure("from不能为空");
         }
         UserProfileDO userByToken = tokenService.getUserByToken(token);
         if (Objects.isNull(userByToken)) {

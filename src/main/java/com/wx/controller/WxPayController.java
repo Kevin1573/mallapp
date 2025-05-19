@@ -1,6 +1,7 @@
 package com.wx.controller;
 
 import com.alibaba.fastjson.JSON;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.wechat.pay.java.core.notification.NotificationParser;
 import com.wechat.pay.java.core.notification.RequestParam;
 import com.wechat.pay.java.service.partnerpayments.nativepay.model.Transaction;
@@ -9,6 +10,7 @@ import com.wechat.pay.java.service.payments.nativepay.model.Amount;
 import com.wechat.pay.java.service.payments.nativepay.model.PrepayRequest;
 import com.wechat.pay.java.service.payments.nativepay.model.PrepayResponse;
 import com.wx.common.enums.OrderStatus;
+import com.wx.common.enums.PaywayEnums;
 import com.wx.common.model.Response;
 import com.wx.common.model.request.GetOrderDetailByTradeNo;
 import com.wx.common.model.request.PaymentRequest;
@@ -45,7 +47,7 @@ public class WxPayController {
     private final TokenService tokenService;
 
     @PostMapping("/createOrderNative")
-    public Response<String> createOrderNative(@RequestBody PaymentRequest paymentRequest) {
+    public Response<String> createOrderNative(@RequestBody PaymentRequest paymentRequest) throws JsonProcessingException {
         String from = paymentRequest.getFrom();
         if (StringUtils.isBlank(from)) {
             return Response.failure("from不能为空");
@@ -58,6 +60,10 @@ public class WxPayController {
         if (orderHistory != null && orderHistory.getIsComplete() == 2) {
             return Response.failure("订单已支付");
         }
+
+        // update order status to waiting payment, update pay_way to wxPay
+        orderService.updateOrderStatus(tradeNo, OrderStatus.WAITING_PAYMENT);
+        orderService.updatePayway(tradeNo, PaywayEnums.WECHAT);
         // 通过from 查出对应的商户配置
         PrepayRequest request = new PrepayRequest();
         Amount amount = new Amount();
@@ -84,14 +90,12 @@ public class WxPayController {
     }
 
     @PostMapping("/return")
-    public Response<ReturnResponse> returnUrl(ReturnRequest request) {
+    public Response<ReturnResponse> returnUrl(@RequestBody ReturnRequest request) throws JsonProcessingException {
         String token = request.getToken();
         if (Objects.isNull(token)) {
             return Response.failure("token不能为空");
         }
-        if (Objects.isNull(request.getFrom())) {
-            return Response.failure("from不能为空");
-        }
+
         UserProfileDO userByToken = tokenService.getUserByToken(token);
         if (Objects.isNull(userByToken)) {
             return Response.failure("没有登录");
@@ -154,8 +158,8 @@ public class WxPayController {
         String transactionId = transaction.getTransactionId();
         int amount = transaction.getAmount().getTotal(); // 总金额(分)
         log.info("订单支付成功：{}", transaction);
-
         try {
+            orderService.updateOrderStatus(outTradeNo, OrderStatus.PAID);
             // TODO: 实现你的业务逻辑
             // 注意：必须做幂等处理，防止重复通知
             boolean success = processOrder(outTradeNo, transactionId, amount);
