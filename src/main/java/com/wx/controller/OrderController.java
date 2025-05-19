@@ -152,7 +152,7 @@ public class OrderController {
             return Response.success(orderService.getOrderDetailById(request));
         } catch (Exception e) {
             log.error("getOrderDetailById exception, request = {}", JSON.toJSONString(request), e);
-            return Response.failure("getOrderDetailById exception");
+            return Response.failure("getOrderDetailById exception " + e.getMessage());
         }
     }
 

@@ -169,6 +169,7 @@ public class AdminSericeImpl implements AdminService {
             queryOrderHistoryModel.setLogisticsId(goodsHistoryDO1.getLogisticsId());
             queryOrderHistoryModel.setTradeNo(goodsHistoryDO1.getTradeNo());
             queryOrderHistoryModel.setGoodsModelList(queryOrderGoodsModelList);
+            queryOrderHistoryModel.setIsPaySuccess(goodsHistoryDO1.getIsPaySuccess());
             queryOrderHistoryModel.setIsComplete(goodsHistoryDO1.getIsComplete());
             queryOrderHistoryModel.setTotalPrice(totalPrice);
             queryOrderHistoryModel.setRealName(userProfileDO.getNickName());
@@ -176,6 +177,7 @@ public class AdminSericeImpl implements AdminService {
             queryOrderHistoryModel.setAddr(orderInfo.getString("addr"));
             queryOrderHistoryModel.setPhone(orderInfo.getString("phone"));
             queryOrderHistoryModel.setUserName(orderInfo.getString("name"));
+            queryOrderHistoryModel.setStatus(goodsHistoryDO1.getStatus());
             recordList.add(queryOrderHistoryModel);
         }
 

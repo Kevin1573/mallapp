@@ -427,6 +427,10 @@ public class OrderServiceImpl implements OrderService {
         queryWrapper.eq(GoodsHistoryDO::getTradeNo, request.getTradeNo());
         List<GoodsHistoryDO> goodsHistoryDOList = goodsHistoryMapper.selectList(queryWrapper);
 
+        if (goodsHistoryDOList == null || goodsHistoryDOList.isEmpty()) {
+            throw new BizException("订单不存在");
+        }
+
         List<QueryOrderGoodsModel> queryOrderGoodsModelList = new ArrayList<>();
         for (GoodsHistoryDO goodsHistoryDO : goodsHistoryDOList) {
             String goodsListJsonStr = goodsHistoryDO.getGoodsList();
@@ -453,6 +457,7 @@ public class OrderServiceImpl implements OrderService {
         queryOrderHistoryModel.setTradeNo(goodsHistoryDO1.getTradeNo());
         queryOrderHistoryModel.setGoodsModelList(queryOrderGoodsModelList);
         queryOrderHistoryModel.setIsComplete(goodsHistoryDO1.getIsComplete());
+        queryOrderHistoryModel.setStatus(goodsHistoryDO1.getStatus());
         queryOrderHistoryModel.setTotalPrice(totalPrice);
         queryOrderHistoryModel.setAddr(orderInfo.getString("addr"));
         queryOrderHistoryModel.setPhone(orderInfo.getString("phone"));

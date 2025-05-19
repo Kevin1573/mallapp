@@ -39,6 +39,9 @@ public class GoodsHistoryDO {
      */
     private Integer isPaySuccess;
 
+    //  订单状态
+    private Integer status;
+
     /**
      * 商品数量
      */
