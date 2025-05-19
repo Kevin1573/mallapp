@@ -18,7 +18,7 @@ public class AlipayConfig {
     public static final String NOTIFY_URL = "http://g8a65b28.natappfree.cc/alipay/notify";
 
     // 页面跳转同步通知页面路径
-    public static final String RETURN_URL = "http://g8a65b28.natappfree.cc/alipay/return";
+    public static final String RETURN_URL = "http://g8a65b28.natappfree.cc/alipay/payReturn";
 
     // 签名方式
     public static final String SIGN_TYPE = "RSA2";

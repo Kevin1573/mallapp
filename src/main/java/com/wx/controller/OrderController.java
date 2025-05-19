@@ -156,6 +156,17 @@ public class OrderController {
         }
     }
 
+    // Shopping Cart Classification Statistics
+    @RequestMapping(value = "/shopCartClassificationStat", method = {RequestMethod.POST})
+    public Response<ShopCartStatResponse> shopCartClassificationStat(@RequestBody ShopCartClassificationStatRequest request) {
+        try {
+            return Response.success(orderService.shopCartClassificationStat(request));
+        } catch (Exception e) {
+            log.error("shopCartClassificationStat exception, request = {}", JSON.toJSONString(request), e);
+            return Response.failure("shopCartClassificationStat exception");
+        }
+    }
+
     @RequestMapping(value = "/commitOrder", method = {RequestMethod.POST})
     public Response<CommitOrderResponse> commitOrder(@RequestBody OrderGoodsRequest request) {
         try {

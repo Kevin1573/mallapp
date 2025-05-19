@@ -1,5 +1,6 @@
 package com.wx.controller;
 
+import com.alibaba.fastjson.JSON;
 import com.alipay.api.AlipayApiException;
 import com.alipay.api.internal.util.AlipaySignature;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -32,6 +33,7 @@ import java.util.Objects;
 public class AlipayController {
     private final OrderService orderService;
     private final TokenService tokenService;
+
     @GetMapping("/pay")
     public String pay(PaymentRequest request) {
         // 生成商户订单号
@@ -68,6 +70,13 @@ public class AlipayController {
         }
         // 处理支付成功后的逻辑
         return Response.failure(OrderStatus.WAITING_PAYMENT.name());
+    }
+
+    // 页面跳转同步通知
+    @PostMapping("/payReturn")
+    public String payReturn(HttpServletRequest request) {
+        Map<String, String> params = convertRequestParamsToMap(request);
+        return "payReturn -> " + JSON.toJSONString(params);
     }
 
     // 支付成功异步回调

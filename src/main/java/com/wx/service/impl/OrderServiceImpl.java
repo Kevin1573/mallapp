@@ -22,6 +22,7 @@ import com.wx.common.utils.WxAPIV3AesUtil;
 import com.wx.orm.entity.*;
 import com.wx.orm.mapper.*;
 import com.wx.service.OrderService;
+import com.wx.service.TokenService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
@@ -53,6 +54,8 @@ public class OrderServiceImpl implements OrderService {
     private ShoppingCarMapper shoppingCarMapper;
     @Autowired
     private UserAddrMapper userAddrMapper;
+    @Autowired
+    private TokenService tokenService;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -440,7 +443,8 @@ public class OrderServiceImpl implements OrderService {
                     .replace("]\"", "]");
             List<QueryOrderGoodsModel> queryOrderGoodsModels = objectMapper.readValue(
                     normalizedJson,
-                    new TypeReference<List<QueryOrderGoodsModel>>() {}
+                    new TypeReference<List<QueryOrderGoodsModel>>() {
+                    }
             );
             queryOrderGoodsModelList.addAll(queryOrderGoodsModels);
         }
@@ -729,6 +733,42 @@ public class OrderServiceImpl implements OrderService {
         goodsHistoryMapper.updateById(new GoodsHistoryDO()
                 .setTradeNo(tradeNo)
                 .setPayWay(paywayEnums.getValue())
+        );
+    }
+
+    @Override
+    public ShopCartStatResponse shopCartClassificationStat(ShopCartClassificationStatRequest request) {
+        String token = request.getToken();
+        if (StringUtils.isBlank(token)) {
+            throw new BizException("没有登录");
+        }
+        UserProfileDO userProfileDO = tokenService.getUserByToken(token);
+        if (Objects.isNull(userProfileDO)) {
+            throw new BizException("token 错误");
+        }
+
+        return new ShopCartStatResponse(
+                goodsHistoryMapper.selectCount(new LambdaQueryWrapper<GoodsHistoryDO>()
+                        .eq(GoodsHistoryDO::getUserId, userProfileDO.getId())
+                        .eq(GoodsHistoryDO::getIsPaySuccess, 1)), // 待付款 1
+                goodsHistoryMapper.selectCount(new LambdaQueryWrapper<GoodsHistoryDO>()
+                        .eq(GoodsHistoryDO::getUserId, userProfileDO.getId())
+                        .eq(GoodsHistoryDO::getIsPaySuccess, 2)
+                        .eq(GoodsHistoryDO::getStatus, 3)), // 待发货 3
+                goodsHistoryMapper.selectCount(new LambdaQueryWrapper<GoodsHistoryDO>()
+                        .eq(GoodsHistoryDO::getUserId, userProfileDO.getId())
+                        .eq(GoodsHistoryDO::getIsPaySuccess, 2)
+                        .eq(GoodsHistoryDO::getStatus, 5)), // 待收货 4
+                goodsHistoryMapper.selectCount(new LambdaQueryWrapper<GoodsHistoryDO>()
+                        .eq(GoodsHistoryDO::getUserId, userProfileDO.getId())
+                        .eq(GoodsHistoryDO::getIsPaySuccess, 2)
+                        .eq(GoodsHistoryDO::getIsPaySuccess, 5)), // 已完成 5
+                goodsHistoryMapper.selectCount(new LambdaQueryWrapper<GoodsHistoryDO>()
+                        .eq(GoodsHistoryDO::getUserId, userProfileDO.getId())
+                        .eq(GoodsHistoryDO::getIsPaySuccess, 2)
+                        .eq(GoodsHistoryDO::getIsPaySuccess, 6)  // 退货中 6
+                        .or()
+                        .eq(GoodsHistoryDO::getIsPaySuccess, 7)) // 已退款 7
         );
     }
 

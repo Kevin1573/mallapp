@@ -163,4 +163,6 @@ public interface OrderService {
     void updateOrderStatus(String outTradeNo, OrderStatus orderStatus);
 
     void updatePayway(String tradeNo, PayWayEnums paywayEnums);
+
+    ShopCartStatResponse shopCartClassificationStat(ShopCartClassificationStatRequest request);
 }
