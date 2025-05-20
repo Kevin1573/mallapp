@@ -40,20 +40,8 @@ public class OrderController {
         }
     }
 
-//    @RequestMapping(value = "/wxPayCallback", method = {RequestMethod.POST})
-//    public Response wxPayCallback(@RequestBody JSONObject request) {
-//        try {
-//            orderService.wxPayCallback(request);
-//            return Response.success();
-//        } catch (Exception e) {
-//            log.error("wxPayCallback exception, request = {}", JSON.toJSONString(request), e);
-//            return Response.failure("wxPayCallback exception");
-//        }
-//    }
-
-
     @PostMapping("/getGoodsDetailById")
-    public Response<QueryGoodsByIdResponse> getGoodsDetailById(@RequestBody QueryGoodsByIdRequest request) {
+    public Response<List<QueryGoodsByIdResponse>> getGoodsDetailById(@RequestBody QueryGoodsByIdRequest request) {
         try {
             return Response.success(orderService.queryGoodsById(request));
         } catch (Exception e) {
@@ -102,16 +90,6 @@ public class OrderController {
         } catch (Exception e) {
             log.error("editShoppingCarNum exception, request = {}", JSON.toJSONString(request), e);
             return Response.failure("editShoppingCarNum exception");
-        }
-    }
-
-    @RequestMapping(value = "/queryGoodsById", method = {RequestMethod.POST})
-    public Response queryGoodsById(@RequestBody QueryGoodsByIdRequest request) {
-        try {
-            return Response.success(orderService.queryGoodsById(request));
-        } catch (Exception e) {
-            log.error("queryGoodsById exception, request = {}", JSON.toJSONString(request), e);
-            return Response.failure("queryGoodsById exception");
         }
     }
 

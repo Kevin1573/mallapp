@@ -30,4 +30,6 @@ public class QueryGoodsModel {
 
     private String ext;
 
+    private String goodsUnit;
+
 }

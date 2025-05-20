@@ -72,7 +72,7 @@ public interface OrderService {
      * @param request 商品id
      * @return QueryGoodsByIdResponse
      */
-    QueryGoodsByIdResponse queryGoodsById(QueryGoodsByIdRequest request);
+    List<QueryGoodsByIdResponse> queryGoodsById(QueryGoodsByIdRequest request);
 
     /**
      * 根据商品名称模糊查询商品详情

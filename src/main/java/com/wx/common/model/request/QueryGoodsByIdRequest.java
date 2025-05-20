@@ -5,5 +5,7 @@ import lombok.Data;
 @Data
 public class QueryGoodsByIdRequest {
 
-    private String goodsId;
+    private String goodsUnit;
+
+    private String token;
 }

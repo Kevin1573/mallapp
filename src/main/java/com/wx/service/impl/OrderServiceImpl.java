@@ -231,6 +231,7 @@ public class OrderServiceImpl implements OrderService {
             model.setPrice(goodsDO.getPrice());
             model.setName(goodsDO.getName());
             model.setExt(goodsDO.getExt());
+            model.setGoodsUnit(goodsDO.getGoodsUnit());
             modelList.add(model);
         }
 
@@ -358,11 +359,18 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public QueryGoodsByIdResponse queryGoodsById(QueryGoodsByIdRequest request) {
-        GoodsDO goodsDO = goodsMapper.selectById(request.getGoodsId());
-        QueryGoodsByIdResponse response = new QueryGoodsByIdResponse();
-        BeanUtils.copyProperties(goodsDO, response);
-        return response;
+    public List<QueryGoodsByIdResponse> queryGoodsById(QueryGoodsByIdRequest request) {
+        LambdaQueryWrapper<GoodsDO> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(GoodsDO::getGoodsUnit, request.getGoodsUnit());
+        List<GoodsDO> goodsDOS = goodsMapper.selectList(queryWrapper);
+
+        List<QueryGoodsByIdResponse> responseList = new ArrayList<>();
+        for (GoodsDO goodsDO : goodsDOS) {
+            QueryGoodsByIdResponse response = new QueryGoodsByIdResponse();
+            BeanUtils.copyProperties(goodsDO, response);
+            responseList.add(response);
+        }
+        return responseList;
     }
 
     @Override

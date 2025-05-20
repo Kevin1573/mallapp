@@ -10,4 +10,6 @@ public class ShopModel {
     private String pic;
 
     private Double price;
+
+    private String goodsUnit;
 }

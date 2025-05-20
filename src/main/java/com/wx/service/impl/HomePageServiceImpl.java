@@ -3,16 +3,20 @@ package com.wx.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.wx.common.model.request.HomePageRequest;
+import com.wx.common.model.request.QueryGoodsByIdRequest;
 import com.wx.common.model.request.ShopModel;
 import com.wx.common.model.response.CompanyConfigResponse;
 import com.wx.common.model.response.HomePageResponse;
+import com.wx.common.model.response.QueryRecondDetailByUnitResponse;
 import com.wx.orm.entity.GoodsDO;
 import com.wx.orm.entity.ShopCombinationRecommendationDO;
 import com.wx.orm.entity.ShopConfigDO;
+import com.wx.orm.entity.UserProfileDO;
 import com.wx.orm.mapper.GoodsMapper;
 import com.wx.orm.mapper.ShopCombinationRecommendationMapper;
 import com.wx.orm.mapper.ShopConfigMapper;
 import com.wx.service.HomePageService;
+import com.wx.service.TokenService;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -30,6 +34,8 @@ public class HomePageServiceImpl implements HomePageService {
     private ShopCombinationRecommendationMapper recommendationMapper;
     @Autowired
     private GoodsMapper goodsMapper;
+    @Autowired
+    private TokenService tokenService;
 
     @Override
     public HomePageResponse queryPage(HomePageRequest request) {
@@ -50,6 +56,7 @@ public class HomePageServiceImpl implements HomePageService {
             model.setPic(goodsDO.getGoodsPic());
             model.setName(goodsDO.getName());
             model.setPrice(goodsDO.getPrice());
+            model.setGoodsUnit(goodsDO.getGoodsUnit());
             sellersModels.add(model);
         }
         response.setBestSellersModels(sellersModels);
@@ -79,6 +86,7 @@ public class HomePageServiceImpl implements HomePageService {
             model.setPic(recommendationDO.getGoodsPic());
             model.setName(recommendationDO.getName());
             model.setPrice(recommendationDO.getPrice());
+            model.setGoodsUnit(recommendationDO.getGoodsUnit());
             reconModels.add(model);
         }
         response.setReconModels(reconModels);
@@ -94,5 +102,22 @@ public class HomePageServiceImpl implements HomePageService {
         CompanyConfigResponse response = new CompanyConfigResponse();
         BeanUtils.copyProperties(shopConfigDO, response);
         return response;
+    }
+
+    @Override
+    public List<QueryRecondDetailByUnitResponse> queryRecondDetail(QueryGoodsByIdRequest request) {
+        UserProfileDO userByToken = tokenService.getUserByToken(request.getToken());
+
+        LambdaQueryWrapper<ShopCombinationRecommendationDO> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(ShopCombinationRecommendationDO::getGoodsUnit, request.getGoodsUnit());
+        List<ShopCombinationRecommendationDO> recommendationDOS = recommendationMapper.selectList(queryWrapper);
+
+        List<QueryRecondDetailByUnitResponse> responseList = new ArrayList<>();
+        for (ShopCombinationRecommendationDO recondDO : recommendationDOS) {
+            QueryRecondDetailByUnitResponse response = new QueryRecondDetailByUnitResponse();
+            BeanUtils.copyProperties(recondDO, response);
+            responseList.add(response);
+        }
+        return responseList;
     }
 }

@@ -84,4 +84,9 @@ public class GoodsDO {
      * 分类
      */
     private String category;
+
+    /**
+     * 同一款商品标示
+     */
+    private String goodsUnit;
 }

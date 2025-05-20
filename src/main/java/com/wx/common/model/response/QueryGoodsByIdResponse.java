@@ -3,7 +3,6 @@ package com.wx.common.model.response;
 import lombok.Data;
 
 import java.util.Date;
-import java.util.List;
 
 @Data
 public class QueryGoodsByIdResponse {
@@ -30,11 +29,6 @@ public class QueryGoodsByIdResponse {
      */
     private String name;
 
-    /**
-     * 商品类型id
-     */
-    private Long typeId;
-
     private Date createTime;
 
     private Date modifyTime;
@@ -43,6 +37,4 @@ public class QueryGoodsByIdResponse {
      * 商品扩展图片
      */
     private String ext;
-
-    private Double weight;
 }
