@@ -64,8 +64,21 @@ public class OrderServiceImpl implements OrderService {
         queryWrapper.eq(UserProfileDO::getId, 1);
         UserProfileDO userProfileDO = userProfileMapper.selectOne(queryWrapper);
         if (Objects.isNull(userProfileDO)) {
-            throw new BizException("openid is error");
+            throw new BizException("token is error");
         }
+
+        // 检查商品库存
+        for (OrderGoodsModelRequest modelRequest : request.getModelRequestList()) {
+            GoodsDO goodsDO = goodsMapper.selectById(modelRequest.getGoodsId());
+            if (Objects.isNull(goodsDO)) {
+                throw new BizException("商品不存在");
+            }
+            Long num = modelRequest.getNum();
+            if (num > goodsDO.getInventory()) {
+                throw new BizException("商品" + goodsDO.getName() + " 库存不足");
+            }
+        }
+
         String tradeNo = OrderUtil.snowflakeOrderNo();
         // 1. 预收集所有商品信息
         List<QueryOrderGoodsModel> goodsList = new ArrayList<>();
@@ -123,6 +136,14 @@ public class OrderServiceImpl implements OrderService {
         }
         goodsHistoryMapper.insert(goodsHistoryDO);
 
+        // 减少库存
+        for (OrderGoodsModelRequest modelRequest : request.getModelRequestList()) {
+            GoodsDO goodsDO = goodsMapper.selectById(modelRequest.getGoodsId());
+            Long num = modelRequest.getNum();
+            goodsDO.setInventory(goodsDO.getInventory() - num);
+            goodsMapper.updateById(goodsDO);
+        }
+
 
         // 邮寄方式改为邮寄和自提，自提则没有快递费
         Double logisticsPrice = request.getFreight(); // 运费
@@ -138,8 +159,8 @@ public class OrderServiceImpl implements OrderService {
         orderGoodsResponse.setOutTradeNo(tradeNo);
 
         // TODO 验证优惠券的优惠金额和有效性
-        Long couponId = request.getCouponId();
-        if (Objects.nonNull(couponId)) {
+//        Long couponId = request.getCouponId();
+//        if (Objects.nonNull(couponId)) {
 //            RebateDO rebateDO = rebateMapper.selectById(couponId);
 //            if (Objects.isNull(rebateDO)) {
 //                throw new BizException("优惠券不存在");
@@ -150,7 +171,7 @@ public class OrderServiceImpl implements OrderService {
 //            if (rebateDO.getExpireTime().getTime() < System.currentTimeMillis()) {
 //                throw new BizException("优惠券已过期");
 //            }
-        }
+//        }
 
 
 //        Long nowPoint = userProfileDO.getPoint();
@@ -716,6 +737,23 @@ public class OrderServiceImpl implements OrderService {
                         .or()
                         .eq(GoodsHistoryDO::getIsPaySuccess, 7)) // 已退款 7
         );
+    }
+
+    @Override
+    public void updateSales(Long goodsId, Long num) {
+        // 根据商品id 更新商品库存
+        GoodsDO goodsDO = goodsMapper.selectById(goodsId);
+        goodsMapper.updateById(new GoodsDO().setId(goodsId).setSales(goodsDO.getInventory() -  num));
+    }
+
+    @Override
+    public GoodsHistoryDO queryOrderByTradeNo(String outTradeNo) {
+        GoodsHistoryDO goodsHistoryDO = goodsHistoryMapper.selectOne(new LambdaQueryWrapper<GoodsHistoryDO>()
+                .eq(GoodsHistoryDO::getTradeNo, outTradeNo));
+        if (Objects.nonNull(goodsHistoryDO)) {
+            return goodsHistoryDO;
+        }
+        return null;
     }
 
     private Double addOtherMoneyByNum(Integer num, Double logisticsPrice) {

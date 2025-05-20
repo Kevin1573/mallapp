@@ -44,4 +44,6 @@ public class ShopConfigDO {
 
     private Date modifyTime;
 
+    private double freight;
+
 }

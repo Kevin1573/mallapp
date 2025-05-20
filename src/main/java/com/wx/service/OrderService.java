@@ -7,6 +7,7 @@ import com.wx.common.enums.OrderStatus;
 import com.wx.common.enums.PayWayEnums;
 import com.wx.common.model.request.*;
 import com.wx.common.model.response.*;
+import com.wx.orm.entity.GoodsHistoryDO;
 import com.wx.orm.entity.UserAddrDO;
 
 import java.io.IOException;
@@ -158,4 +159,8 @@ public interface OrderService {
     void updatePayway(String tradeNo, PayWayEnums paywayEnums);
 
     ShopCartStatResponse shopCartClassificationStat(ShopCartClassificationStatRequest request);
+
+    void updateSales(Long id, Long num);
+
+    GoodsHistoryDO queryOrderByTradeNo(String outTradeNo);
 }

@@ -63,7 +63,7 @@ public class GoodsDO {
     /**
      * 库存
      */
-    private Integer inventory;
+    private long inventory;
 
     /**
      * 规格
@@ -73,7 +73,7 @@ public class GoodsDO {
     /**
      * 销量
      */
-    private Integer sales;
+    private Long sales;
 
     /**
      * 是否首次创建

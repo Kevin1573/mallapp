@@ -37,4 +37,6 @@ public class QueryGoodsByIdResponse {
      * 商品扩展图片
      */
     private String ext;
+
+    private String specifications;
 }
