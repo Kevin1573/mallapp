@@ -32,10 +32,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -238,21 +236,30 @@ public class OrderServiceImpl implements OrderService {
         queryWrapper.orderByAsc(GoodsDO::getId);
 
         // 5. 查询主规格商品
-        queryWrapper.eq(GoodsDO::getFirstGoods, true);
+//        queryWrapper.eq(GoodsDO::getFirstGoods, true);
 
         IPage<GoodsDO> goodsDOPage = goodsMapper.selectPage(page, queryWrapper);
 
         List<GoodsDO> goodsDOList = goodsDOPage.getRecords();
+        List<GoodsDO> firstGoodsList = goodsDOList.stream().filter(GoodsDO::getFirstGoods).collect(Collectors.toList());
+
         List<QueryGoodsModel> modelList = new ArrayList<>();
-        for (GoodsDO goodsDO : goodsDOList) {
+        for (GoodsDO goodsDO : firstGoodsList) {
             QueryGoodsModel model = new QueryGoodsModel();
             model.setId(goodsDO.getId());
             model.setDescription(goodsDO.getDescription());
-            model.setGoodsPic(goodsDO.getGoodsPic());
             model.setPrice(goodsDO.getPrice());
             model.setName(goodsDO.getName());
             model.setExt(goodsDO.getExt());
             model.setGoodsUnit(goodsDO.getGoodsUnit());
+            model.setFirstGoods(goodsDO.getFirstGoods());
+
+            List<GoodsDO> sameGoodsUnitCollections = goodsDOList.stream().filter(goodsDO1 -> goodsDO1.getGoodsUnit().equals(goodsDO.getGoodsUnit()))
+                    .collect(Collectors.toList());
+            List<String> goodsPics = sameGoodsUnitCollections.stream().map(GoodsDO::getGoodsPic).distinct().collect(Collectors.toList());
+            model.setGoodsPics(goodsPics); // 商品主图
+            List<String> brandPics = sameGoodsUnitCollections.stream().map(GoodsDO::getBrandPic).distinct().collect(Collectors.toList());
+            model.setBrandPics(brandPics); // 品牌主图
             modelList.add(model);
         }
 

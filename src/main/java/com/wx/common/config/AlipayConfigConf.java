@@ -3,7 +3,7 @@ package com.wx.common.config;
 import com.alipay.api.AlipayClient;
 import com.alipay.api.DefaultAlipayClient;
 
-public class AlipayConfig {
+public class AlipayConfigConf {
 
     // 应用ID
     public static final String APP_ID = "2021000148682771";
@@ -29,6 +29,7 @@ public class AlipayConfig {
     // 支付宝网关
 //    public static final String GATEWAY_URL = "https://openapi.alipay.com/gateway.do";
     public static final String GATEWAY_URL = "https://openapi-sandbox.dl.alipaydev.com/gateway.do";
+    public static final String SERVER_URL = "https://openapi-sandbox.dl.alipaydev.com/gateway.do";
     // 实例化客户端
     public static AlipayClient alipayClient = new DefaultAlipayClient(
             GATEWAY_URL, APP_ID, APP_PRIVATE_KEY, "json", CHARSET, ALIPAY_PUBLIC_KEY, SIGN_TYPE);

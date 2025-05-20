@@ -12,7 +12,7 @@ public class QueryGoodsModel {
     /**
      * 商品图片
      */
-    private String goodsPic;
+    private List<String> goodsPics;
 
     /**
      * 商品描述
@@ -31,5 +31,9 @@ public class QueryGoodsModel {
     private String ext;
 
     private String goodsUnit;
+
+    private Boolean firstGoods;
+
+    private List<String> brandPics;
 
 }

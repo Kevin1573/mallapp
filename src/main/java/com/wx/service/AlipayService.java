@@ -4,7 +4,7 @@ import com.alipay.api.AlipayApiException;
 import com.alipay.api.AlipayClient;
 import com.alipay.api.request.AlipayTradePagePayRequest;
 import com.alipay.api.response.AlipayTradePagePayResponse;
-import com.wx.common.config.AlipayConfig;
+import com.wx.common.config.AlipayConfigConf;
 
 public class AlipayService {
     
@@ -16,11 +16,11 @@ public class AlipayService {
      * @return 支付页面表单
      */
     public static String pagePay(String outTradeNo, String totalAmount, String subject) {
-        AlipayClient alipayClient = AlipayConfig.alipayClient;
+        AlipayClient alipayClient = AlipayConfigConf.alipayClient;
         
         AlipayTradePagePayRequest request = new AlipayTradePagePayRequest();
-        request.setReturnUrl(AlipayConfig.RETURN_URL);
-        request.setNotifyUrl(AlipayConfig.NOTIFY_URL);
+        request.setReturnUrl(AlipayConfigConf.RETURN_URL);
+        request.setNotifyUrl(AlipayConfigConf.NOTIFY_URL);
         
         // 创建API对应的请求参数
         String bizContent = "{" +
