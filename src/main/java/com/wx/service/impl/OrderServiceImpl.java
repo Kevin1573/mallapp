@@ -694,6 +694,7 @@ public class OrderServiceImpl implements OrderService {
                     .setTradeNo(outTradeNo)
                     .setIsPaySuccess(2)
                     .setIsComplete(1)
+                    .setStatus(3)
             );
         } else if (OrderStatus.WAITING_PAYMENT == orderStatus) {
             goodsHistoryMapper.updateByTradeNo(new GoodsHistoryDO()
@@ -764,6 +765,53 @@ public class OrderServiceImpl implements OrderService {
             return goodsHistoryDO;
         }
         return null;
+    }
+
+    @Override
+    public void cancelOrder(OrderRequest request) {
+        GoodsHistoryDO goodsHistoryDO = goodsHistoryMapper.selectOne(new LambdaQueryWrapper<GoodsHistoryDO>().eq(GoodsHistoryDO::getTradeNo, request.getTradeNo()));
+        if (goodsHistoryDO == null) {
+            throw new BizException("订单不存在");
+        }
+        // cancel order and update order status to 5(complete)
+        goodsHistoryMapper.updateById(new GoodsHistoryDO()
+                        .setId(goodsHistoryDO.getId())
+//                .setIsPaySuccess(2)
+                .setIsComplete(2)
+                .setStatus(5));
+    }
+
+    @Override
+    public String applyRefund(OrderRequest request) {
+        // 根据订单编号 tradeNo,查询订单是否存在
+        GoodsHistoryDO goodsHistoryDO = goodsHistoryMapper.selectOne(new LambdaQueryWrapper<GoodsHistoryDO>().eq(GoodsHistoryDO::getTradeNo, request.getTradeNo()));
+        if (goodsHistoryDO == null) {
+            throw new BizException("订单不存在");
+        }
+        if (goodsHistoryDO.getIsPaySuccess() != 2) {
+            throw new BizException("订单未支付");
+        }
+//        if (goodsHistoryDO.getIsComplete() != 2) {
+//            throw new BizException("订单未完成");
+//        }
+        goodsHistoryMapper.updateById(new GoodsHistoryDO()
+                        .setId(goodsHistoryDO.getId())
+                .setStatus(6));
+        return "订单申请退款中...";
+    }
+
+    @Override
+    public String confirmReceipt(OrderRequest request) {
+        // 确认收货, 更新订单状态 为 5(已完成)
+        GoodsHistoryDO goodsHistoryDO = goodsHistoryMapper.selectOne(new LambdaQueryWrapper<GoodsHistoryDO>().eq(GoodsHistoryDO::getTradeNo, request.getTradeNo()));
+        if (goodsHistoryDO == null) {
+            throw new BizException("订单不存在");
+        }
+        goodsHistoryMapper.updateById(new GoodsHistoryDO()
+                        .setId(goodsHistoryDO.getId())
+                .setIsComplete(2)
+                .setStatus(5));
+        return "订单已完成...";
     }
 
     private Double addOtherMoneyByNum(Integer num, Double logisticsPrice) {

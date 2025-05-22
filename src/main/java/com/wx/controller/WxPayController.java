@@ -28,7 +28,6 @@ import com.wx.service.TokenService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -49,8 +48,7 @@ public class WxPayController {
     private final TokenService tokenService;
 
     @PostMapping("/createOrderNative")
-    public Response<String> createOrderNative(@RequestBody PaymentRequest paymentRequest,
-                                              @Value("${spring.profiles.active}") String profile) throws JsonProcessingException {
+    public Response<String> createOrderNative(@RequestBody PaymentRequest paymentRequest) throws JsonProcessingException {
         String from = paymentRequest.getFrom();
         if (StringUtils.isBlank(from)) {
             return Response.failure("from不能为空");
@@ -75,7 +73,8 @@ public class WxPayController {
         request.setAppid(APP_ID);
         request.setMchid(MERCHANT_ID);
         request.setDescription("商品描述(from db)");
-        request.setNotifyUrl("local".equals(profile) ? LOCAL_CALLBACK_URL : CALLBACK_URL);
+        request.setNotifyUrl(CALLBACK_URL);
+//        request.setNotifyUrl(LOCAL_CALLBACK_URL);
         // String orderId = OrderUtil.snowflakeOrderNo();
         request.setOutTradeNo(tradeNo);
         Map<String, String> attachMap = new HashMap<>();
@@ -85,6 +84,10 @@ public class WxPayController {
         try {
             PrepayResponse prepay = payService.prepay(request);
             String qrCodeBase64 = QrCodeUtil.generateQrCodeBase64(prepay.getCodeUrl(), 300);
+            if (StringUtils.isNoneBlank(prepay.getCodeUrl())) {
+                // 更新订单的支付方式 为 1 wx
+                orderService.updatePayway(tradeNo, PayWayEnums.WECHAT);
+            }
             return Response.success(qrCodeBase64);
         } catch (Exception e) {
             log.error("本次调用又出错了...", e);

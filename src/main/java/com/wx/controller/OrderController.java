@@ -217,4 +217,37 @@ public class OrderController {
             return Response.failure("packorder exception");
         }
     }
+
+    // 取消订单
+    @RequestMapping(value = "/cancelOrder", method = {RequestMethod.POST})
+    public Response<String> cancelOrder(@RequestBody OrderRequest request) {
+        try {
+            orderService.cancelOrder(request);
+            return Response.success();
+        } catch (Exception e) {
+            log.error("packorder exception, request = {}", JSON.toJSONString(request), e);
+            return Response.failure("packorder exception");
+        }
+    }
+    //申请退款
+    @RequestMapping(value = "/applyRefund", method = {RequestMethod.POST})
+    public Response<String> applyRefund(@RequestBody OrderRequest request) {
+        try {
+            return Response.success(orderService.applyRefund(request));
+        } catch (Exception e) {
+            log.error("applyRefund exception, request = {}", JSON.toJSONString(request), e);
+            return Response.failure("applyRefund exception");
+        }
+    }
+
+    //确认收货
+    @RequestMapping(value = "/confirmReceipt", method = {RequestMethod.POST})
+    public Response<String> confirmReceipt(@RequestBody OrderRequest request) {
+        try {
+            return Response.success(orderService.confirmReceipt(request));
+        } catch (Exception e) {
+            log.error("confirmReceipt exception, request = {}", JSON.toJSONString(request), e);
+            return Response.failure("confirmReceipt exception");
+        }
+    }
 }

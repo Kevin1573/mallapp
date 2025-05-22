@@ -163,4 +163,10 @@ public interface OrderService {
     void updateSales(Long id, Long num);
 
     GoodsHistoryDO queryOrderByTradeNo(String outTradeNo);
+
+    void cancelOrder(OrderRequest request);
+
+    String applyRefund(OrderRequest request);
+
+    String confirmReceipt(OrderRequest request);
 }
