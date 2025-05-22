@@ -118,7 +118,12 @@ public class AdminSericeImpl implements AdminService {
         IPage<GoodsHistoryDO> historyDOPage = goodsHistoryMapper.selectPage(page, queryWrapper);
         List<GoodsHistoryDO> records = historyDOPage.getRecords();
         if (CollectionUtils.isEmpty(records)) {
-            return new QueryOrderHistoryResponse();
+            QueryOrderHistoryResponse queryOrderHistoryResponse = new QueryOrderHistoryResponse();
+            queryOrderHistoryResponse.setRecords(new ArrayList<>());
+            queryOrderHistoryResponse.setPage(request.getPage());
+            queryOrderHistoryResponse.setTotal(0L);
+            queryOrderHistoryResponse.setLimit(request.getLimit());
+            return queryOrderHistoryResponse;
         }
         List<String> tradeNoList = new ArrayList<>();
         for (GoodsHistoryDO goodsHistoryDO : records) {
@@ -178,7 +183,7 @@ public class AdminSericeImpl implements AdminService {
 
         QueryOrderHistoryResponse response = new QueryOrderHistoryResponse();
         response.setRecords(recordList);
-        response.setPage(request.getPage());
+        response.setPage(historyDOPage.getPages());
         response.setTotal(historyDOPage.getTotal());
         response.setLimit(request.getLimit());
         return response;

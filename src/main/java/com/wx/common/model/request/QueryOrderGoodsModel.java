@@ -15,7 +15,7 @@ public class QueryOrderGoodsModel {
     private String goodsPic;
     private String name;
     private double price;
-    private int sales; // 销量
+    private Long sales; // 销量
     private Long num;
     public QueryOrderGoodsModel() {}
     @JsonCreator // 方案一：带参构造+注解

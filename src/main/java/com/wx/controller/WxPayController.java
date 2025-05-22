@@ -2,6 +2,8 @@ package com.wx.controller;
 
 import com.alibaba.fastjson.JSON;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wechat.pay.java.core.notification.NotificationParser;
 import com.wechat.pay.java.core.notification.RequestParam;
 import com.wechat.pay.java.service.partnerpayments.nativepay.model.Transaction;
@@ -14,11 +16,13 @@ import com.wx.common.enums.PayWayEnums;
 import com.wx.common.model.Response;
 import com.wx.common.model.request.GetOrderDetailByTradeNo;
 import com.wx.common.model.request.PaymentRequest;
+import com.wx.common.model.request.QueryOrderGoodsModel;
 import com.wx.common.model.request.ReturnRequest;
 import com.wx.common.model.response.QueryOrderHistoryModel;
 import com.wx.common.model.response.ReturnResponse;
 import com.wx.common.utils.OrderUtil;
 import com.wx.common.utils.QrCodeUtil;
+import com.wx.orm.entity.GoodsHistoryDO;
 import com.wx.orm.entity.UserProfileDO;
 import com.wx.service.OrderService;
 import com.wx.service.TokenService;
@@ -28,10 +32,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.wx.common.config.PayConstants.*;
@@ -170,8 +171,10 @@ public class WxPayController {
         }
     }
 
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
-    private boolean processOrder(String outTradeNo, String transactionId, int amount) {
+
+    private boolean processOrder(String outTradeNo, String transactionId, int amount) throws JsonProcessingException {
         // 实现你的业务逻辑，例如：
         // 1. 检查订单是否存在
         // 2. 验证金额是否匹配
@@ -184,6 +187,22 @@ public class WxPayController {
 
         // 更新订单状态
         orderService.updateOrderStatus(outTradeNo, OrderStatus.PAID);
+
+        // 更新销量 goods 表的 sales 字段
+        GoodsHistoryDO orderDetail = orderService.queryOrderByTradeNo(outTradeNo);
+        String goodsListStr = orderDetail.getGoodsList();
+        String normalizedJson = goodsListStr
+                .replace("\\\"", "\"")
+                .replace("\"[", "[")
+                .replace("]\"", "]");
+        List<QueryOrderGoodsModel> queryOrderGoodsModels = objectMapper.readValue(
+                normalizedJson,
+                new TypeReference<List<QueryOrderGoodsModel>>() {
+                }
+        );
+        for (QueryOrderGoodsModel goodsModel : queryOrderGoodsModels) {
+            orderService.updateSales(goodsModel.getId(), goodsModel.getNum());
+        }
 
         return true;
     }
