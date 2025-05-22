@@ -7,6 +7,7 @@ import com.wx.common.model.request.LoginRequest;
 import com.wx.common.model.request.TokenRequest;
 import com.wx.common.model.request.UserProfileRequest;
 import com.wx.common.model.response.LoginResonse;
+import com.wx.orm.entity.RebateDO;
 import com.wx.orm.entity.UserProfileDO;
 import com.wx.orm.mapper.RebateMapper;
 import com.wx.orm.mapper.UserProfileMapper;
@@ -20,6 +21,7 @@ import org.springframework.util.CollectionUtils;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -106,7 +108,9 @@ public class LoginServiceImpl implements LoginService {
         response.setToken(userProfileDO.getToken());
         response.setPhone(userProfileDO.getPhone());
         response.setHeadUrl(userProfileDO.getHeadUrl());
-        response.setPosition(rebateMapper.selectById(userProfileDO.getPosition()).getDescription());
+
+        RebateDO rebateDO = rebateMapper.selectById(userProfileDO.getPosition());
+        response.setPosition(Optional.ofNullable(rebateDO).map(RebateDO::getDescription).orElse(""));
         response.setUserId(userProfileDO.getId());
         return response;
     }

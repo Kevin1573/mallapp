@@ -16,6 +16,9 @@ public class QueryOrderHistoryModel {
     private Date orderTime;
     // 已支付成功，1未支付，2支付成功
     private Integer isPaySuccess;
+
+    // 1 wx  2 alipay
+    private Integer payWay;
     /**
      * 定单是否发货完成，1未完成 2完成
      */

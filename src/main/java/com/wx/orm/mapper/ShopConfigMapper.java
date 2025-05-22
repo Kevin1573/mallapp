@@ -8,6 +8,6 @@ import org.apache.ibatis.annotations.Select;
 @Mapper
 public interface ShopConfigMapper extends BaseMapper<ShopConfigDO> {
 
-    @Select("select * from shop_config where shop_name = #{from}")
-    ShopConfigDO selectByShopName(String from);
+    @Select("select * from shop_config where from_mall = #{from}")
+    ShopConfigDO selectByFrom(String from);
 }

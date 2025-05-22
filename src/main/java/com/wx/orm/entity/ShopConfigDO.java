@@ -46,4 +46,6 @@ public class ShopConfigDO {
 
     private double freight;
 
+    private String email;
+
 }

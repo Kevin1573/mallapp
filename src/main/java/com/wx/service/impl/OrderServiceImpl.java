@@ -33,7 +33,6 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -144,10 +143,10 @@ public class OrderServiceImpl implements OrderService {
 
 
         // 邮寄方式改为邮寄和自提，自提则没有快递费
-        Double logisticsPrice = request.getFreight(); // 运费
-        if (Objects.isNull(logisticsPrice)) {
-            throw new BizException("请输入正确的地址信息");
-        }
+//        Double logisticsPrice = request.getFreight(); // 运费
+//        if (Objects.isNull(logisticsPrice)) {
+//            throw new BizException("请输入正确的地址信息");
+//        }
 //        if (Objects.nonNull(request.getAddrId())) {
         //UserAddrDO userAddrDO = userAddrMapper.selectById(request.getAddrId());
         //logisticsPrice = LogisticsUtil.getLogisticsPrice((int) Math.ceil(weight), userAddrDO.getProvince());
@@ -236,15 +235,14 @@ public class OrderServiceImpl implements OrderService {
         queryWrapper.orderByAsc(GoodsDO::getId);
 
         // 5. 查询主规格商品
-//        queryWrapper.eq(GoodsDO::getFirstGoods, true);
+        queryWrapper.eq(GoodsDO::getFirstGoods, true);
 
         IPage<GoodsDO> goodsDOPage = goodsMapper.selectPage(page, queryWrapper);
 
         List<GoodsDO> goodsDOList = goodsDOPage.getRecords();
-        List<GoodsDO> firstGoodsList = goodsDOList.stream().filter(GoodsDO::getFirstGoods).collect(Collectors.toList());
 
         List<QueryGoodsModel> modelList = new ArrayList<>();
-        for (GoodsDO goodsDO : firstGoodsList) {
+        for (GoodsDO goodsDO : goodsDOList) {
             QueryGoodsModel model = new QueryGoodsModel();
             model.setId(goodsDO.getId());
             model.setDescription(goodsDO.getDescription());
@@ -254,12 +252,10 @@ public class OrderServiceImpl implements OrderService {
             model.setGoodsUnit(goodsDO.getGoodsUnit());
             model.setFirstGoods(goodsDO.getFirstGoods());
 
-            List<GoodsDO> sameGoodsUnitCollections = goodsDOList.stream().filter(goodsDO1 -> goodsDO1.getGoodsUnit().equals(goodsDO.getGoodsUnit()))
-                    .collect(Collectors.toList());
-            List<String> goodsPics = sameGoodsUnitCollections.stream().map(GoodsDO::getGoodsPic).distinct().collect(Collectors.toList());
-            model.setGoodsPics(goodsPics); // 商品主图
-            List<String> brandPics = sameGoodsUnitCollections.stream().map(GoodsDO::getBrandPic).distinct().collect(Collectors.toList());
-            model.setBrandPics(brandPics); // 品牌主图
+            model.setGoodsPic(goodsDO.getGoodsPic());
+            model.setBrandPic(goodsDO.getBrandPic());
+
+
             modelList.add(model);
         }
 
@@ -351,9 +347,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public void addShoppingCar(AddShoppingCarRequest request) {
-        LambdaQueryWrapper<UserProfileDO> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(UserProfileDO::getToken, request.getToken());
-        UserProfileDO userProfileDO = userProfileMapper.selectOne(queryWrapper);
+        UserProfileDO userProfileDO = tokenService.getUserByToken(request.getToken());
         if (Objects.isNull(userProfileDO)) {
             throw new BizException("token is error");
         }
@@ -363,7 +357,7 @@ public class OrderServiceImpl implements OrderService {
         carQuery.eq(ShoppingCarDO::getUserId, userProfileDO.getId());
         ShoppingCarDO shoppingCarOldDO = shoppingCarMapper.selectOne(carQuery);
         if (Objects.nonNull(shoppingCarOldDO)) {
-            shoppingCarOldDO.setNum(shoppingCarOldDO.getNum() + 1);
+            shoppingCarOldDO.setNum(request.getNum() == null ? shoppingCarOldDO.getNum() + 1 : request.getNum() + shoppingCarOldDO.getNum());
             shoppingCarMapper.updateById(shoppingCarOldDO);
             return;
         }
@@ -371,7 +365,7 @@ public class OrderServiceImpl implements OrderService {
         ShoppingCarDO shoppingCarDO = new ShoppingCarDO();
         shoppingCarDO.setUserId(userProfileDO.getId());
         shoppingCarDO.setGoodsId(request.getGoodsId());
-        shoppingCarDO.setNum(1L);
+        shoppingCarDO.setNum(request.getNum() == null ? 1L : request.getNum());
         shoppingCarDO.setModifyTime(new Date());
         shoppingCarDO.setCreateTime(new Date());
         shoppingCarMapper.insert(shoppingCarDO);
@@ -396,6 +390,13 @@ public class OrderServiceImpl implements OrderService {
         for (GoodsDO goodsDO : goodsDOS) {
             QueryGoodsByIdResponse response = new QueryGoodsByIdResponse();
             BeanUtils.copyProperties(goodsDO, response);
+//            List<GoodsDO> sameGoodsUnitCollections = goodsDOS.stream().filter(goodsDO1 -> goodsDO1.getGoodsUnit().equals(goodsDO.getGoodsUnit()))
+//                    .collect(Collectors.toList());
+            List<String> goodsPics = Collections.singletonList(goodsDO.getGoodsPic()); // sameGoodsUnitCollections.stream().map(GoodsDO::getGoodsPic).distinct().collect(Collectors.toList());
+            response.setGoodsPics(goodsPics); // 商品主图
+            List<String> brandPics = Collections.singletonList(goodsDO.getBrandPic());// sameGoodsUnitCollections.stream().map(GoodsDO::getBrandPic).distinct().collect(Collectors.toList());
+            response.setBrandPics(brandPics); // 品牌主图
+            response.setInventory(goodsDO.getInventory());
             responseList.add(response);
         }
         return responseList;
@@ -443,6 +444,7 @@ public class OrderServiceImpl implements OrderService {
             queryCarOrdersResponse.setGoodsPic(goodsDO.getGoodsPic());
             queryCarOrdersResponse.setPrice(goodsDO.getPrice());
             queryCarOrdersResponse.setTotalPrice(shoppingCarDO.getNum() * goodsDO.getPrice());
+            queryCarOrdersResponse.setSpecifications(goodsDO.getSpecifications());
             responseList.add(queryCarOrdersResponse);
         }
         return responseList;
@@ -500,6 +502,7 @@ public class OrderServiceImpl implements OrderService {
         queryOrderHistoryModel.setUserName(orderInfo.getString("name"));
         queryOrderHistoryModel.setPayAmount(goodsHistoryDO1.getPayAmount());
         queryOrderHistoryModel.setIsPaySuccess(goodsHistoryDO1.getIsPaySuccess());
+        queryOrderHistoryModel.setPayWay(goodsHistoryDO1.getPayWay());
         return queryOrderHistoryModel;
     }
 
@@ -682,18 +685,18 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public void updateOrderStatus(String outTradeNo, OrderStatus orderStatus) {
         if (OrderStatus.COMPLETED == orderStatus) {
-            goodsHistoryMapper.updateById(new GoodsHistoryDO()
+            goodsHistoryMapper.updateByTradeNo(new GoodsHistoryDO()
                     .setTradeNo(outTradeNo)
                     .setIsPaySuccess(2)
                     .setIsComplete(2));
         } else if (OrderStatus.PAID == orderStatus) {
-            goodsHistoryMapper.updateById(new GoodsHistoryDO()
+            goodsHistoryMapper.updateByTradeNo2(new GoodsHistoryDO()
                     .setTradeNo(outTradeNo)
                     .setIsPaySuccess(2)
                     .setIsComplete(1)
             );
         } else if (OrderStatus.WAITING_PAYMENT == orderStatus) {
-            goodsHistoryMapper.updateById(new GoodsHistoryDO()
+            goodsHistoryMapper.updateByTradeNo(new GoodsHistoryDO()
                     .setTradeNo(outTradeNo)
                     .setIsPaySuccess(1)
                     .setIsComplete(1)
@@ -750,7 +753,7 @@ public class OrderServiceImpl implements OrderService {
     public void updateSales(Long goodsId, Long num) {
         // 根据商品id 更新商品库存
         GoodsDO goodsDO = goodsMapper.selectById(goodsId);
-        goodsMapper.updateById(new GoodsDO().setId(goodsId).setSales(goodsDO.getInventory() -  num));
+        goodsMapper.updateById(new GoodsDO().setId(goodsId).setSales(goodsDO.getInventory() - num));
     }
 
     @Override

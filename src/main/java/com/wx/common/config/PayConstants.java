@@ -39,6 +39,7 @@ public class PayConstants {
     public static String PRIVATE_KEY = "68EE48914BD37392C6E2320FD07DAD71FD61F69F";
 
     public static String CALLBACK_URL = "http://mallapp.pdcspace.com/pay/v3/callback";
+    public static String LOCAL_CALLBACK_URL = "http://g8a65b28.natappfree.cc/pay/v3/callback";
 
 
     public static String APP_ID = "wx70559cc67cdc94cc";
