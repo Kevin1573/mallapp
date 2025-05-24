@@ -1,6 +1,7 @@
 package com.wx.orm.entity;
 
 import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
@@ -49,10 +50,12 @@ public class GoodsDO {
      * 品牌
      */
     private String brand;
+    private String brandUrl;
 
     /**
      * 品牌主图
      */
+    @TableField(value = "brand_pic")
     private String brandPic;
 
     /**
@@ -89,4 +92,8 @@ public class GoodsDO {
      * 同一款商品标示
      */
     private String goodsUnit;
+
+    private Integer status; // 0-下架 1-上架
+
+    private String fromMall;
 }

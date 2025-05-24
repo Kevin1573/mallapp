@@ -6,7 +6,7 @@ import com.wx.common.model.request.EditPasswordRequest;
 import com.wx.common.model.request.LoginRequest;
 import com.wx.common.model.request.TokenRequest;
 import com.wx.common.model.request.UserProfileRequest;
-import com.wx.common.model.response.LoginResonse;
+import com.wx.common.model.response.LoginResponse;
 import com.wx.orm.entity.RebateDO;
 import com.wx.orm.entity.UserProfileDO;
 import com.wx.orm.mapper.RebateMapper;
@@ -15,6 +15,7 @@ import com.wx.service.LoginService;
 import com.wx.service.TokenService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
@@ -37,31 +38,53 @@ public class LoginServiceImpl implements LoginService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public LoginResonse login(LoginRequest request) {
+    public LoginResponse login(LoginRequest request) {
         LambdaQueryWrapper<UserProfileDO> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.and(qw -> qw
                 .eq(UserProfileDO::getPhone, request.getPhone())
                 .or()
                 .eq(UserProfileDO::getNickName, request.getUserName())
-        ).eq(UserProfileDO::getPassword, request.getPassword()); // 保留密码必须匹配的条件
+        );
+        //.eq(UserProfileDO::getPassword, request.getPassword()); // 保留密码必须匹配的条件
 
         List<UserProfileDO> userProfileDOS = userProfileMapper.selectList(queryWrapper);
         if (CollectionUtils.isEmpty(userProfileDOS)) {
+            throw new BizException("账号不存在");
+        }
+
+        // 3. BCrypt 密码验证（遍历匹配用户）
+        UserProfileDO validUser = null;
+        for (UserProfileDO user : userProfileDOS) {
+            if (BCrypt.checkpw(request.getPassword(), user.getPassword())) {
+                validUser = user;
+                break;
+            }
+        }
+
+        if (validUser == null) {
             throw new BizException("账号密码错误");
         }
+
+
+//        List<UserProfileDO> userProfileDOS = userProfileMapper.selectList(queryWrapper);
+//        if (CollectionUtils.isEmpty(userProfileDOS)) {
+//            throw new BizException("账号密码错误");
+//        }
 
         UserProfileDO userProfileDO1 = userProfileDOS.get(0);
-        if (!userProfileDO1.getFromShopName().equals(request.getFrom())) {
-            throw new BizException("账号密码错误");
-        }
+//        if (!userProfileDO1.getFromShopName().equals(request.getFrom())) {
+//            throw new BizException("账号密码错误");
+//        }
 
-        LoginResonse resonse = new LoginResonse();
+        LoginResponse resonse = new LoginResponse();
         resonse.setHeadUrl(userProfileDO1.getHeadUrl());
         resonse.setUserId(userProfileDO1.getId());
         resonse.setToken(userProfileDO1.getToken());
         //resonse.setPosition(rebateMapper.selectById(userProfileDO1.getPosition()).getDescription());
         resonse.setPhone(userProfileDO1.getPhone());
         resonse.setNickName(userProfileDO1.getNickName());
+        resonse.setFromMall(userProfileDO1.getFromShopName());
+        resonse.setSource(userProfileDO1.getSource());
         return resonse;
     }
 
@@ -101,9 +124,9 @@ public class LoginServiceImpl implements LoginService {
     }
 
     @Override
-    public LoginResonse getUserInfoByToken(TokenRequest request) {
+    public LoginResponse getUserInfoByToken(TokenRequest request) {
         UserProfileDO userProfileDO = tokenService.getUserByToken(request.getToken());
-        LoginResonse response = new LoginResonse();
+        LoginResponse response = new LoginResponse();
         response.setNickName(userProfileDO.getNickName());
         response.setToken(userProfileDO.getToken());
         response.setPhone(userProfileDO.getPhone());
@@ -112,6 +135,9 @@ public class LoginServiceImpl implements LoginService {
         RebateDO rebateDO = rebateMapper.selectById(userProfileDO.getPosition());
         response.setPosition(Optional.ofNullable(rebateDO).map(RebateDO::getDescription).orElse(""));
         response.setUserId(userProfileDO.getId());
+        response.setSource(userProfileDO.getSource());
+        response.setFromMall(userProfileDO.getFromShopName());
+        response.setSource(userProfileDO.getSource());
         return response;
     }
 

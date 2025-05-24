@@ -22,7 +22,7 @@ public class TokenServiceImpl implements TokenService {
         queryWrapper.eq(UserProfileDO::getToken, token);
         UserProfileDO userProfileDO = userProfileMapper.selectOne(queryWrapper);
         if (Objects.isNull(userProfileDO)) {
-            throw new BizException("请登录");
+            throw new BizException("token失效,请登录");
         }
         return userProfileDO;
     }

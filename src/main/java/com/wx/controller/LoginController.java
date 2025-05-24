@@ -7,7 +7,7 @@ import com.wx.common.model.request.EditPasswordRequest;
 import com.wx.common.model.request.LoginRequest;
 import com.wx.common.model.request.TokenRequest;
 import com.wx.common.model.request.UserProfileRequest;
-import com.wx.common.model.response.LoginResonse;
+import com.wx.common.model.response.LoginResponse;
 import com.wx.service.LoginService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,7 +25,7 @@ public class LoginController {
     private final LoginService loginService;
 
     @RequestMapping(value = "/login", method = {RequestMethod.POST})
-    public Response<LoginResonse> login(@RequestBody LoginRequest request) {
+    public Response<LoginResponse> login(@RequestBody LoginRequest request) {
         try {
             return Response.success(loginService.login(request));
         } catch (Exception e) {
@@ -59,7 +59,7 @@ public class LoginController {
     }
 
     @RequestMapping(value = "/getUserInfoByToken", method = {RequestMethod.POST})
-    public Response<LoginResonse> getUserInfoByToken(@RequestBody TokenRequest request) {
+    public Response<LoginResponse> getUserInfoByToken(@RequestBody TokenRequest request) {
         try {
             return Response.success(loginService.getUserInfoByToken(request));
         } catch (Exception e) {

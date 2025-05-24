@@ -13,7 +13,7 @@ public class PayConstants {
 //            + "PQIDAQAB\n"
 //            + "-----END PUBLIC KEY-----";
 
-//    public static final String PUBLIC_KEY_PATH = "D:\\code\\mallapp\\src\\main\\resources\\wxCert\\pub_key.pem";
+    public static final String LOCAL_PUBLIC_KEY_PATH = "D:\\code\\mallapp\\src\\main\\resources\\wxCert\\pub_key.pem";
     public static final String PUBLIC_KEY_PATH = "/root/mallapp/wxCert/pub_key.pem";
 
     /**

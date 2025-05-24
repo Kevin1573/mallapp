@@ -13,6 +13,7 @@ import com.wx.common.enums.CompleteEnum;
 import com.wx.common.enums.OrderStatus;
 import com.wx.common.enums.PayWayEnums;
 import com.wx.common.exception.BizException;
+import com.wx.common.model.OrderListItem;
 import com.wx.common.model.request.*;
 import com.wx.common.model.response.*;
 import com.wx.common.utils.LogisticsUtil;
@@ -33,6 +34,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -828,5 +830,67 @@ public class OrderServiceImpl implements OrderService {
         }
         return logisticsPrice;
     }
+
+    @Override
+    public Page<OrderListItem> queryOrderList(OrderListRequest request) {
+        // 1. 用户身份验证
+        UserProfileDO user = tokenService.getUserByToken(request.getToken());
+        if (user == null) {
+            throw new BizException("无效的token");
+        }
+
+        // 2. 构建分页查询条件
+        Page<GoodsHistoryDO> page = new Page<>(request.getPage(), request.getPageSize());
+        LambdaQueryWrapper<GoodsHistoryDO> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(GoodsHistoryDO::getUserId, user.getId())
+                .eq(request.getStatus() != null, GoodsHistoryDO::getStatus, request.getStatus())
+                .orderByDesc(GoodsHistoryDO::getCreateTime);
+
+        // 3. 执行分页查询
+        IPage<GoodsHistoryDO> historyPage = goodsHistoryMapper.selectPage(page, queryWrapper);
+
+        // 4. 数据转换
+        List<OrderListItem> items = historyPage.getRecords()
+                .stream().map(history -> {
+            OrderListItem item = new OrderListItem();
+            BeanUtils.copyProperties(history, item);
+
+            // 解析商品列表
+            try {
+                String goodsJson = history.getGoodsList()
+                        .replace("\\\"", "\"")
+                        .replace("\"[", "[")
+                        .replace("]\"", "]");
+                List<QueryOrderGoodsModel> goodsList = objectMapper.readValue(
+                        goodsJson,
+                        new TypeReference<List<QueryOrderGoodsModel>>(){}
+                );
+                item.setGoodsList(goodsList);
+            } catch (JsonProcessingException e) {
+                log.error("解析商品列表失败", e);
+            }
+
+            // 计算总价
+            if (CollectionUtils.isNotEmpty(item.getGoodsList())) {
+                double total = item.getGoodsList().stream()
+                        .mapToDouble(g -> g.getPrice() * g.getNum())
+                        .sum();
+                item.setTotalPrice(total);
+            }
+            return item;
+        }).collect(Collectors.toList());
+
+        // 5. 构建响应
+        Page<OrderListItem> pageResult = new Page<>(page.getCurrent(),
+                page.getSize(), historyPage.getTotal());
+        pageResult.setRecords(items);
+//        OrderListResponse response = new OrderListResponse();
+//        response.setRecords(items);
+//        response.setTotal(historyPage.getTotal());
+//        response.setPage(request.getPage());
+//        response.setLimit(request.getLimit());
+        return pageResult;
+    }
+
 
 }

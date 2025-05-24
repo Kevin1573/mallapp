@@ -14,7 +14,7 @@ public class QueryOrderGoodsModel {
     private Boolean firstGoods;
     private String goodsPic;
     private String name;
-    private double price;
+    private Double price;
     private Long sales; // 销量
     private Long num;
     public QueryOrderGoodsModel() {}

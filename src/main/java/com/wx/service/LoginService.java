@@ -4,7 +4,7 @@ import com.wx.common.model.request.EditPasswordRequest;
 import com.wx.common.model.request.LoginRequest;
 import com.wx.common.model.request.TokenRequest;
 import com.wx.common.model.request.UserProfileRequest;
-import com.wx.common.model.response.LoginResonse;
+import com.wx.common.model.response.LoginResponse;
 
 public interface LoginService {
 
@@ -14,7 +14,7 @@ public interface LoginService {
      * @param request 前端获取到的登陆code
      * @return 用户信息
      */
-    LoginResonse login(LoginRequest request);
+    LoginResponse login(LoginRequest request);
 
     /**
      * 注册接口
@@ -36,7 +36,7 @@ public interface LoginService {
      * @param request token信息
      * @return 用户信息
      */
-    LoginResonse getUserInfoByToken(TokenRequest request);
+    LoginResponse getUserInfoByToken(TokenRequest request);
 
     /**
      * 修改密码

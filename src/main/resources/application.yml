@@ -13,6 +13,9 @@ spring:
     username: mall_rds
     password: Mall$%Rds+123
 
+#security:
+#  interceptor:
+#    auth-paths: /api/shop/config/**
 #  autoconfigure:
 #    exclude: org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
   # redis:

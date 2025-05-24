@@ -6,4 +6,9 @@ import org.apache.ibatis.annotations.Mapper;
 
 @Mapper
 public interface UserProfileMapper extends BaseMapper<UserProfileDO> {
+
+//    @Override
+//    List<UserProfileDO> selectList( Wrapper<UserProfileDO> queryWrapper);
+//        return selectList(queryWrapper);
+//    }
 }
