@@ -14,4 +14,6 @@ public class CompanyConfigResponse {
     private String programUrl;
 
     private String wechatUrl;
+
+    private String email;
 }

@@ -2,8 +2,6 @@ package com.wx.common.model.response;
 
 import lombok.Data;
 
-import java.util.List;
-
 @Data
 public class QueryGoodsModel {
 
@@ -31,5 +29,9 @@ public class QueryGoodsModel {
     private String ext;
 
     private String goodsUnit;
+
+    private Boolean firstGoods;
+
+    private String brandPic;
 
 }

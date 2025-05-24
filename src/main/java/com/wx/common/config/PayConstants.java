@@ -3,15 +3,19 @@ package com.wx.common.config;
 public class PayConstants {
 
     public static final String PUBLIC_KEY_ID = "PUB_KEY_ID_0117152438052025051500351948001800";
-    public static final String PUBLIC_KEY_PATH = "-----BEGIN PUBLIC KEY-----\n"
-            + "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAlrAd64NNyL21FPvCxmMB\n"
-            + "d+XOIYMW0JccfRbjrMscKikYe369pLhnBIOesJ4GuynzjPYZAb1bOVUofc8I+Ug+\n"
-            + "tFZHax8BdhY8uVL71BCC2Fp4jwgCoVjluvOgP/pt58l/Uni40FNvISn5lVvoGd82\n"
-            + "rgZCeRa29UBcpNuF++cmKVtWWK8mSbQP5Gj1AYrwihpASqO3qhv/F3eZCICFpQtS\n"
-            + "oB+FaQckBt91Qv7kRAuVq2CAQz7Ik9S6PZyoeakSNRudpbZOcYPEf7VWBq4W3AZy\n"
-            + "TxsMW0LdNauBFtyaDguEBF3jWGSV9AsDbKDMG3fkIC/8LumIvKLN5Uz1OHiePpsB\n"
-            + "PQIDAQAB\n"
-            + "-----END PUBLIC KEY-----";
+//    public static final String PUBLIC_KEY_PATH = "-----BEGIN PUBLIC KEY-----\n"
+//            + "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAlrAd64NNyL21FPvCxmMB\n"
+//            + "d+XOIYMW0JccfRbjrMscKikYe369pLhnBIOesJ4GuynzjPYZAb1bOVUofc8I+Ug+\n"
+//            + "tFZHax8BdhY8uVL71BCC2Fp4jwgCoVjluvOgP/pt58l/Uni40FNvISn5lVvoGd82\n"
+//            + "rgZCeRa29UBcpNuF++cmKVtWWK8mSbQP5Gj1AYrwihpASqO3qhv/F3eZCICFpQtS\n"
+//            + "oB+FaQckBt91Qv7kRAuVq2CAQz7Ik9S6PZyoeakSNRudpbZOcYPEf7VWBq4W3AZy\n"
+//            + "TxsMW0LdNauBFtyaDguEBF3jWGSV9AsDbKDMG3fkIC/8LumIvKLN5Uz1OHiePpsB\n"
+//            + "PQIDAQAB\n"
+//            + "-----END PUBLIC KEY-----";
+
+    public static final String LOCAL_PUBLIC_KEY_PATH = "D:\\code\\mallapp\\src\\main\\resources\\wxCert\\pub_key.pem";
+    public static final String PUBLIC_KEY_PATH = "/root/mallapp/wxCert/pub_key.pem";
+
     /**
      * 商户号
      */
@@ -39,6 +43,7 @@ public class PayConstants {
     public static String PRIVATE_KEY = "68EE48914BD37392C6E2320FD07DAD71FD61F69F";
 
     public static String CALLBACK_URL = "http://mallapp.pdcspace.com/pay/v3/callback";
+    public static String LOCAL_CALLBACK_URL = "http://g8a65b28.natappfree.cc/pay/v3/callback";
 
 
     public static String APP_ID = "wx70559cc67cdc94cc";

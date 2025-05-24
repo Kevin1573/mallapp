@@ -3,6 +3,7 @@ package com.wx.common.model.response;
 import lombok.Data;
 
 import java.util.Date;
+import java.util.List;
 
 @Data
 public class QueryGoodsByIdResponse {
@@ -12,7 +13,7 @@ public class QueryGoodsByIdResponse {
     /**
      * 商品图片
      */
-    private String goodsPic;
+    private List<String> goodsPics;
 
     /**
      * 商品描述
@@ -39,4 +40,11 @@ public class QueryGoodsByIdResponse {
     private String ext;
 
     private String specifications;
+
+    private List<String> brandPics;
+
+    // 库存
+    private long inventory;
+
+
 }

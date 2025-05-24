@@ -13,6 +13,7 @@ import com.wx.common.enums.CompleteEnum;
 import com.wx.common.enums.OrderStatus;
 import com.wx.common.enums.PayWayEnums;
 import com.wx.common.exception.BizException;
+import com.wx.common.model.OrderListItem;
 import com.wx.common.model.request.*;
 import com.wx.common.model.response.*;
 import com.wx.common.utils.LogisticsUtil;
@@ -32,10 +33,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -146,10 +145,10 @@ public class OrderServiceImpl implements OrderService {
 
 
         // 邮寄方式改为邮寄和自提，自提则没有快递费
-        Double logisticsPrice = request.getFreight(); // 运费
-        if (Objects.isNull(logisticsPrice)) {
-            throw new BizException("请输入正确的地址信息");
-        }
+//        Double logisticsPrice = request.getFreight(); // 运费
+//        if (Objects.isNull(logisticsPrice)) {
+//            throw new BizException("请输入正确的地址信息");
+//        }
 //        if (Objects.nonNull(request.getAddrId())) {
         //UserAddrDO userAddrDO = userAddrMapper.selectById(request.getAddrId());
         //logisticsPrice = LogisticsUtil.getLogisticsPrice((int) Math.ceil(weight), userAddrDO.getProvince());
@@ -243,16 +242,22 @@ public class OrderServiceImpl implements OrderService {
         IPage<GoodsDO> goodsDOPage = goodsMapper.selectPage(page, queryWrapper);
 
         List<GoodsDO> goodsDOList = goodsDOPage.getRecords();
+
         List<QueryGoodsModel> modelList = new ArrayList<>();
         for (GoodsDO goodsDO : goodsDOList) {
             QueryGoodsModel model = new QueryGoodsModel();
             model.setId(goodsDO.getId());
             model.setDescription(goodsDO.getDescription());
-            model.setGoodsPic(goodsDO.getGoodsPic());
             model.setPrice(goodsDO.getPrice());
             model.setName(goodsDO.getName());
             model.setExt(goodsDO.getExt());
             model.setGoodsUnit(goodsDO.getGoodsUnit());
+            model.setFirstGoods(goodsDO.getFirstGoods());
+
+            model.setGoodsPic(goodsDO.getGoodsPic());
+            model.setBrandPic(goodsDO.getBrandPic());
+
+
             modelList.add(model);
         }
 
@@ -344,9 +349,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public void addShoppingCar(AddShoppingCarRequest request) {
-        LambdaQueryWrapper<UserProfileDO> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(UserProfileDO::getToken, request.getToken());
-        UserProfileDO userProfileDO = userProfileMapper.selectOne(queryWrapper);
+        UserProfileDO userProfileDO = tokenService.getUserByToken(request.getToken());
         if (Objects.isNull(userProfileDO)) {
             throw new BizException("token is error");
         }
@@ -356,7 +359,7 @@ public class OrderServiceImpl implements OrderService {
         carQuery.eq(ShoppingCarDO::getUserId, userProfileDO.getId());
         ShoppingCarDO shoppingCarOldDO = shoppingCarMapper.selectOne(carQuery);
         if (Objects.nonNull(shoppingCarOldDO)) {
-            shoppingCarOldDO.setNum(shoppingCarOldDO.getNum() + 1);
+            shoppingCarOldDO.setNum(request.getNum() == null ? shoppingCarOldDO.getNum() + 1 : request.getNum() + shoppingCarOldDO.getNum());
             shoppingCarMapper.updateById(shoppingCarOldDO);
             return;
         }
@@ -364,7 +367,7 @@ public class OrderServiceImpl implements OrderService {
         ShoppingCarDO shoppingCarDO = new ShoppingCarDO();
         shoppingCarDO.setUserId(userProfileDO.getId());
         shoppingCarDO.setGoodsId(request.getGoodsId());
-        shoppingCarDO.setNum(1L);
+        shoppingCarDO.setNum(request.getNum() == null ? 1L : request.getNum());
         shoppingCarDO.setModifyTime(new Date());
         shoppingCarDO.setCreateTime(new Date());
         shoppingCarMapper.insert(shoppingCarDO);
@@ -389,6 +392,13 @@ public class OrderServiceImpl implements OrderService {
         for (GoodsDO goodsDO : goodsDOS) {
             QueryGoodsByIdResponse response = new QueryGoodsByIdResponse();
             BeanUtils.copyProperties(goodsDO, response);
+//            List<GoodsDO> sameGoodsUnitCollections = goodsDOS.stream().filter(goodsDO1 -> goodsDO1.getGoodsUnit().equals(goodsDO.getGoodsUnit()))
+//                    .collect(Collectors.toList());
+            List<String> goodsPics = Collections.singletonList(goodsDO.getGoodsPic()); // sameGoodsUnitCollections.stream().map(GoodsDO::getGoodsPic).distinct().collect(Collectors.toList());
+            response.setGoodsPics(goodsPics); // 商品主图
+            List<String> brandPics = Collections.singletonList(goodsDO.getBrandPic());// sameGoodsUnitCollections.stream().map(GoodsDO::getBrandPic).distinct().collect(Collectors.toList());
+            response.setBrandPics(brandPics); // 品牌主图
+            response.setInventory(goodsDO.getInventory());
             responseList.add(response);
         }
         return responseList;
@@ -436,6 +446,7 @@ public class OrderServiceImpl implements OrderService {
             queryCarOrdersResponse.setGoodsPic(goodsDO.getGoodsPic());
             queryCarOrdersResponse.setPrice(goodsDO.getPrice());
             queryCarOrdersResponse.setTotalPrice(shoppingCarDO.getNum() * goodsDO.getPrice());
+            queryCarOrdersResponse.setSpecifications(goodsDO.getSpecifications());
             responseList.add(queryCarOrdersResponse);
         }
         return responseList;
@@ -493,6 +504,7 @@ public class OrderServiceImpl implements OrderService {
         queryOrderHistoryModel.setUserName(orderInfo.getString("name"));
         queryOrderHistoryModel.setPayAmount(goodsHistoryDO1.getPayAmount());
         queryOrderHistoryModel.setIsPaySuccess(goodsHistoryDO1.getIsPaySuccess());
+        queryOrderHistoryModel.setPayWay(goodsHistoryDO1.getPayWay());
         return queryOrderHistoryModel;
     }
 
@@ -675,18 +687,19 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public void updateOrderStatus(String outTradeNo, OrderStatus orderStatus) {
         if (OrderStatus.COMPLETED == orderStatus) {
-            goodsHistoryMapper.updateById(new GoodsHistoryDO()
+            goodsHistoryMapper.updateByTradeNo(new GoodsHistoryDO()
                     .setTradeNo(outTradeNo)
                     .setIsPaySuccess(2)
                     .setIsComplete(2));
         } else if (OrderStatus.PAID == orderStatus) {
-            goodsHistoryMapper.updateById(new GoodsHistoryDO()
+            goodsHistoryMapper.updateByTradeNo2(new GoodsHistoryDO()
                     .setTradeNo(outTradeNo)
                     .setIsPaySuccess(2)
                     .setIsComplete(1)
+                    .setStatus(3)
             );
         } else if (OrderStatus.WAITING_PAYMENT == orderStatus) {
-            goodsHistoryMapper.updateById(new GoodsHistoryDO()
+            goodsHistoryMapper.updateByTradeNo(new GoodsHistoryDO()
                     .setTradeNo(outTradeNo)
                     .setIsPaySuccess(1)
                     .setIsComplete(1)
@@ -743,7 +756,7 @@ public class OrderServiceImpl implements OrderService {
     public void updateSales(Long goodsId, Long num) {
         // 根据商品id 更新商品库存
         GoodsDO goodsDO = goodsMapper.selectById(goodsId);
-        goodsMapper.updateById(new GoodsDO().setId(goodsId).setSales(goodsDO.getInventory() -  num));
+        goodsMapper.updateById(new GoodsDO().setId(goodsId).setSales(goodsDO.getInventory() - num));
     }
 
     @Override
@@ -754,6 +767,53 @@ public class OrderServiceImpl implements OrderService {
             return goodsHistoryDO;
         }
         return null;
+    }
+
+    @Override
+    public void cancelOrder(OrderRequest request) {
+        GoodsHistoryDO goodsHistoryDO = goodsHistoryMapper.selectOne(new LambdaQueryWrapper<GoodsHistoryDO>().eq(GoodsHistoryDO::getTradeNo, request.getTradeNo()));
+        if (goodsHistoryDO == null) {
+            throw new BizException("订单不存在");
+        }
+        // cancel order and update order status to 5(complete)
+        goodsHistoryMapper.updateById(new GoodsHistoryDO()
+                        .setId(goodsHistoryDO.getId())
+//                .setIsPaySuccess(2)
+                .setIsComplete(2)
+                .setStatus(5));
+    }
+
+    @Override
+    public String applyRefund(OrderRequest request) {
+        // 根据订单编号 tradeNo,查询订单是否存在
+        GoodsHistoryDO goodsHistoryDO = goodsHistoryMapper.selectOne(new LambdaQueryWrapper<GoodsHistoryDO>().eq(GoodsHistoryDO::getTradeNo, request.getTradeNo()));
+        if (goodsHistoryDO == null) {
+            throw new BizException("订单不存在");
+        }
+        if (goodsHistoryDO.getIsPaySuccess() != 2) {
+            throw new BizException("订单未支付");
+        }
+//        if (goodsHistoryDO.getIsComplete() != 2) {
+//            throw new BizException("订单未完成");
+//        }
+        goodsHistoryMapper.updateById(new GoodsHistoryDO()
+                        .setId(goodsHistoryDO.getId())
+                .setStatus(6));
+        return "订单申请退款中...";
+    }
+
+    @Override
+    public String confirmReceipt(OrderRequest request) {
+        // 确认收货, 更新订单状态 为 5(已完成)
+        GoodsHistoryDO goodsHistoryDO = goodsHistoryMapper.selectOne(new LambdaQueryWrapper<GoodsHistoryDO>().eq(GoodsHistoryDO::getTradeNo, request.getTradeNo()));
+        if (goodsHistoryDO == null) {
+            throw new BizException("订单不存在");
+        }
+        goodsHistoryMapper.updateById(new GoodsHistoryDO()
+                        .setId(goodsHistoryDO.getId())
+                .setIsComplete(2)
+                .setStatus(5));
+        return "订单已完成...";
     }
 
     private Double addOtherMoneyByNum(Integer num, Double logisticsPrice) {
@@ -770,5 +830,67 @@ public class OrderServiceImpl implements OrderService {
         }
         return logisticsPrice;
     }
+
+    @Override
+    public Page<OrderListItem> queryOrderList(OrderListRequest request) {
+        // 1. 用户身份验证
+        UserProfileDO user = tokenService.getUserByToken(request.getToken());
+        if (user == null) {
+            throw new BizException("无效的token");
+        }
+
+        // 2. 构建分页查询条件
+        Page<GoodsHistoryDO> page = new Page<>(request.getPage(), request.getPageSize());
+        LambdaQueryWrapper<GoodsHistoryDO> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(GoodsHistoryDO::getUserId, user.getId())
+                .eq(request.getStatus() != null, GoodsHistoryDO::getStatus, request.getStatus())
+                .orderByDesc(GoodsHistoryDO::getCreateTime);
+
+        // 3. 执行分页查询
+        IPage<GoodsHistoryDO> historyPage = goodsHistoryMapper.selectPage(page, queryWrapper);
+
+        // 4. 数据转换
+        List<OrderListItem> items = historyPage.getRecords()
+                .stream().map(history -> {
+            OrderListItem item = new OrderListItem();
+            BeanUtils.copyProperties(history, item);
+
+            // 解析商品列表
+            try {
+                String goodsJson = history.getGoodsList()
+                        .replace("\\\"", "\"")
+                        .replace("\"[", "[")
+                        .replace("]\"", "]");
+                List<QueryOrderGoodsModel> goodsList = objectMapper.readValue(
+                        goodsJson,
+                        new TypeReference<List<QueryOrderGoodsModel>>(){}
+                );
+                item.setGoodsList(goodsList);
+            } catch (JsonProcessingException e) {
+                log.error("解析商品列表失败", e);
+            }
+
+            // 计算总价
+            if (CollectionUtils.isNotEmpty(item.getGoodsList())) {
+                double total = item.getGoodsList().stream()
+                        .mapToDouble(g -> g.getPrice() * g.getNum())
+                        .sum();
+                item.setTotalPrice(total);
+            }
+            return item;
+        }).collect(Collectors.toList());
+
+        // 5. 构建响应
+        Page<OrderListItem> pageResult = new Page<>(page.getCurrent(),
+                page.getSize(), historyPage.getTotal());
+        pageResult.setRecords(items);
+//        OrderListResponse response = new OrderListResponse();
+//        response.setRecords(items);
+//        response.setTotal(historyPage.getTotal());
+//        response.setPage(request.getPage());
+//        response.setLimit(request.getLimit());
+        return pageResult;
+    }
+
 
 }

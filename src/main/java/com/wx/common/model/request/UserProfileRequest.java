@@ -5,6 +5,8 @@ import lombok.Data;
 @Data
 public class UserProfileRequest {
 
+    private Long id;
+
     private String token;
 
     /**
@@ -28,4 +30,10 @@ public class UserProfileRequest {
     private String addr;
 
     private Integer position;
+
+    private String source;
+
+    private Integer page;
+
+    private Integer pageSize;
 }

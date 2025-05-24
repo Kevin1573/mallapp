@@ -2,9 +2,11 @@ package com.wx.service;
 
 
 import com.alibaba.fastjson2.JSONObject;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.wx.common.enums.OrderStatus;
 import com.wx.common.enums.PayWayEnums;
+import com.wx.common.model.OrderListItem;
 import com.wx.common.model.request.*;
 import com.wx.common.model.response.*;
 import com.wx.orm.entity.GoodsHistoryDO;
@@ -163,4 +165,12 @@ public interface OrderService {
     void updateSales(Long id, Long num);
 
     GoodsHistoryDO queryOrderByTradeNo(String outTradeNo);
+
+    void cancelOrder(OrderRequest request);
+
+    String applyRefund(OrderRequest request);
+
+    String confirmReceipt(OrderRequest request);
+
+    Page<OrderListItem> queryOrderList(OrderListRequest request);
 }

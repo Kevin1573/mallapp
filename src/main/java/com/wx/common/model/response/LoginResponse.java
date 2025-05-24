@@ -3,7 +3,7 @@ package com.wx.common.model.response;
 import lombok.Data;
 
 @Data
-public class LoginResonse {
+public class LoginResponse {
 
     private Long userId;
 
@@ -22,5 +22,8 @@ public class LoginResonse {
      * 用户职位
      */
     private String position;
+    private String fromMall;
+
+    private String source;
 
 }

@@ -36,4 +36,5 @@ public class QueryCarOrdersResponse {
 
     private Long num;
 
+    private String specifications;
 }

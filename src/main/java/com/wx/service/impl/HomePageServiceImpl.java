@@ -24,6 +24,7 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class HomePageServiceImpl implements HomePageService {
@@ -49,7 +50,7 @@ public class HomePageServiceImpl implements HomePageService {
         // 查询热销商品列表
         List<ShopModel> sellersModels = new ArrayList<>();
         String bestSellers = shopConfigDO.getBestSellers();
-        List<String> sellersList = Arrays.asList(bestSellers.split(bestSellers));
+        List<String> sellersList = Optional.ofNullable(bestSellers).map(s -> Arrays.asList(s.split(","))).orElse(new ArrayList<>());
         for (String goodsId : sellersList) {
             GoodsDO goodsDO = goodsMapper.selectById(goodsId);
             ShopModel model = new ShopModel();

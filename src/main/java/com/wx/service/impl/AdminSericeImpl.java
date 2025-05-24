@@ -117,6 +117,7 @@ public class AdminSericeImpl implements AdminService {
         Page<GoodsHistoryDO> page = new Page<>(request.getPage(), request.getLimit());
         IPage<GoodsHistoryDO> historyDOPage = goodsHistoryMapper.selectPage(page, queryWrapper);
         List<GoodsHistoryDO> records = historyDOPage.getRecords();
+        long pages = historyDOPage.getPages();
         if (CollectionUtils.isEmpty(records)) {
             QueryOrderHistoryResponse queryOrderHistoryResponse = new QueryOrderHistoryResponse();
             queryOrderHistoryResponse.setRecords(new ArrayList<>());
@@ -183,7 +184,7 @@ public class AdminSericeImpl implements AdminService {
 
         QueryOrderHistoryResponse response = new QueryOrderHistoryResponse();
         response.setRecords(recordList);
-        response.setPage(historyDOPage.getPages());
+        response.setPage(request.getPage() > pages ? pages : request.getPage());
         response.setTotal(historyDOPage.getTotal());
         response.setLimit(request.getLimit());
         return response;

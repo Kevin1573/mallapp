@@ -20,7 +20,6 @@ import com.wx.common.model.request.QueryOrderGoodsModel;
 import com.wx.common.model.request.ReturnRequest;
 import com.wx.common.model.response.QueryOrderHistoryModel;
 import com.wx.common.model.response.ReturnResponse;
-import com.wx.common.utils.OrderUtil;
 import com.wx.common.utils.QrCodeUtil;
 import com.wx.orm.entity.GoodsHistoryDO;
 import com.wx.orm.entity.UserProfileDO;
@@ -29,6 +28,7 @@ import com.wx.service.TokenService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
@@ -68,21 +68,26 @@ public class WxPayController {
         // 通过from 查出对应的商户配置
         PrepayRequest request = new PrepayRequest();
         Amount amount = new Amount();
-        amount.setTotal(10);
+        amount.setTotal(1);
         request.setAmount(amount);
         request.setAppid(APP_ID);
         request.setMchid(MERCHANT_ID);
         request.setDescription("商品描述(from db)");
         request.setNotifyUrl(CALLBACK_URL);
-        String orderId = OrderUtil.snowflakeOrderNo();
-        request.setOutTradeNo(orderId);
+//        request.setNotifyUrl(LOCAL_CALLBACK_URL);
+        // String orderId = OrderUtil.snowflakeOrderNo();
+        request.setOutTradeNo(tradeNo);
         Map<String, String> attachMap = new HashMap<>();
-        attachMap.put("orderId", orderId);
-        attachMap.put("mchId", "购买商品所在的商户号(查db)");
+        attachMap.put("orderId", tradeNo);
+        attachMap.put("mchId", "购买商品所在的商户号(mallapp)");
         request.setAttach(JSON.toJSONString(attachMap));
         try {
             PrepayResponse prepay = payService.prepay(request);
             String qrCodeBase64 = QrCodeUtil.generateQrCodeBase64(prepay.getCodeUrl(), 300);
+            if (StringUtils.isNoneBlank(prepay.getCodeUrl())) {
+                // 更新订单的支付方式 为 1 wx
+                orderService.updatePayway(tradeNo, PayWayEnums.WECHAT);
+            }
             return Response.success(qrCodeBase64);
         } catch (Exception e) {
             log.error("本次调用又出错了...", e);
@@ -107,17 +112,19 @@ public class WxPayController {
             return Response.failure("订单不存在");
         }
         if (orderDetailById.getIsPaySuccess() == 2) {
-            ReturnResponse returnResponse = new ReturnResponse(request.getTradeNo(), "微信支付", OrderStatus.PAID.name(),
+            ReturnResponse returnResponse = new ReturnResponse(request.getTradeNo(), "1", OrderStatus.PAID.name(),
                     orderDetailById.getPayAmount(), orderDetailById.getOrderTime());
 
             return Response.success(returnResponse);
         }
         // 处理支付成功后的逻辑
-        return Response.failure(OrderStatus.WAITING_PAYMENT.name());
+        ReturnResponse successResponse = new ReturnResponse(request.getTradeNo(), "1", OrderStatus.WAITING_PAYMENT.name(),
+                orderDetailById.getPayAmount(), orderDetailById.getOrderTime());
+        return Response.success(successResponse);
     }
 
     @RequestMapping(value = "/callback", method = RequestMethod.POST)
-    public String callback(HttpServletRequest request) {
+    public ResponseEntity<String> callback(HttpServletRequest request) {
         try {
             // 1. 获取请求头信息
             Map<String, String> headers = getHeaders(request);
@@ -140,11 +147,11 @@ public class WxPayController {
             Transaction transaction = notificationParser.parse(requestParam, Transaction.class);
 
             // 4. 处理业务逻辑
-            return processTransaction(transaction);
+            return ResponseEntity.ok(processTransaction(transaction));
 
         } catch (Exception e) {
             // 记录错误日志
-            return buildErrorResponse("FAIL", "处理失败: " + e.getMessage());
+            return ResponseEntity.badRequest().body("fail");
         }
     }
 
@@ -160,7 +167,7 @@ public class WxPayController {
         int amount = transaction.getAmount().getTotal(); // 总金额(分)
         log.info("订单支付成功：{}", transaction);
         try {
-            orderService.updateOrderStatus(outTradeNo, OrderStatus.PAID);
+
             // TODO: 实现你的业务逻辑
             // 注意：必须做幂等处理，防止重复通知
             boolean success = processOrder(outTradeNo, transactionId, amount);
@@ -185,11 +192,17 @@ public class WxPayController {
         System.out.println("订单支付成功：" + transactionId);
         System.out.println("支付金额：" + amount);
 
+//        orderService.updateOrderStatus(outTradeNo, OrderStatus.PAID);
+        // 查询订单是否存在
+        GoodsHistoryDO orderDetail = orderService.queryOrderByTradeNo(outTradeNo);
+        if (Objects.isNull(orderDetail)) {
+            return false;
+        }
+
         // 更新订单状态
         orderService.updateOrderStatus(outTradeNo, OrderStatus.PAID);
 
         // 更新销量 goods 表的 sales 字段
-        GoodsHistoryDO orderDetail = orderService.queryOrderByTradeNo(outTradeNo);
         String goodsListStr = orderDetail.getGoodsList();
         String normalizedJson = goodsListStr
                 .replace("\\\"", "\"")

@@ -6,6 +6,8 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Pattern;
 import java.util.Date;
 
 @TableName("shop_config")
@@ -13,12 +15,19 @@ import java.util.Date;
 @Accessors(chain = true)
 public class ShopConfigDO {
 
-    @TableId(value = "id", type = IdType.AUTO)
+    @TableId(type = IdType.AUTO)
     private Long id;
 
-    private String fromMall;
-
+    @NotBlank(message = "店铺名称不能为空")
     private String shopName;
+
+    @NotBlank(message = "联系人不能为空")
+    private String contactPerson;
+
+    @Pattern(regexp = "^1[3-9]\\d{9}$", message = "联系电话格式不正确")
+    private String contactPhone;
+
+    private String fromMall;
 
     private String shopNameEng;
 
@@ -45,5 +54,7 @@ public class ShopConfigDO {
     private Date modifyTime;
 
     private double freight;
+
+    private String email;
 
 }
