@@ -42,11 +42,6 @@ public class Constants {
 
     public static final String ROLE_SESSION_NAME = "admin";
 
-
-//    public static final String ROLE_ARN = "acs:ram::1275758408595557:role/aliyunoss";
-//
-//    public static final String ROLE_SESSION_NAME = "adminSession";
-
     public static final String ENDPOINT = "sts.cn-hangzhou.aliyuncs.com";
 
     public static final String REGION = "oss-cn-hangzhou";
