@@ -2,6 +2,7 @@ package com.wx.admin.controller;
 
 import com.wx.common.exception.BizException;
 import com.wx.common.model.ApiResponse;
+import com.wx.common.model.request.BestSellingGoodsRequest;
 import com.wx.common.model.request.ShopConfigRequest;
 import com.wx.common.model.response.ShopConfigDOResponse;
 import com.wx.service.ShopService;
@@ -31,6 +32,24 @@ public class ShopController {
             return ApiResponse.success(shopConfigInfo);
         } catch (Exception e) {
             return ApiResponse.fail(400, "getShopConfigInfo is error , " + e.getMessage());
+        }
+    }
+
+    @RequestMapping(value = "/updateBestSellingGoods", method = {RequestMethod.POST})
+    public ApiResponse<Boolean> updateBestSellingGoods(@RequestBody BestSellingGoodsRequest request,
+                                                       @RequestHeader("Authorization") String authHeader) {
+        try {
+            if (StringUtils.isNotBlank(authHeader) && StringUtils.isBlank(request.getToken())) {
+                request.setToken(authHeader);
+            }
+            if (StringUtils.isBlank(request.getToken())) {
+                throw new BizException("用户没有登录, 或者token 失效");
+            }
+
+            Boolean updated = shopService.updateBestSellingGoods(request);
+            return updated ? ApiResponse.success(true) : ApiResponse.fail(500, "update error");
+        } catch (Exception e) {
+            return ApiResponse.fail(400, "updateBestSellingGoods is error , " + e.getMessage());
         }
     }
 

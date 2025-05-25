@@ -14,8 +14,10 @@ import com.alipay.api.request.AlipayTradePrecreateRequest;
 import com.alipay.api.response.AlipayTradePrecreateResponse;
 import com.aliyuncs.utils.StringUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.google.zxing.WriterException;
 import com.wx.common.config.AlipayConfigConf;
 import com.wx.common.enums.OrderStatus;
+import com.wx.common.model.ApiResponse;
 import com.wx.common.model.Response;
 import com.wx.common.model.request.GetOrderDetailByTradeNo;
 import com.wx.common.model.request.PaymentRequest;
@@ -23,6 +25,7 @@ import com.wx.common.model.request.ReturnRequest;
 import com.wx.common.model.response.QueryOrderHistoryModel;
 import com.wx.common.model.response.ReturnResponse;
 import com.wx.common.utils.OrderUtil;
+import com.wx.common.utils.QrCodeUtil;
 import com.wx.orm.entity.UserProfileDO;
 import com.wx.service.AlipayService;
 import com.wx.service.OrderService;
@@ -32,6 +35,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
+import java.io.IOException;
 import java.util.*;
 
 @Slf4j
@@ -42,27 +46,29 @@ public class AlipayController {
     private final OrderService orderService;
     private final TokenService tokenService;
 
-    @GetMapping("/pay")
-    public String pay(PaymentRequest request) {
-        // 生成商户订单号
-        String outTradeNo = OrderUtil.snowflakeOrderNo();
-        // 支付金额
-        String totalAmount = "0.01";
+//    @GetMapping("/pay")
+//    public String pay(PaymentRequest request) {
+//        // 生成商户订单号
+//        String outTradeNo = OrderUtil.snowflakeOrderNo();
+//        // 支付金额
+//        String totalAmount = "0.01";
+//
+//        // 调用支付
+//        return AlipayService.pagePay(outTradeNo, totalAmount, request.getSubject());
+//    }
 
-        // 调用支付
-        return AlipayService.pagePay(outTradeNo, totalAmount, request.getSubject());
-    }
-
-    @GetMapping("/pay2")
-    public String pay2(PaymentRequest request) throws AlipayApiException {
+    @PostMapping("/pay")
+    public ApiResponse<String> pay2(PaymentRequest request) throws AlipayApiException, IOException, WriterException {
         // 生成商户订单号
         String outTradeNo = OrderUtil.snowflakeOrderNo();
         // 支付金额
         String totalAmount = "0.01";
         String defaultSubject = "Iphone6 16G";
         // 调用支付
-        return AlipayService.createQrPayment(outTradeNo, totalAmount,
+        String qrUrl = AlipayService.createQrPayment(outTradeNo, totalAmount,
                 StringUtils.isEmpty(request.getSubject()) ? defaultSubject : request.getSubject());
+        String qrCodeBase64 = QrCodeUtil.generateQrCodeBase64(qrUrl, 300);
+        return ApiResponse.success(qrCodeBase64);
     }
 
     @GetMapping("/tradePrecreate")
