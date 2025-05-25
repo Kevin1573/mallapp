@@ -39,8 +39,10 @@ public class Constants {
     public static final String ROLE_SESSION_NAME = "admin";
 
     public static final String ENDPOINT = "sts.cn-hangzhou.aliyuncs.com";
+    public static final String ENDPOINT2 = "oss-cn-hangzhou.aliyuncs.com";
 
     public static final String REGION = "oss-cn-hangzhou";
+    public static final String BUCKET = "mall-app-123";
 
 
     public static final String DEFAULT_HEAD = "https://0563headurl.oss-cn-hangzhou.aliyuncs.com/default/pic.webp";
