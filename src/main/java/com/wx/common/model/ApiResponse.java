@@ -1,6 +1,7 @@
 package com.wx.common.model;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -28,6 +29,10 @@ public class ApiResponse<T> {
     // 分页专用方法
     public static <T> PageResponse<T> page(IPage<T> page) {
         return new PageResponse<>(page);
+    }
+
+    public static <T> PageResponse<T> failPage(int code, String message) {
+        return new PageResponse<>(code, message, new Page<>());
     }
 
 }

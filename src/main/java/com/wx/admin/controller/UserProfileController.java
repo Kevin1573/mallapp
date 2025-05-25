@@ -3,18 +3,17 @@ package com.wx.admin.controller;
 import cn.hutool.core.lang.generator.UUIDGenerator;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.wx.common.exception.BizException;
 import com.wx.common.model.ApiResponse;
 import com.wx.common.model.PageResponse;
 import com.wx.common.model.request.PasswordUpdateRequest;
 import com.wx.common.model.request.UserProfileRequest;
 import com.wx.orm.entity.UserProfileDO;
+import com.wx.service.TokenService;
 import com.wx.service.UserProfileService;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.security.crypto.bcrypt.BCrypt;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.Date;
 
@@ -23,9 +22,12 @@ import java.util.Date;
 public class UserProfileController {
 
     private final UserProfileService userProfileService;
+    private final TokenService tokenService;
 
-    public UserProfileController(UserProfileService userProfileService) {
+    public UserProfileController(UserProfileService userProfileService,
+                                 TokenService tokenService) {
         this.userProfileService = userProfileService;
+        this.tokenService = tokenService;
     }
 
     // 在 Controller 类开头添加
@@ -40,11 +42,31 @@ public class UserProfileController {
      * @return 用户列表
      */
     @PostMapping("/find")
-    public PageResponse<UserProfileDO> findUsers(@RequestBody UserProfileRequest request) {
+    public PageResponse<UserProfileDO> findUsers(
+            @RequestHeader("Authorization") String authHeader,
+            @RequestBody UserProfileRequest request) {
+        if (StringUtils.isNotBlank(authHeader)) {
+            request.setToken(authHeader);
+        }
+        if (StringUtils.isBlank(request.getToken())) {
+            throw new BizException("用户没有登录, 或者token 失效");
+        }
+
+        UserProfileDO userByToken = tokenService.getUserByToken(request.getToken());
+        if (userByToken == null) {
+            throw new BizException("用户没有登录, 或者token 失效");
+        }
+        if ("normal".equals(userByToken.getSource())) {
+            return ApiResponse.failPage(400, "用户没有登录, 或者token 失效");
+        }
+
         QueryWrapper<UserProfileDO> wrapper = new QueryWrapper<>();
         // 按用户来源过滤（假设数据库字段名为 source）
-        if (StringUtils.isNotBlank(request.getSource())) {
-            wrapper.eq("source", request.getSource());
+//        if (StringUtils.isNotBlank(request.getSource())) {
+//            wrapper.eq("source", request.getSource());
+//        }
+        if ("shopOwner".equals(userByToken.getSource())) {
+            wrapper.eq("from_shop_name", userByToken.getFromShopName());
         }
 
         // 创建分页对象（注意：需要提前配置 MyBatisPlus 分页插件）
@@ -152,6 +174,9 @@ public class UserProfileController {
             // 参数基础校验
             if (request.getId() == null) {
                 return ApiResponse.fail(400, "用户ID不能为空");
+            }
+            if (request.getId() == 1) {
+                return ApiResponse.fail(400, "不能删除管理员");
             }
             return ApiResponse.success(userProfileService.removeById(request.getId()));
         } catch (Exception e) {

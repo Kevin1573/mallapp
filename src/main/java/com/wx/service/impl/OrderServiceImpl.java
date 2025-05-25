@@ -832,20 +832,23 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public Page<OrderListItem> queryOrderList(OrderListRequest request) {
+    public Page<OrderListItem> queryOrderList(OrderListRequest request, UserProfileDO userProfile) {
         // 1. 用户身份验证
-        UserProfileDO user = tokenService.getUserByToken(request.getToken());
-        if (user == null) {
-            throw new BizException("无效的token");
-        }
+//        UserProfileDO user = tokenService.getUserByToken(request.getToken());
+//        if (user == null) {
+//            throw new BizException("无效的token");
+//        }
 
         // 2. 构建分页查询条件
         Page<GoodsHistoryDO> page = new Page<>(request.getPage(), request.getPageSize());
         LambdaQueryWrapper<GoodsHistoryDO> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(GoodsHistoryDO::getUserId, user.getId())
+        queryWrapper.eq(GoodsHistoryDO::getUserId, userProfile.getId())
                 .eq(request.getStatus() != null, GoodsHistoryDO::getStatus, request.getStatus())
                 .orderByDesc(GoodsHistoryDO::getCreateTime);
 
+        if ("showOwner".equals(userProfile.getSource())) {
+            queryWrapper.eq(GoodsHistoryDO::getId, userProfile.getId());
+        }
         // 3. 执行分页查询
         IPage<GoodsHistoryDO> historyPage = goodsHistoryMapper.selectPage(page, queryWrapper);
 

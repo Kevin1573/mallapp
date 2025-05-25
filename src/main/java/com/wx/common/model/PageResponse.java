@@ -23,5 +23,13 @@ public class PageResponse<T> extends ApiResponse<List<T>> {
         this.pages = page.getPages();
     }
 
+    public PageResponse(int code, String message, IPage<T> page) {
+        super(true, code, message, page.getRecords());
+        this.total = page.getTotal();
+        this.size = page.getSize();
+        this.current = page.getCurrent();
+        this.pages = page.getPages();
+    }
+
     // getters 省略...
 }

@@ -5,7 +5,9 @@ import com.wx.common.model.ApiResponse;
 import com.wx.common.model.OrderListItem;
 import com.wx.common.model.PageResponse;
 import com.wx.common.model.request.OrderListRequest;
+import com.wx.orm.entity.UserProfileDO;
 import com.wx.service.OrderService;
+import com.wx.service.TokenService;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,20 +16,31 @@ import org.springframework.web.bind.annotation.*;
 public class OrderListController {
 
     private final OrderService orderService;
+    private final TokenService tokenService;
 
-    public OrderListController(OrderService orderService) {
+    public OrderListController(OrderService orderService, TokenService tokenService) {
         this.orderService = orderService;
+        this.tokenService = tokenService;
     }
 
     @PostMapping("/list")
     public PageResponse<OrderListItem> orderList(@RequestHeader("Authorization") String authHeader,
                                                  @RequestBody OrderListRequest request) {
-        if (StringUtils.isNotBlank(authHeader) && StringUtils.isBlank(request.getToken())) {
+        if (StringUtils.isNotBlank(authHeader)) {
             request.setToken(authHeader);
         }
         if (StringUtils.isBlank(request.getToken())) {
             throw new BizException("用户没有登录, 或者token 失效");
         }
-        return ApiResponse.page(orderService.queryOrderList(request));
+
+        UserProfileDO userByToken = tokenService.getUserByToken(request.getToken());
+        if (userByToken == null) {
+            throw new BizException("用户没有登录, 或者token 失效");
+        }
+        if ("normal".equals(userByToken.getSource())) {
+            return ApiResponse.failPage(400, "用户没有登录, 或者token 失效");
+        }
+
+        return ApiResponse.page(orderService.queryOrderList(request, userByToken));
     }
 }

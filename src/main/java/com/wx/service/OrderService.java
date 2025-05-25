@@ -11,6 +11,7 @@ import com.wx.common.model.request.*;
 import com.wx.common.model.response.*;
 import com.wx.orm.entity.GoodsHistoryDO;
 import com.wx.orm.entity.UserAddrDO;
+import com.wx.orm.entity.UserProfileDO;
 
 import java.io.IOException;
 import java.util.List;
@@ -172,5 +173,5 @@ public interface OrderService {
 
     String confirmReceipt(OrderRequest request);
 
-    Page<OrderListItem> queryOrderList(OrderListRequest request);
+    Page<OrderListItem> queryOrderList(OrderListRequest request, UserProfileDO userProfile);
 }

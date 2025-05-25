@@ -3,14 +3,17 @@ package com.wx.admin.controller;
 import cn.hutool.core.bean.BeanUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.wx.common.exception.BizException;
 import com.wx.common.model.ApiResponse;
 import com.wx.common.model.PageResponse;
 import com.wx.common.model.Response;
 import com.wx.common.model.ShopConfigResponse;
 import com.wx.common.model.request.ShopConfigRequest;
 import com.wx.orm.entity.ShopConfigDO;
+import com.wx.orm.entity.UserProfileDO;
 import com.wx.service.ShopConfigService;
 import com.wx.service.ShopService;
+import com.wx.service.TokenService;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
@@ -21,10 +24,12 @@ import java.util.Date;
 public class ShopConfigController {
     private final ShopService shopService;
     private final ShopConfigService shopConfigService;
+    private final TokenService  tokenService;
 
-    public ShopConfigController(ShopService shopService, ShopConfigService shopConfigService) {
+    public ShopConfigController(ShopService shopService, ShopConfigService shopConfigService, TokenService tokenService) {
         this.shopService = shopService;
         this.shopConfigService = shopConfigService;
+        this.tokenService = tokenService;
     }
 
     @RequestMapping(value = "/getShopConfigInfo", method = {RequestMethod.POST})
@@ -41,12 +46,33 @@ public class ShopConfigController {
      * 分页查询商铺配置
      */
     @PostMapping("/find")
-    public PageResponse<ShopConfigDO> findConfigs(@RequestBody ShopConfigRequest request) {
+    public PageResponse<ShopConfigDO> findConfigs(
+            @RequestHeader("Authorization") String authHeader,
+            @RequestBody ShopConfigRequest request) {
+        if (StringUtils.isNotBlank(authHeader)) {
+            request.setToken(authHeader);
+        }
+        if (StringUtils.isBlank(request.getToken())) {
+            throw new BizException("用户没有登录, 或者token 失效");
+        }
+
+        UserProfileDO userByToken = tokenService.getUserByToken(request.getToken());
+        if (userByToken == null) {
+            throw new BizException("用户没有登录, 或者token 失效");
+        }
+        if ("normal".equals(userByToken.getSource())) {
+            return ApiResponse.failPage(400, "用户没有登录, 或者token 失效");
+        }
+
         QueryWrapper<ShopConfigDO> wrapper = new QueryWrapper<>();
 
         // 按店铺名称模糊查询
         if (StringUtils.isNotBlank(request.getShopName())) {
             wrapper.like("shop_name", request.getShopName());
+        }
+
+        if ("shopOwner".equals(userByToken.getSource())) {
+            wrapper.eq("from_mall", userByToken.getFromShopName());
         }
 
         // 按营业状态过滤
