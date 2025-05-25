@@ -34,9 +34,9 @@ public class Constants {
 //
 //    public static final String ACCESS_KEY_SECRET = "";
 
-    public static final String ACCESS_KEY_ID = "LTAI5t7qG37bAV871WYektg2";
+    public static final String ACCESS_KEY_ID = "";
 
-    public static final String ACCESS_KEY_SECRET = "ZpU5QYEo5Tbuy7f2obPKv6OFQm0wY2";
+    public static final String ACCESS_KEY_SECRET = "";
 
     public static final String ROLE_ARN = "acs:ram::1505343402756689:role/adminoss";
 
