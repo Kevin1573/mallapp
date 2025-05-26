@@ -83,6 +83,7 @@ public class GoodsDOResponse {
 
     @Data
     public static class GoodsSubDO {
+        private Long id;
         /**
          * 价格，单位为元(保留一位小数)
          */
@@ -97,7 +98,12 @@ public class GoodsDOResponse {
          */
         private Long sales;
 
+        private Boolean  firstGoods;
+
         private String goodsPic;
+
+        private String specifications;
+        private String ext;
 
     }
 }

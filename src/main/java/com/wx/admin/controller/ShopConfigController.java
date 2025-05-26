@@ -1,6 +1,7 @@
 package com.wx.admin.controller;
 
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.lang.generator.UUIDGenerator;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.wx.common.exception.BizException;
@@ -106,6 +107,7 @@ public class ShopConfigController {
             config.setCreateTime(new Date());
             ShopConfigDO shopConfigDO = new ShopConfigDO();
             BeanUtil.copyProperties(config, shopConfigDO);
+            shopConfigDO.setFromMall(new UUIDGenerator().next());
             boolean result = shopConfigService.save(shopConfigDO);
 
             return result ? ApiResponse.success(true) : ApiResponse.fail(500, "创建失败");

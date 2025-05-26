@@ -21,6 +21,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @RestController
@@ -87,7 +88,7 @@ public class GoodsController {
         for (GoodsDO record : records) {
             String goodsUnit = record.getGoodsUnit();
             QueryChainWrapper<GoodsDO> doQueryChainWrapper = goodsService.query()
-                    .eq("first_goods", goodsUnit);
+                    .eq("goods_unit", goodsUnit);
             List<GoodsDO> goodsDOList = doQueryChainWrapper.list();
 
             GoodsDOResponse goodsDOItem = new GoodsDOResponse();
@@ -102,13 +103,18 @@ public class GoodsController {
             goodsDOItem.setFromMall(record.getFromMall());
             goodsDOItem.setCreateTime(record.getCreateTime());
             goodsDOItem.setStatus(record.getStatus());
+            goodsDOItem.setExt(record.getExt());
 
             List<GoodsDOResponse.GoodsSubDO> goodsSubDOS = goodsDOList.stream().map(res -> {
                 GoodsDOResponse.GoodsSubDO goodsSubDO = new GoodsDOResponse.GoodsSubDO();
+                goodsSubDO.setFirstGoods(res.getFirstGoods());
                 goodsSubDO.setPrice(res.getPrice());
                 goodsSubDO.setGoodsPic(res.getGoodsPic());
                 goodsSubDO.setInventory(res.getInventory());
                 goodsSubDO.setSales(res.getSales());
+                goodsSubDO.setSpecifications(res.getSpecifications());
+                goodsSubDO.setExt(res.getExt());
+                goodsSubDO.setId(res.getId());
                 return goodsSubDO;
             }).collect(Collectors.toList());
             goodsDOItem.setSubGoodsList(goodsSubDOS);
@@ -127,6 +133,34 @@ public class GoodsController {
     @PostMapping("/add")
     public ApiResponse<Boolean> addGoods(@RequestBody GoodsDO goods) {
         try {
+            // 设置创建时间
+            goods.setCreateTime(new Date());
+
+            if (StringUtils.isEmpty(goods.getGoodsUnit())) {
+                goods.setGoodsUnit(UUID.randomUUID().toString());
+            } else {
+                // 查询相同goodsUnit的商品
+                QueryWrapper<GoodsDO> wrapper = new QueryWrapper<>();
+                wrapper.eq("goods_unit", goods.getGoodsUnit());
+                wrapper.eq("first_goods", true);
+                GoodsDO goodsDO = goodsService.getOne(wrapper);
+                if (goodsDO != null) {
+                    goods.setId(null);
+                    goods.setName(goodsDO.getName());
+                    goods.setCategory(goodsDO.getCategory());
+                    goods.setGoodsPic(goodsDO.getGoodsPic());
+                    goods.setBrand(goodsDO.getBrand());
+                    goods.setDescription(goodsDO.getDescription());
+                    goods.setFirstGoods(false);
+                    goods.setFromMall(goodsDO.getFromMall());
+                    goods.setCreateTime(new Date());
+                    goods.setStatus(goodsDO.getStatus());
+                    goods.setInventory(0);
+                    goods.setSales(0L);
+                    goods.setGoodsUnit(goodsDO.getGoodsUnit());
+                }
+            }
+
             // 参数校验
             if (StringUtils.isBlank(goods.getName())) {
                 return ApiResponse.fail(400, "商品名称不能为空");
@@ -137,10 +171,6 @@ public class GoodsController {
             if (goods.getInventory() < 0) {
                 return ApiResponse.fail(400, "库存不能为负数");
             }
-
-            // 设置创建时间
-            goods.setCreateTime(new Date());
-//            goods.setFromMall("mallapp");
 
             System.out.println(JSON.toJSONString(goods));
             boolean result = goodsService.save(goods);
@@ -211,6 +241,7 @@ public class GoodsController {
         if (request.getId() == null) {
             return ApiResponse.fail(400, "商品ID不能为空");
         }
+
         return ApiResponse.success(goodsService.getById(request.getId()));
     }
 

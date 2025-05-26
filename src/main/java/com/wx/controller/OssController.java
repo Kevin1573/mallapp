@@ -32,6 +32,9 @@ public class OssController {
     @RequestMapping(value = "/getConfig", method = {RequestMethod.POST})
     public Response<OssConfigResponse> orderRepair(@RequestBody OssRequest request) {
         try {
+            if (StringUtils.isEmpty(request.getBucket())) {
+                request.setBucket("mall-app-123");
+            }
             return Response.success(ossService.getOssConfig(request));
         } catch (Exception e) {
             log.error("Oss getConfig exception, request = {}", JSON.toJSONString(request), e);
