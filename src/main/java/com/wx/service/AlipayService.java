@@ -8,9 +8,8 @@ import com.alipay.api.request.AlipayTradePagePayRequest;
 import com.alipay.api.request.AlipayTradePrecreateRequest;
 import com.alipay.api.response.AlipayTradePagePayResponse;
 import com.alipay.api.response.AlipayTradePrecreateResponse;
+import com.wx.common.config.AlipayConfig4253;
 import com.wx.common.config.AlipayConfigConf;
-
-import static com.wx.common.config.AlipayConfigConf.getAlipayConfig;
 
 public class AlipayService {
     
@@ -60,7 +59,9 @@ public class AlipayService {
      * @return 支付二维码URL
      */
     public static String createQrPayment(String outTradeNo, String totalAmount, String subject) throws AlipayApiException {
-        AlipayClient alipayClient = new DefaultAlipayClient(getAlipayConfig());
+        AlipayClient alipayClient = new DefaultAlipayClient(
+                AlipayConfig4253.getAlipayConfigX(AlipayConfig4253.APP_PRIVATE_KEY,
+                        AlipayConfig4253.ALIPAY_PUBLIC_KEY, AlipayConfig4253.APP_ID));
         AlipayTradePrecreateRequest request = new AlipayTradePrecreateRequest();
 
         AlipayTradePrecreateModel model = new AlipayTradePrecreateModel();

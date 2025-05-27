@@ -10,4 +10,7 @@ public interface ShopConfigMapper extends BaseMapper<ShopConfigDO> {
 
     @Select("select * from shop_config where from_mall = #{from}")
     ShopConfigDO selectByFrom(String from);
+
+    @Select("select * from shop_config where id = #{id} or from_mall = #{from}")
+    ShopConfigDO selectByIdOrFromMall(Long id, String from);
 }

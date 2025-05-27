@@ -138,6 +138,7 @@ public class GoodsController {
 
             if (StringUtils.isEmpty(goods.getGoodsUnit())) {
                 goods.setGoodsUnit(UUID.randomUUID().toString());
+                goods.setFirstGoods(true);
             } else {
                 // 查询相同goodsUnit的商品
                 QueryWrapper<GoodsDO> wrapper = new QueryWrapper<>();
@@ -148,7 +149,6 @@ public class GoodsController {
                     goods.setId(null);
                     goods.setName(goodsDO.getName());
                     goods.setCategory(goodsDO.getCategory());
-                    goods.setGoodsPic(goodsDO.getGoodsPic());
                     goods.setBrand(goodsDO.getBrand());
                     goods.setDescription(goodsDO.getDescription());
                     goods.setFirstGoods(false);

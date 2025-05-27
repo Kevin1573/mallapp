@@ -43,7 +43,9 @@ public class UserProfileDO {
     /**
      * 用户职位,0默认普通用户
      */
-    private int position;
+    private Long position; // positionId
+
+    private String positionDescription;
 
     private Date createTime;
 

@@ -10,6 +10,8 @@ import com.wx.common.model.PageResponse;
 import com.wx.common.model.Response;
 import com.wx.common.model.ShopConfigResponse;
 import com.wx.common.model.request.ShopConfigRequest;
+import com.wx.common.model.request.ShopRebateRequest;
+import com.wx.orm.entity.RebateDO;
 import com.wx.orm.entity.ShopConfigDO;
 import com.wx.orm.entity.UserProfileDO;
 import com.wx.service.ShopConfigService;
@@ -19,6 +21,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Date;
+import java.util.List;
 
 @RestController
 @RequestMapping("/shop/config")
@@ -110,7 +113,31 @@ public class ShopConfigController {
             shopConfigDO.setFromMall(new UUIDGenerator().next());
             boolean result = shopConfigService.save(shopConfigDO);
 
+            if (result) {
+                // 初始化 商铺的用户等级折扣信息
+                shopService.initShopUserLevelDiscount(shopConfigDO.getFromMall());
+            }
+
             return result ? ApiResponse.success(true) : ApiResponse.fail(500, "创建失败");
+        } catch (Exception e) {
+            return ApiResponse.fail(500, "系统异常: " + e.getMessage());
+        }
+    }
+
+    // 根据fromMall 查询店铺的折扣列表
+    @PostMapping("/rebateList")
+    public ApiResponse<List<RebateDO>> rebateList(@RequestBody ShopConfigRequest request) {
+        try {
+            return ApiResponse.success(shopService.getRebateList(request));
+        } catch (Exception e) {
+            return ApiResponse.fail(500, "系统异常: " + e.getMessage());
+        }
+    }
+
+    @PostMapping("/editRebateList")
+    public ApiResponse<Boolean> editRebateList(@RequestBody ShopRebateRequest request) {
+        try {
+            return ApiResponse.success(shopService.editRebateList(request));
         } catch (Exception e) {
             return ApiResponse.fail(500, "系统异常: " + e.getMessage());
         }

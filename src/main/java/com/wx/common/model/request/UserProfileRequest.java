@@ -29,7 +29,7 @@ public class UserProfileRequest {
      */
     private String addr;
 
-    private Integer position;
+    private Long position;
 
     private String source;
 

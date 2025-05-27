@@ -105,7 +105,7 @@ public class LoginServiceImpl implements LoginService {
         userProfileDO.setFromShopName(request.getFrom());
         userProfileDO.setHeadUrl(request.getHeadUrl());
         userProfileDO.setToken(UUID.randomUUID().toString());
-        userProfileDO.setPosition(0);
+        userProfileDO.setPosition(0L);
         userProfileDO.setCreateTime(new Date());
         userProfileDO.setModifyTime(new Date());
         userProfileMapper.insert(userProfileDO);

@@ -8,7 +8,9 @@ import com.wx.common.model.ApiResponse;
 import com.wx.common.model.PageResponse;
 import com.wx.common.model.request.PasswordUpdateRequest;
 import com.wx.common.model.request.UserProfileRequest;
+import com.wx.orm.entity.RebateDO;
 import com.wx.orm.entity.UserProfileDO;
+import com.wx.service.RebateService;
 import com.wx.service.TokenService;
 import com.wx.service.UserProfileService;
 import org.apache.commons.lang3.StringUtils;
@@ -23,11 +25,13 @@ public class UserProfileController {
 
     private final UserProfileService userProfileService;
     private final TokenService tokenService;
+    private final RebateService rebateService;
 
     public UserProfileController(UserProfileService userProfileService,
-                                 TokenService tokenService) {
+                                 TokenService tokenService, RebateService rebateService) {
         this.userProfileService = userProfileService;
         this.tokenService = tokenService;
+        this.rebateService = rebateService;
     }
 
     // 在 Controller 类开头添加
@@ -101,6 +105,10 @@ public class UserProfileController {
     public ApiResponse<Boolean> addUser(@RequestBody UserProfileDO userProfile) {
         userProfile.setCreateTime(new Date());
         userProfile.setPassword(userProfile.getPassword());
+        Long positionId = userProfile.getPosition();
+        // 根据positionId 查询对应的折扣等级
+        RebateDO rebateDO = rebateService.queryRebateById(positionId);
+        userProfile.setPositionDescription(rebateDO.getDescription());
         boolean saved = userProfileService.save(userProfile);
         if (saved) {
             userProfile.setToken(uuidGen.next());
