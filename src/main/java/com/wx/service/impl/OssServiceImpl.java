@@ -277,29 +277,29 @@ public class OssServiceImpl implements OssService {
     }
 
 
-    public static void main(String[] args) throws Exception {
-        // 请求阿里云api，获取登录的临时凭证
-        Config config = new Config();
-        config.setAccessKeyId(Constants.ACCESS_KEY_ID);
-        config.setAccessKeySecret(Constants.ACCESS_KEY_SECRET);
-        config.setEndpoint(Constants.ENDPOINT);
-        Client client = new Client(config);
-        AssumeRoleRequest assumeRoleRequest = new AssumeRoleRequest()
-                .setRoleArn(Constants.ROLE_ARN)
-                .setRoleSessionName(Constants.ROLE_SESSION_NAME);
-        RuntimeOptions runtime = new RuntimeOptions();
-        AssumeRoleResponse assumeRoleResponse = client.assumeRoleWithOptions(assumeRoleRequest, runtime);
-        AssumeRoleResponseBody.AssumeRoleResponseBodyCredentials credentials = assumeRoleResponse.getBody().getCredentials();
-
-        // 封装返回结果
-        OssConfigResponse response = new OssConfigResponse();
-        response.setAccessKeyId(credentials.getAccessKeyId());
-        response.setAccessKeySecret(credentials.getAccessKeySecret());
-        response.setStsToken(credentials.getSecurityToken());
-        response.setRegion(Constants.REGION);
-        response.setBucket("mall-app-123");
-        System.out.println(JSON.toJSONString(response));
-    }
+//    public static void main(String[] args) throws Exception {
+//        // 请求阿里云api，获取登录的临时凭证
+//        Config config = new Config();
+//        config.setAccessKeyId(Constants.ACCESS_KEY_ID);
+//        config.setAccessKeySecret(Constants.ACCESS_KEY_SECRET);
+//        config.setEndpoint(Constants.ENDPOINT);
+//        Client client = new Client(config);
+//        AssumeRoleRequest assumeRoleRequest = new AssumeRoleRequest()
+//                .setRoleArn(Constants.ROLE_ARN)
+//                .setRoleSessionName(Constants.ROLE_SESSION_NAME);
+//        RuntimeOptions runtime = new RuntimeOptions();
+//        AssumeRoleResponse assumeRoleResponse = client.assumeRoleWithOptions(assumeRoleRequest, runtime);
+//        AssumeRoleResponseBody.AssumeRoleResponseBodyCredentials credentials = assumeRoleResponse.getBody().getCredentials();
+//
+//        // 封装返回结果
+//        OssConfigResponse response = new OssConfigResponse();
+//        response.setAccessKeyId(credentials.getAccessKeyId());
+//        response.setAccessKeySecret(credentials.getAccessKeySecret());
+//        response.setStsToken(credentials.getSecurityToken());
+//        response.setRegion(Constants.REGION);
+//        response.setBucket("mall-app-123");
+//        System.out.println(JSON.toJSONString(response));
+//    }
 
 
 }
