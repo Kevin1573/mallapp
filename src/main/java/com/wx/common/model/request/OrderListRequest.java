@@ -7,5 +7,6 @@ public class OrderListRequest {
     private Integer page = 1;
     private Integer pageSize = 10;
     private String token;
-    private Integer status; // 订单状态过滤
+    private String tradeNo;
+    private Integer status;
 }

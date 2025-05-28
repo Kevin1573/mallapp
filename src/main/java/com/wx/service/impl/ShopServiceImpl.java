@@ -6,22 +6,23 @@ import com.wx.common.model.request.BestSellingGoodsRequest;
 import com.wx.common.model.request.ShopConfigRequest;
 import com.wx.common.model.request.ShopRebateRequest;
 import com.wx.common.model.response.ShopConfigDOResponse;
+import com.wx.dto.BestSellingGoods;
 import com.wx.orm.entity.GoodsDO;
 import com.wx.orm.entity.RebateDO;
 import com.wx.orm.entity.ShopConfigDO;
 import com.wx.orm.entity.UserProfileDO;
 import com.wx.orm.mapper.RebateMapper;
 import com.wx.orm.mapper.ShopConfigMapper;
-import com.wx.service.GoodsService;
-import com.wx.service.RebateService;
-import com.wx.service.ShopService;
-import com.wx.service.TokenService;
+import com.wx.service.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -32,6 +33,7 @@ public class ShopServiceImpl implements ShopService {
     private final RebateMapper rebateMapper;
     private final GoodsService goodsService;
     private final RebateService rebateService;
+    private final OrderService orderService;
 
     @Override
     public ShopConfigResponse getShopConfigInfo(ShopConfigRequest request) {
@@ -64,23 +66,27 @@ public class ShopServiceImpl implements ShopService {
         Long[] bestSellingGoodsIds = request.getBestSellingGoodsIds();
         // 查询出这些商品
         List<GoodsDO> goodsDOS = goodsService.listByIds(Arrays.asList(bestSellingGoodsIds));
-        List<Map<String, String>> bestSellingGoodsList = new ArrayList<>(goodsDOS.size());
+        List<BestSellingGoods> bestSellingGoodsList = new ArrayList<>(goodsDOS.size());
         for (GoodsDO goodsDO : goodsDOS) {
-            Map<String, String> bestSellingGoods = new HashMap<>();
-            bestSellingGoods.put("id", goodsDO.getId().toString());
-            bestSellingGoods.put("name", goodsDO.getName());
-            bestSellingGoods.put("goodsPic", goodsDO.getGoodsPic());
-            bestSellingGoods.put("price", String.valueOf(goodsDO.getPrice()));
-            bestSellingGoods.put("sales", String.valueOf(goodsDO.getSales())); // 销量
-            bestSellingGoodsList.add(bestSellingGoods);
+            bestSellingGoodsList.add(fromGoodsDO(goodsDO));
         }
 
         String bestSellingJson = JSON.toJSONString(bestSellingGoodsList);
         ShopConfigDO shopConfigDO = new ShopConfigDO();
-        shopConfigDO.setId(request.getId());
+        shopConfigDO.setFromMall(request.getFromMall());
         shopConfigDO.setBestSellers(bestSellingJson);
-        int updated = shopConfigMapper.updateById(shopConfigDO);
+        int updated = shopConfigMapper.updateByFromMall(shopConfigDO);
         return updated > 0;
+    }
+
+    public BestSellingGoods fromGoodsDO(GoodsDO goodsDO) {
+        BestSellingGoods dto = new BestSellingGoods();
+        dto.setId(goodsDO.getId());
+        dto.setName(goodsDO.getName());
+        dto.setGoodsPic(goodsDO.getGoodsPic());
+        dto.setPrice(BigDecimal.valueOf(goodsDO.getPrice()));
+        dto.setSales(Math.toIntExact(goodsDO.getSales()));
+        return dto;
     }
 
     @Override
@@ -103,5 +109,22 @@ public class ShopServiceImpl implements ShopService {
 //        rebateDO.setPositionCode(request.getPositionCode());
         int i = rebateMapper.updateById(rebateDO);
         return i > 0;
+    }
+
+    @Override
+    public List<GoodsDO> selectListByFromMall(String fromMall) {
+        List<ShopConfigDO> shopConfigDOS = shopConfigMapper.selectListByFromMall(fromMall);
+        ShopConfigDO shopConfigDO = shopConfigDOS.get(0);
+        String bestSellers = shopConfigDO.getBestSellers();
+        List<GoodsDO> goodsHistoryDOS = new ArrayList<>();
+        if (bestSellers != null) {
+            List<BestSellingGoods> bestSellingGoods = JSON.parseArray(bestSellers, BestSellingGoods.class);
+            for (BestSellingGoods orderId : bestSellingGoods) {
+                GoodsDO goodsHistoryDO = orderService.getOrderById(orderId.getId());
+                goodsHistoryDOS.add(goodsHistoryDO);
+            }
+        }
+
+        return goodsHistoryDOS;
     }
 }

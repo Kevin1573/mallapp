@@ -22,17 +22,20 @@ public class RebateServiceImpl implements RebateService {
         rebateDO.setPositionCode("L1");
         rebateDO.setDescription("一级折扣比例");
         rebateDO.setCreateTime(new java.util.Date());
+        rebateDO.setFromMall(fromMall);
         rebateMapper.insert(rebateDO);
         rebateDO = new RebateDO();
         rebateDO.setRatio(0.90);
         rebateDO.setPositionCode("L2");
         rebateDO.setDescription("二级折扣比例");
+        rebateDO.setFromMall(fromMall);
         rebateDO.setCreateTime(new java.util.Date());
         rebateMapper.insert(rebateDO);
         rebateDO = new RebateDO();
         rebateDO.setRatio(0.80);
         rebateDO.setPositionCode("L3");
         rebateDO.setDescription("三级折扣比例");
+        rebateDO.setFromMall(fromMall);
         rebateDO.setCreateTime(new java.util.Date());
         rebateMapper.insert(rebateDO);
     }

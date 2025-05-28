@@ -13,5 +13,6 @@ import lombok.Data;
 public class BestSellingGoodsRequest {
     private String token;
     private Long id;
+    private String fromMall;
     private Long[] bestSellingGoodsIds;
 }

@@ -1,5 +1,6 @@
 package com.wx.admin.controller;
 
+import com.wx.common.enums.OrderStatus;
 import com.wx.common.exception.BizException;
 import com.wx.common.model.ApiResponse;
 import com.wx.common.model.OrderListItem;
@@ -42,5 +43,32 @@ public class OrderListController {
         }
 
         return ApiResponse.page(orderService.queryOrderList(request, userByToken));
+    }
+
+    @PostMapping("/updateState")
+    public ApiResponse<Boolean> updateState(@RequestHeader("Authorization") String authHeader,
+                                            @RequestBody OrderListRequest request) {
+        if (StringUtils.isNotBlank(authHeader)) {
+            request.setToken(authHeader);
+        }
+        if (StringUtils.isBlank(request.getToken())) {
+            throw new BizException("用户没有登录, 或者token 失效");
+        }
+
+        UserProfileDO userByToken = tokenService.getUserByToken(request.getToken());
+        if (userByToken == null) {
+            throw new BizException("用户没有登录, 或者token 失效");
+        }
+        if ("normal".equals(userByToken.getSource())) {
+            return ApiResponse.fail(400, "用户没有登录, 或者token 失效");
+        }
+        // 校验 订单状态 是否在enums OrderStatus 中
+
+        OrderStatus orderStatus = OrderStatus.fromCode(request.getStatus());
+        if (orderStatus == null) {
+            return ApiResponse.fail(400, "订单状态不正确");
+        }
+        int updated = orderService.updateOrderStatus(request.getTradeNo(), orderStatus);
+        return ApiResponse.success(updated > 0);
     }
 }

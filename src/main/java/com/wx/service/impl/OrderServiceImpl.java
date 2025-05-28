@@ -685,26 +685,50 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public void updateOrderStatus(String outTradeNo, OrderStatus orderStatus) {
-        if (OrderStatus.COMPLETED == orderStatus) {
-            goodsHistoryMapper.updateByTradeNo(new GoodsHistoryDO()
+    public int updateOrderStatus(String outTradeNo, OrderStatus orderStatus) {
+        if (OrderStatus.WAITING_PAYMENT == orderStatus) {
+            return goodsHistoryMapper.updateByTradeNo(new GoodsHistoryDO()
                     .setTradeNo(outTradeNo)
-                    .setIsPaySuccess(2)
-                    .setIsComplete(2));
+                    .setIsPaySuccess(1)
+                    .setIsComplete(1)
+            );
         } else if (OrderStatus.PAID == orderStatus) {
-            goodsHistoryMapper.updateByTradeNo2(new GoodsHistoryDO()
+            return goodsHistoryMapper.updateByTradeNo2(new GoodsHistoryDO()
                     .setTradeNo(outTradeNo)
                     .setIsPaySuccess(2)
                     .setIsComplete(1)
                     .setStatus(3)
             );
-        } else if (OrderStatus.WAITING_PAYMENT == orderStatus) {
-            goodsHistoryMapper.updateByTradeNo(new GoodsHistoryDO()
+        } else if (OrderStatus.SHIPPED == orderStatus) {
+            return goodsHistoryMapper.updateByTradeNo4(new GoodsHistoryDO()
                     .setTradeNo(outTradeNo)
-                    .setIsPaySuccess(1)
+                    .setIsPaySuccess(2)
                     .setIsComplete(1)
+                    .setStatus(4)
+            );
+        } else if (OrderStatus.COMPLETED == orderStatus) {
+            return goodsHistoryMapper.updateByTradeNo6(new GoodsHistoryDO()
+                    .setTradeNo(outTradeNo)
+                    .setIsPaySuccess(2)
+                    .setIsComplete(2)
+                    .setStatus(6)
+            );
+        } else if (OrderStatus.REFUNDING == orderStatus) {
+            return goodsHistoryMapper.updateByTradeNo2(new GoodsHistoryDO()
+                    .setTradeNo(outTradeNo)
+                    .setIsPaySuccess(2)
+                    .setIsComplete(1)
+                    .setStatus(7)
+            );
+        } else if (OrderStatus.RETURNED == orderStatus) {
+            return goodsHistoryMapper.updateByTradeNo8(new GoodsHistoryDO()
+                    .setTradeNo(outTradeNo)
+                    .setIsPaySuccess(2)
+                    .setIsComplete(1)
+                    .setStatus(8)
             );
         }
+        return 0;
     }
 
     @Override
@@ -777,7 +801,7 @@ public class OrderServiceImpl implements OrderService {
         }
         // cancel order and update order status to 5(complete)
         goodsHistoryMapper.updateById(new GoodsHistoryDO()
-                        .setId(goodsHistoryDO.getId())
+                .setId(goodsHistoryDO.getId())
 //                .setIsPaySuccess(2)
                 .setIsComplete(2)
                 .setStatus(5));
@@ -797,7 +821,7 @@ public class OrderServiceImpl implements OrderService {
 //            throw new BizException("订单未完成");
 //        }
         goodsHistoryMapper.updateById(new GoodsHistoryDO()
-                        .setId(goodsHistoryDO.getId())
+                .setId(goodsHistoryDO.getId())
                 .setStatus(6));
         return "订单申请退款中...";
     }
@@ -810,7 +834,7 @@ public class OrderServiceImpl implements OrderService {
             throw new BizException("订单不存在");
         }
         goodsHistoryMapper.updateById(new GoodsHistoryDO()
-                        .setId(goodsHistoryDO.getId())
+                .setId(goodsHistoryDO.getId())
                 .setIsComplete(2)
                 .setStatus(5));
         return "订单已完成...";
@@ -855,33 +879,34 @@ public class OrderServiceImpl implements OrderService {
         // 4. 数据转换
         List<OrderListItem> items = historyPage.getRecords()
                 .stream().map(history -> {
-            OrderListItem item = new OrderListItem();
-            BeanUtils.copyProperties(history, item);
+                    OrderListItem item = new OrderListItem();
+                    BeanUtils.copyProperties(history, item);
 
-            // 解析商品列表
-            try {
-                String goodsJson = history.getGoodsList()
-                        .replace("\\\"", "\"")
-                        .replace("\"[", "[")
-                        .replace("]\"", "]");
-                List<QueryOrderGoodsModel> goodsList = objectMapper.readValue(
-                        goodsJson,
-                        new TypeReference<List<QueryOrderGoodsModel>>(){}
-                );
-                item.setGoodsList(goodsList);
-            } catch (JsonProcessingException e) {
-                log.error("解析商品列表失败", e);
-            }
+                    // 解析商品列表
+                    try {
+                        String goodsJson = history.getGoodsList()
+                                .replace("\\\"", "\"")
+                                .replace("\"[", "[")
+                                .replace("]\"", "]");
+                        List<QueryOrderGoodsModel> goodsList = objectMapper.readValue(
+                                goodsJson,
+                                new TypeReference<List<QueryOrderGoodsModel>>() {
+                                }
+                        );
+                        item.setGoodsList(goodsList);
+                    } catch (JsonProcessingException e) {
+                        log.error("解析商品列表失败", e);
+                    }
 
-            // 计算总价
-            if (CollectionUtils.isNotEmpty(item.getGoodsList())) {
-                double total = item.getGoodsList().stream()
-                        .mapToDouble(g -> g.getPrice() * g.getNum())
-                        .sum();
-                item.setTotalPrice(total);
-            }
-            return item;
-        }).collect(Collectors.toList());
+                    // 计算总价
+                    if (CollectionUtils.isNotEmpty(item.getGoodsList())) {
+                        double total = item.getGoodsList().stream()
+                                .mapToDouble(g -> g.getPrice() * g.getNum())
+                                .sum();
+                        item.setTotalPrice(total);
+                    }
+                    return item;
+                }).collect(Collectors.toList());
 
         // 5. 构建响应
         Page<OrderListItem> pageResult = new Page<>(page.getCurrent(),
@@ -893,6 +918,12 @@ public class OrderServiceImpl implements OrderService {
 //        response.setPage(request.getPage());
 //        response.setLimit(request.getLimit());
         return pageResult;
+    }
+
+    @Override
+    public GoodsDO getOrderById(Long orderId) {
+        return goodsMapper.selectOne(
+                new LambdaQueryWrapper<GoodsDO>().eq(GoodsDO::getId, orderId));
     }
 
 

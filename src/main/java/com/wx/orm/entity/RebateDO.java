@@ -29,6 +29,8 @@ public class RebateDO {
      */
     private Double ratio;
 
+    private String fromMall;
+
     private Date createTime;
 
     private Date modifyTime;

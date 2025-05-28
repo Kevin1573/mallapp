@@ -9,6 +9,7 @@ import com.wx.common.enums.PayWayEnums;
 import com.wx.common.model.OrderListItem;
 import com.wx.common.model.request.*;
 import com.wx.common.model.response.*;
+import com.wx.orm.entity.GoodsDO;
 import com.wx.orm.entity.GoodsHistoryDO;
 import com.wx.orm.entity.UserAddrDO;
 import com.wx.orm.entity.UserProfileDO;
@@ -157,7 +158,7 @@ public interface OrderService {
      */
     void packorder(OrderRequest request);
 
-    void updateOrderStatus(String outTradeNo, OrderStatus orderStatus);
+    int updateOrderStatus(String outTradeNo, OrderStatus orderStatus);
 
     void updatePayway(String tradeNo, PayWayEnums paywayEnums);
 
@@ -174,4 +175,6 @@ public interface OrderService {
     String confirmReceipt(OrderRequest request);
 
     Page<OrderListItem> queryOrderList(OrderListRequest request, UserProfileDO userProfile);
+
+    GoodsDO getOrderById(Long orderId);
 }
