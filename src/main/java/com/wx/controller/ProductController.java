@@ -1,12 +1,10 @@
 package com.wx.controller;
 
-import com.wx.common.exception.BizException;
 import com.wx.common.model.Response;
 import com.wx.common.model.request.ProductRequest;
 import com.wx.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -31,14 +29,13 @@ public class ProductController {
     }
 
     @PostMapping(value = "/brand")
-    public Response<List<Map<String, String>>> productBrand(@RequestHeader("Authorization") String authHeader,
-                                                            @RequestBody ProductRequest request) {
-        if (StringUtils.isNotBlank(authHeader)) {
-            request.setToken(authHeader);
-        }
-        if (StringUtils.isBlank(request.getToken())) {
-            throw new BizException("用户没有登录, 或者token 失效");
-        }
+    public Response<List<Map<String, String>>> productBrand(@RequestBody ProductRequest request) {
+//        if (StringUtils.isNotBlank(authHeader)) {
+//            request.setToken(authHeader);
+//        }
+//        if (StringUtils.isBlank(request.getToken())) {
+//            throw new BizException("用户没有登录, 或者token 失效");
+//        }
         try {
             return Response.success(productService.queryProductBrand(request));
         } catch (Exception e) {

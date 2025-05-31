@@ -63,7 +63,7 @@ public class OrderServiceImpl implements OrderService {
     public OrderGoodsResponse orderGoods(OrderGoodsRequest request) {
         UserProfileDO userByToken = tokenService.getUserByToken(request.getToken());
         if (Objects.isNull(userByToken)) {
-            throw new BizException("token is error");
+            throw new BizException("请先登录");
         }
 
         // 查询出对应的用户信息和商品信息
@@ -242,6 +242,9 @@ public class OrderServiceImpl implements OrderService {
         // 分页查询数据
         Page<GoodsDO> page = new Page<>(request.getPage(), request.getLimit());
         LambdaQueryWrapper<GoodsDO> queryWrapper = new LambdaQueryWrapper<>();
+        // 0, 商品名称
+        queryWrapper.like(StringUtils.isNotBlank(request.getGoodsName()), GoodsDO::getName, request.getGoodsName());
+
         // 1. 分类筛选
         queryWrapper.eq(StringUtils.isNotBlank(request.getCategory()), GoodsDO::getCategory, request.getCategory());
 
@@ -379,7 +382,7 @@ public class OrderServiceImpl implements OrderService {
     public void addShoppingCar(AddShoppingCarRequest request) {
         UserProfileDO userProfileDO = tokenService.getUserByToken(request.getToken());
         if (Objects.isNull(userProfileDO)) {
-            throw new BizException("token is error");
+            throw new BizException("请先登录后查看");
         }
 
         LambdaQueryWrapper<ShoppingCarDO> carQuery = new LambdaQueryWrapper<>();
@@ -453,7 +456,7 @@ public class OrderServiceImpl implements OrderService {
         queryWrapper.eq(UserProfileDO::getToken, request.getToken());
         UserProfileDO userProfileDO = userProfileMapper.selectOne(queryWrapper);
         if (Objects.isNull(userProfileDO)) {
-            throw new BizException("token is error");
+            throw new BizException("请登录后查看");
         }
 
         LambdaQueryWrapper<ShoppingCarDO> carQuery = new LambdaQueryWrapper<>();

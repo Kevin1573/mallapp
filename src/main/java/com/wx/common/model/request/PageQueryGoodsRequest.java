@@ -14,6 +14,8 @@ public class PageQueryGoodsRequest {
 
     private String from;
 
+    private String goodsName;
+
     private String typeId;
 
     // 排序字段

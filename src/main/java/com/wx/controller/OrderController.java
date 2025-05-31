@@ -26,7 +26,7 @@ public class OrderController {
             return Response.success(orderService.orderGoods(request));
         } catch (Exception e) {
             log.error("OrderGoods exception, request = {}", JSON.toJSONString(request), e);
-            return Response.failure("下单出错了..." + e.getMessage());
+            return Response.failure( e.getMessage());
         }
     }
 
@@ -78,7 +78,7 @@ public class OrderController {
             return Response.success();
         } catch (Exception e) {
             log.error("addShoppingCar exception, request = {}", JSON.toJSONString(request), e);
-            return Response.failure("addShoppingCar exception");
+            return Response.failure(e.getMessage());
         }
     }
 
@@ -109,7 +109,7 @@ public class OrderController {
             return Response.success(orderService.queryCarOrder(request));
         } catch (Exception e) {
             log.error("queryCarOrder exception, request = {}", JSON.toJSONString(request), e);
-            return Response.failure("queryCarOrder exception");
+            return Response.failure(e.getMessage());
         }
     }
 

@@ -3,11 +3,11 @@ package com.wx.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.wx.common.model.request.ProductRequest;
 import com.wx.orm.entity.GoodsDO;
-import com.wx.orm.entity.UserProfileDO;
 import com.wx.orm.mapper.GoodsMapper;
 import com.wx.service.ProductService;
 import com.wx.service.TokenService;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -36,13 +36,15 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public List<Map<String, String>> queryProductBrand(ProductRequest request) {
-        UserProfileDO userByToken = tokenService.getUserByToken(request.getToken());
-
+//        UserProfileDO userByToken = tokenService.getUserByToken(request.getToken());
+        if (StringUtils.isEmpty(request.getFrom())) {
+            throw new RuntimeException("店铺标识不能为空");
+        }
         List<Map<String, String>> list = new ArrayList<>();
 
         QueryWrapper<GoodsDO> queryWrapper1 = new QueryWrapper<>();
         queryWrapper1.select("DISTINCT (brand), brand_pic");
-        queryWrapper1.eq("from_mall", userByToken.getFromShopName());
+        queryWrapper1.eq("from_mall", request.getFrom());
         queryWrapper1.eq("first_goods", true);
         List<GoodsDO> goodsDOS = goodsMapper.selectList(queryWrapper1);
         for (GoodsDO goodsDO : goodsDOS) {
