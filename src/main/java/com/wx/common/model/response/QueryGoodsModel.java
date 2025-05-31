@@ -33,5 +33,5 @@ public class QueryGoodsModel {
     private Boolean firstGoods;
 
     private String brandPic;
-
+    private Integer recommendGoods;
 }

@@ -6,10 +6,9 @@ public enum OrderStatus {
     PAID(2, "已支付"),
     WAITING_SHIPMENT(3, "待发货"),
     SHIPPED(4, "已发货"),
-    WAITING_RECEIPT(5, "待收货"),
-    COMPLETED(6, "已完成"),
-    REFUNDING(7, "退款中"),
-    RETURNED(8, "已退货");
+    COMPLETED(5, "已完成"),
+    REFUNDING(6, "退款中"),
+    RETURNED(7, "已退货");
 
 //    WAITING_PAYMENT, // 10 等待支付
 //    PAID, // 20 已支付
@@ -39,4 +38,11 @@ public enum OrderStatus {
         return null;
     }
 
+    public int getCode() {
+        return code;
+    }
+
+    public String getDesc() {
+        return desc;
+    }
 }

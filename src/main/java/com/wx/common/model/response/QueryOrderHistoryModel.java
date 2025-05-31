@@ -41,7 +41,7 @@ public class QueryOrderHistoryModel {
 
     private String tradeNo;
 
-    private Double totalPrice;
+    private BigDecimal totalPrice;
 
     /**
      * 收件人昵称

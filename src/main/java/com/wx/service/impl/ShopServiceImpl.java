@@ -1,8 +1,10 @@
 package com.wx.service.impl;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.wx.common.model.ShopConfigResponse;
 import com.wx.common.model.request.BestSellingGoodsRequest;
+import com.wx.common.model.request.RecommendedGoodsRequest;
 import com.wx.common.model.request.ShopConfigRequest;
 import com.wx.common.model.request.ShopRebateRequest;
 import com.wx.common.model.response.ShopConfigDOResponse;
@@ -13,16 +15,16 @@ import com.wx.orm.entity.ShopConfigDO;
 import com.wx.orm.entity.UserProfileDO;
 import com.wx.orm.mapper.RebateMapper;
 import com.wx.orm.mapper.ShopConfigMapper;
+import com.wx.orm.mapper.UserProfileMapper;
 import com.wx.service.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
+import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -34,12 +36,17 @@ public class ShopServiceImpl implements ShopService {
     private final GoodsService goodsService;
     private final RebateService rebateService;
     private final OrderService orderService;
+    private final UserProfileMapper userProfileMapper;
 
     @Override
     public ShopConfigResponse getShopConfigInfo(ShopConfigRequest request) {
         UserProfileDO userProfile = tokenService.getUserByToken(request.getToken());
         ShopConfigDO shopConfigDO = shopConfigMapper.selectByFrom(request.getFrom());
         RebateDO rebateDO = rebateMapper.selectById(userProfile.getPosition());
+        if (rebateDO == null) {
+            return new ShopConfigResponse(shopConfigDO.getShopName(),
+                    shopConfigDO.getFreight(), 1);
+        }
         return new ShopConfigResponse(shopConfigDO.getShopName(),
                 shopConfigDO.getFreight(), rebateDO.getRatio());
     }
@@ -85,7 +92,7 @@ public class ShopServiceImpl implements ShopService {
         dto.setName(goodsDO.getName());
         dto.setGoodsPic(goodsDO.getGoodsPic());
         dto.setPrice(BigDecimal.valueOf(goodsDO.getPrice()));
-        dto.setSales(Math.toIntExact(goodsDO.getSales()));
+        dto.setSales(Math.toIntExact(Objects.isNull(goodsDO.getSales()) ? 0 : goodsDO.getSales()));
         return dto;
     }
 
@@ -127,4 +134,77 @@ public class ShopServiceImpl implements ShopService {
 
         return goodsHistoryDOS;
     }
+
+    @Override
+    public Boolean updateRecommendedGoods(RecommendedGoodsRequest request) {
+        String token = request.getToken();
+        UserProfileDO userByToken = tokenService.getUserByToken(token);
+        if (userByToken == null) return false;
+
+        Map<String, List<GoodsDO>> recommendedMap = new HashMap<>();
+        RecommendedGoodsRequest.RecommendedGoods[] recommendedGoodsIds = request.getRecommendedGoodsIds();
+        for (RecommendedGoodsRequest.RecommendedGoods recommendedGoods : recommendedGoodsIds) {
+            String name = recommendedGoods.getName();
+            Long[] commend = recommendedGoods.getCommend();
+            List<GoodsDO> goodsDOList = goodsService.listByIds(Arrays.asList(commend));
+            recommendedMap.put(name, goodsDOList);
+        }
+
+        String recommendedJson = JSON.toJSONString(recommendedMap);
+        ShopConfigDO shopConfigDO = new ShopConfigDO();
+        shopConfigDO.setFromMall(request.getFromMall());
+        shopConfigDO.setRecommendedGoods(recommendedJson);
+        int updated = shopConfigMapper.updateRecommendedGoodsByFromMall(shopConfigDO);
+        return updated > 0;
+    }
+
+    @Override
+    public JSONObject selectRecommendListByFromMall(String fromMall) {
+        List<ShopConfigDO> shopConfigDOS = shopConfigMapper.selectListByFromMall(fromMall);
+        ShopConfigDO shopConfigDO = shopConfigDOS.get(0);
+        String recommendedGoods = shopConfigDO.getRecommendedGoods();
+        Map<String, List<GoodsDO>> recommendGoodsMaps = new HashMap<>();
+        if (recommendedGoods != null) {
+//            List<RecommendedGoodsRequest.RecommendedGoods> bestSellingGoods = JSON.parseArray(recommendedGoods, RecommendedGoodsRequest.RecommendedGoods.class);
+//            for (RecommendedGoodsRequest.RecommendedGoods orderId : bestSellingGoods) {
+//                String name = orderId.getName();
+//                Long[] commend = orderId.getCommend();
+//                List<GoodsDO> recommendList = new ArrayList<>();
+//                for (Long id : commend) {
+//                    GoodsDO goods = orderService.getOrderById(id);
+//                    recommendList.add(goods);
+//                }
+//
+//                recommendGoodsMaps.put(name, recommendList);
+//            }
+            return JSON.parseObject(recommendedGoods);
+        }
+        return null;
+    }
+
+    @Override
+    public void initShopAccount(String contactPhone, String fromMall) {
+        // init a account for shop owner
+        UserProfileDO userProfileDO = new UserProfileDO();
+        userProfileDO.setNickName(contactPhone);
+        userProfileDO.setPhone(contactPhone);
+        userProfileDO.setHeadUrl("https://ss0.bdstatic.com/70cFvHSh_Q1YnxGkpoWK1HF6hhy/it/u=1817687697,1587685125&fm=26&gp=0.jpg");
+        userProfileDO.setFromShopName(fromMall);
+        userProfileDO.setSource("shopOwner");
+        userProfileDO.setPassword(BCrypt.hashpw("123456", BCrypt.gensalt()));
+        userProfileDO.setToken(UUID.randomUUID().toString());
+        userProfileDO.setCreateTime(new Date());
+        userProfileMapper.insert(userProfileDO);
+    }
+
+    @Override
+    public BigDecimal getFreight(String fromShopName) {
+        ShopConfigDO shopConfigDO = shopConfigMapper.selectByFrom(fromShopName);
+        if (shopConfigDO != null) {
+            return BigDecimal.valueOf(shopConfigDO.getFreight());
+        }
+        return BigDecimal.ZERO;
+    }
+
+
 }

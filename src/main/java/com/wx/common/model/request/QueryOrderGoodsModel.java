@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
+import java.math.BigDecimal;
+
 @Data
 public class QueryOrderGoodsModel {
 
@@ -14,7 +16,7 @@ public class QueryOrderGoodsModel {
     private Boolean firstGoods;
     private String goodsPic;
     private String name;
-    private Double price;
+    private BigDecimal price;
     private Long sales; // 销量
     private Long num;
     public QueryOrderGoodsModel() {}
@@ -22,7 +24,7 @@ public class QueryOrderGoodsModel {
     public QueryOrderGoodsModel(
             @JsonProperty("id") Long id,
             @JsonProperty("name") String name,
-            @JsonProperty("price") Double price,
+            @JsonProperty("price") BigDecimal price,
             @JsonProperty("num") Long num) {
         this.id = id;
         this.name = name;

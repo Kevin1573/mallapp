@@ -3,6 +3,7 @@ package com.wx.common.model;
 import com.wx.common.model.request.QueryOrderGoodsModel;
 import lombok.Data;
 
+import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
 
@@ -10,7 +11,7 @@ import java.util.List;
 public class OrderListItem {
     private String tradeNo;
 
-    private Double totalPrice;
+    private BigDecimal totalPrice;
     private Integer isPaySuccess;
     private String orderInfo;
     private List<QueryOrderGoodsModel> goodsList;

@@ -35,6 +35,8 @@ public class ShopConfigDO {
 
     private String bestSellers;
 
+    private String recommendedGoods;
+
     private String aboutUsText;
 
     private String aboutUsPic;

@@ -101,7 +101,7 @@ public class LoginServiceImpl implements LoginService {
         UserProfileDO userProfileDO = new UserProfileDO();
         userProfileDO.setPhone(request.getPhone());
         userProfileDO.setNickName(request.getUserName());
-        userProfileDO.setPassword(request.getPassword());
+        userProfileDO.setPassword(BCrypt.hashpw(request.getPassword(), BCrypt.gensalt()));
         userProfileDO.setFromShopName(request.getFrom());
         userProfileDO.setHeadUrl(request.getHeadUrl());
         userProfileDO.setToken(UUID.randomUUID().toString());

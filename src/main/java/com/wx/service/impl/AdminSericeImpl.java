@@ -25,10 +25,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
+
+import static com.wx.service.impl.OrderServiceImpl.calculateTotalPrice;
 
 @Service
 @Slf4j
@@ -157,9 +160,11 @@ public class AdminSericeImpl implements AdminService {
                     throw new BizException("订单商品数据解析失败: " + e.getMessage());
                 }
             }
-            double totalPrice = queryOrderGoodsModelList.stream()
-                    .mapToDouble(goods -> goods.getPrice() * goods.getNum())
-                    .sum();
+//            double totalPrice = queryOrderGoodsModelList.stream()
+//                    .mapToDouble(goods -> goods.getPrice() * goods.getNum())
+//                    .sum();
+
+            BigDecimal totalPrice1 = calculateTotalPrice(queryOrderGoodsModelList);
 
             GoodsHistoryDO goodsHistoryDO1 = goodsHistoryDOS.get(0);
             JSONObject orderInfo = JSON.parseObject(goodsHistoryDO1.getOrderInfo());
@@ -172,7 +177,7 @@ public class AdminSericeImpl implements AdminService {
             queryOrderHistoryModel.setGoodsModelList(queryOrderGoodsModelList);
             queryOrderHistoryModel.setIsPaySuccess(goodsHistoryDO1.getIsPaySuccess());
             queryOrderHistoryModel.setIsComplete(goodsHistoryDO1.getIsComplete());
-            queryOrderHistoryModel.setTotalPrice(totalPrice);
+            queryOrderHistoryModel.setTotalPrice(totalPrice1);
             queryOrderHistoryModel.setRealName(userProfileDO.getNickName());
             queryOrderHistoryModel.setRealPhone(userProfileDO.getPhone());
             queryOrderHistoryModel.setAddr(orderInfo.getString("addr"));

@@ -1,5 +1,6 @@
 package com.wx.service.impl;
 
+import com.alibaba.fastjson2.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.wx.common.model.request.HomePageRequest;
@@ -8,6 +9,7 @@ import com.wx.common.model.request.ShopModel;
 import com.wx.common.model.response.CompanyConfigResponse;
 import com.wx.common.model.response.HomePageResponse;
 import com.wx.common.model.response.QueryRecondDetailByUnitResponse;
+import com.wx.dto.BestSellingGoods;
 import com.wx.orm.entity.GoodsDO;
 import com.wx.orm.entity.ShopCombinationRecommendationDO;
 import com.wx.orm.entity.ShopConfigDO;
@@ -17,14 +19,12 @@ import com.wx.orm.mapper.ShopCombinationRecommendationMapper;
 import com.wx.orm.mapper.ShopConfigMapper;
 import com.wx.service.HomePageService;
 import com.wx.service.TokenService;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 public class HomePageServiceImpl implements HomePageService {
@@ -50,10 +50,15 @@ public class HomePageServiceImpl implements HomePageService {
         // 查询热销商品列表
         List<ShopModel> sellersModels = new ArrayList<>();
         String bestSellers = shopConfigDO.getBestSellers();
-        List<String> sellersList = Optional.ofNullable(bestSellers).map(s -> Arrays.asList(s.split(","))).orElse(new ArrayList<>());
-        for (String goodsId : sellersList) {
-            GoodsDO goodsDO = goodsMapper.selectById(goodsId);
+        if (StringUtils.isEmpty(bestSellers)) {
+            return response;
+        }
+        List<BestSellingGoods> bestSellingGoods = JSON.parseArray(bestSellers, BestSellingGoods.class);
+
+        for (BestSellingGoods goodsId : bestSellingGoods) {
+            GoodsDO goodsDO = goodsMapper.selectById(goodsId.getId());
             ShopModel model = new ShopModel();
+            model.setId(goodsDO.getId());
             model.setPic(goodsDO.getGoodsPic());
             model.setName(goodsDO.getName());
             model.setPrice(goodsDO.getPrice());
@@ -67,23 +72,34 @@ public class HomePageServiceImpl implements HomePageService {
         QueryWrapper<GoodsDO> queryWrapper1 = new QueryWrapper<>();
         queryWrapper1.select("DISTINCT (brand), brand_pic");
         queryWrapper1.eq("from_mall", request.getFrom());
+        queryWrapper1.eq("first_goods", true);
         List<GoodsDO> goodsDOS = goodsMapper.selectList(queryWrapper1);
+
+        Map<String, String> brandMap = new HashMap<>();
         for (GoodsDO goodsDO : goodsDOS) {
-            ShopModel model = new ShopModel();
-            model.setPic(goodsDO.getBrandPic());
-            model.setName(goodsDO.getBrand());
-            brandModels.add(model);
+            brandMap.putIfAbsent(goodsDO.getBrand(), goodsDO.getBrandPic());
         }
+
+        brandMap.forEach((k, v) -> {
+            ShopModel model = new ShopModel();
+            model.setPic(v);
+            model.setName(k);
+            brandModels.add(model);
+        });
+
         response.setBrandModels(brandModels);
 
-        // 查询组合推荐
+        // 查询组合推荐 recommendGoods == 2
         List<ShopModel> reconModels = new ArrayList<>();
-        LambdaQueryWrapper<ShopCombinationRecommendationDO> queryWrapper2 = new LambdaQueryWrapper<>();
-        queryWrapper2.eq(ShopCombinationRecommendationDO::getFromMall, request.getFrom());
-        queryWrapper2.eq(ShopCombinationRecommendationDO::getFirstGoods, true);
-        List<ShopCombinationRecommendationDO> shopCombinationRecommendationDOS = recommendationMapper.selectList(queryWrapper2);
-        for (ShopCombinationRecommendationDO recommendationDO : shopCombinationRecommendationDOS) {
+        LambdaQueryWrapper<GoodsDO> queryWrapper2 = new LambdaQueryWrapper<>();
+        queryWrapper2.eq(GoodsDO::getFromMall, request.getFrom());
+        queryWrapper2.eq(GoodsDO::getFirstGoods, true);
+        queryWrapper2.eq(GoodsDO::getRecommendGoods, 2);
+
+        List<GoodsDO> shopCombinationRecommendationDOS = goodsMapper.selectList(queryWrapper2);
+        for (GoodsDO recommendationDO : shopCombinationRecommendationDOS) {
             ShopModel model = new ShopModel();
+            model.setId(recommendationDO.getId());
             model.setPic(recommendationDO.getGoodsPic());
             model.setName(recommendationDO.getName());
             model.setPrice(recommendationDO.getPrice());

@@ -1,13 +1,16 @@
 package com.wx.service;
 
+import com.alibaba.fastjson.JSONObject;
 import com.wx.common.model.ShopConfigResponse;
 import com.wx.common.model.request.BestSellingGoodsRequest;
+import com.wx.common.model.request.RecommendedGoodsRequest;
 import com.wx.common.model.request.ShopConfigRequest;
 import com.wx.common.model.request.ShopRebateRequest;
 import com.wx.common.model.response.ShopConfigDOResponse;
 import com.wx.orm.entity.GoodsDO;
 import com.wx.orm.entity.RebateDO;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 public interface ShopService {
@@ -24,4 +27,12 @@ public interface ShopService {
     Boolean editRebateList(ShopRebateRequest request);
 
     List<GoodsDO> selectListByFromMall(String fromMall);
+
+    Boolean updateRecommendedGoods(RecommendedGoodsRequest request);
+
+    JSONObject selectRecommendListByFromMall(String fromMall);
+
+    void initShopAccount(String contactPhone, String fromMall);
+
+    BigDecimal getFreight(String fromShopName);
 }

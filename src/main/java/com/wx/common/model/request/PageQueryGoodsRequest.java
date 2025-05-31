@@ -12,6 +12,8 @@ public class PageQueryGoodsRequest {
 
     private Long limit;
 
+    private String from;
+
     private String typeId;
 
     // 排序字段

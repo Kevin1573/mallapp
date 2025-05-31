@@ -17,12 +17,14 @@ import com.wx.orm.entity.UserProfileDO;
 import com.wx.service.ShopConfigService;
 import com.wx.service.ShopService;
 import com.wx.service.TokenService;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Date;
 import java.util.List;
 
+@Slf4j
 @RestController
 @RequestMapping("/shop/config")
 public class ShopConfigController {
@@ -42,6 +44,7 @@ public class ShopConfigController {
             ShopConfigResponse shopConfigInfo = shopService.getShopConfigInfo(request);
             return Response.success(shopConfigInfo);
         } catch (Exception e) {
+            log.error("getShopConfigInfo is error , {}" , e.getMessage(), e);
             return Response.failure("getShopConfigInfo is error , " + e.getMessage());
         }
     }
@@ -116,6 +119,8 @@ public class ShopConfigController {
             if (result) {
                 // 初始化 商铺的用户等级折扣信息
                 shopService.initShopUserLevelDiscount(shopConfigDO.getFromMall());
+                // 初始化一个主店铺账户
+                shopService.initShopAccount(shopConfigDO.getContactPhone(), shopConfigDO.getFromMall());
             }
 
             return result ? ApiResponse.success(true) : ApiResponse.fail(500, "创建失败");

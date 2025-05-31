@@ -22,6 +22,11 @@ public interface ShopConfigMapper extends BaseMapper<ShopConfigDO> {
             "WHERE from_mall = #{fromMall}")
     int updateByFromMall(ShopConfigDO shopConfigDO);
 
+    @Update("UPDATE shop_config " +
+            "SET recommended_goods = #{recommendedGoods} " +
+            "WHERE from_mall = #{fromMall}")
+    int updateRecommendedGoodsByFromMall(ShopConfigDO shopConfigDO);
+
     @Select("select * from shop_config where from_mall = #{fromMall}")
     List<ShopConfigDO> selectListByFromMall(String fromMall);
 }

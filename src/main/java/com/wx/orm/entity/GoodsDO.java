@@ -96,4 +96,6 @@ public class GoodsDO {
     private Integer status; // 0-下架 1-上架
 
     private String fromMall;
+
+    private Integer recommendGoods;
 }

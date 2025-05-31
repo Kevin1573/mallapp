@@ -22,6 +22,7 @@ import com.wx.common.utils.WxAPIV3AesUtil;
 import com.wx.orm.entity.*;
 import com.wx.orm.mapper.*;
 import com.wx.service.OrderService;
+import com.wx.service.ShopService;
 import com.wx.service.TokenService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -54,17 +55,24 @@ public class OrderServiceImpl implements OrderService {
     private UserAddrMapper userAddrMapper;
     @Autowired
     private TokenService tokenService;
+    @Autowired
+    private ShopService shopService;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
     public OrderGoodsResponse orderGoods(OrderGoodsRequest request) {
-        // 查询出对应的用户信息和商品信息
-        LambdaQueryWrapper<UserProfileDO> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(UserProfileDO::getId, 1);
-        UserProfileDO userProfileDO = userProfileMapper.selectOne(queryWrapper);
-        if (Objects.isNull(userProfileDO)) {
+        UserProfileDO userByToken = tokenService.getUserByToken(request.getToken());
+        if (Objects.isNull(userByToken)) {
             throw new BizException("token is error");
         }
+
+        // 查询出对应的用户信息和商品信息
+//        LambdaQueryWrapper<UserProfileDO> queryWrapper = new LambdaQueryWrapper<>();
+//        queryWrapper.eq(UserProfileDO::getId, userByToken.getId());
+//        UserProfileDO userProfileDO = userProfileMapper.selectOne(queryWrapper);
+//        if (Objects.isNull(userProfileDO)) {
+//            throw new BizException("token is error");
+//        }
 
         // 检查商品库存
         for (OrderGoodsModelRequest modelRequest : request.getModelRequestList()) {
@@ -97,7 +105,7 @@ public class OrderServiceImpl implements OrderService {
             queryOrderGoodsModel.setFirstGoods(goodsDO.getFirstGoods());
             queryOrderGoodsModel.setGoodsPic(goodsDO.getGoodsPic());
             queryOrderGoodsModel.setName(goodsDO.getName());
-            queryOrderGoodsModel.setPrice(goodsDO.getPrice());
+            queryOrderGoodsModel.setPrice(BigDecimal.valueOf(goodsDO.getPrice()));
             queryOrderGoodsModel.setSales(goodsDO.getSales());
             queryOrderGoodsModel.setNum(num);
 
@@ -106,7 +114,6 @@ public class OrderServiceImpl implements OrderService {
         String goodsListJson = JSON.toJSONString(goodsList); // 转为JSON数组
 
         // 2. 添加购买记录（更新goodsList字段）
-
         UserAddrDO userAddrDO = userAddrMapper.selectById(request.getAddrId());
         JSONObject orderInfo = new JSONObject();
         if (Objects.nonNull(userAddrDO)) {
@@ -115,12 +122,31 @@ public class OrderServiceImpl implements OrderService {
             orderInfo.put("addr", userAddrDO.getProvince() + userAddrDO.getCity() + userAddrDO.getArea() + userAddrDO.getDetail());
         }
 
+        // 计算商品的实际支付金额
+        BigDecimal payAmount = BigDecimal.ZERO;
+        for (QueryOrderGoodsModel queryOrderGoodsModel : goodsList) {
+            payAmount = payAmount.add(queryOrderGoodsModel.getPrice().multiply(BigDecimal.valueOf(queryOrderGoodsModel.getNum())));
+        }
+
+        // 获取用户的折扣率
+        Long position = userByToken.getPosition();
+        RebateDO rebateDO = rebateMapper.selectById(position);
+
+        // 获取店铺的运费
+        BigDecimal freight = shopService.getFreight(request.getFrom());
+        BigDecimal payAmount2;
+        if (rebateDO == null || Objects.isNull(rebateDO.getRatio())) {
+            payAmount2 = payAmount.add(freight).setScale(2, RoundingMode.DOWN);
+        } else {
+            payAmount2 = payAmount.multiply(BigDecimal.valueOf(rebateDO.getRatio())).add(freight).setScale(2, RoundingMode.DOWN);
+        }
         GoodsHistoryDO goodsHistoryDO = new GoodsHistoryDO()
-                .setUserId(userProfileDO.getId())
+                .setUserId(userByToken.getId())
                 .setIsComplete(CompleteEnum.FALSE.getCode())
                 .setCreateTime(new Date())
                 .setModifyTime(new Date())
                 .setTradeNo(tradeNo)
+                .setPayAmount(payAmount2)
                 .setIsPaySuccess(CompleteEnum.FALSE.getCode())
                 .setAddrId(request.getAddrId())
                 .setOrderInfo(JSON.toJSONString(orderInfo))
@@ -238,6 +264,7 @@ public class OrderServiceImpl implements OrderService {
 
         // 5. 查询主规格商品
         queryWrapper.eq(GoodsDO::getFirstGoods, true);
+        queryWrapper.eq(GoodsDO::getFromMall, request.getFrom());
 
         IPage<GoodsDO> goodsDOPage = goodsMapper.selectPage(page, queryWrapper);
 
@@ -253,6 +280,7 @@ public class OrderServiceImpl implements OrderService {
             model.setExt(goodsDO.getExt());
             model.setGoodsUnit(goodsDO.getGoodsUnit());
             model.setFirstGoods(goodsDO.getFirstGoods());
+            model.setRecommendGoods(goodsDO.getRecommendGoods());
 
             model.setGoodsPic(goodsDO.getGoodsPic());
             model.setBrandPic(goodsDO.getBrandPic());
@@ -485,9 +513,6 @@ public class OrderServiceImpl implements OrderService {
             queryOrderGoodsModelList.addAll(queryOrderGoodsModels);
         }
 
-        double totalPrice = queryOrderGoodsModelList.stream()
-                .mapToDouble(goods -> goods.getPrice() * goods.getNum())
-                .sum();
         GoodsHistoryDO goodsHistoryDO1 = goodsHistoryDOList.get(0);
         com.alibaba.fastjson.JSONObject orderInfo = com.alibaba.fastjson.JSON.parseObject(goodsHistoryDO1.getOrderInfo());
         QueryOrderHistoryModel queryOrderHistoryModel = new QueryOrderHistoryModel();
@@ -498,7 +523,7 @@ public class OrderServiceImpl implements OrderService {
         queryOrderHistoryModel.setGoodsModelList(queryOrderGoodsModelList);
         queryOrderHistoryModel.setIsComplete(goodsHistoryDO1.getIsComplete());
         queryOrderHistoryModel.setStatus(goodsHistoryDO1.getStatus());
-        queryOrderHistoryModel.setTotalPrice(totalPrice);
+        queryOrderHistoryModel.setTotalPrice(calculateTotalPrice(queryOrderGoodsModelList));
         queryOrderHistoryModel.setAddr(orderInfo.getString("addr"));
         queryOrderHistoryModel.setPhone(orderInfo.getString("phone"));
         queryOrderHistoryModel.setUserName(orderInfo.getString("name"));
@@ -506,6 +531,14 @@ public class OrderServiceImpl implements OrderService {
         queryOrderHistoryModel.setIsPaySuccess(goodsHistoryDO1.getIsPaySuccess());
         queryOrderHistoryModel.setPayWay(goodsHistoryDO1.getPayWay());
         return queryOrderHistoryModel;
+    }
+
+    public static BigDecimal calculateTotalPrice(List<QueryOrderGoodsModel> queryOrderGoodsModelList) {
+        return queryOrderGoodsModelList.stream()
+                .filter(Objects::nonNull) // 过滤掉 null 元素
+                .map(goods -> goods.getPrice().multiply(BigDecimal.valueOf(goods.getNum())))
+                .reduce(BigDecimal.ZERO, BigDecimal::add)
+                .setScale(2, RoundingMode.DOWN);
     }
 
     @Override
@@ -690,42 +723,42 @@ public class OrderServiceImpl implements OrderService {
             return goodsHistoryMapper.updateByTradeNo(new GoodsHistoryDO()
                     .setTradeNo(outTradeNo)
                     .setIsPaySuccess(1)
-                    .setIsComplete(1)
+                    .setIsComplete(OrderStatus.WAITING_PAYMENT.getCode())
             );
         } else if (OrderStatus.PAID == orderStatus) {
             return goodsHistoryMapper.updateByTradeNo2(new GoodsHistoryDO()
                     .setTradeNo(outTradeNo)
                     .setIsPaySuccess(2)
                     .setIsComplete(1)
-                    .setStatus(3)
+                    .setStatus(OrderStatus.PAID.getCode())
             );
         } else if (OrderStatus.SHIPPED == orderStatus) {
             return goodsHistoryMapper.updateByTradeNo4(new GoodsHistoryDO()
                     .setTradeNo(outTradeNo)
                     .setIsPaySuccess(2)
                     .setIsComplete(1)
-                    .setStatus(4)
+                    .setStatus(OrderStatus.SHIPPED.getCode())
             );
         } else if (OrderStatus.COMPLETED == orderStatus) {
             return goodsHistoryMapper.updateByTradeNo6(new GoodsHistoryDO()
                     .setTradeNo(outTradeNo)
                     .setIsPaySuccess(2)
                     .setIsComplete(2)
-                    .setStatus(6)
+                    .setStatus(OrderStatus.COMPLETED.getCode())
             );
         } else if (OrderStatus.REFUNDING == orderStatus) {
             return goodsHistoryMapper.updateByTradeNo2(new GoodsHistoryDO()
                     .setTradeNo(outTradeNo)
                     .setIsPaySuccess(2)
                     .setIsComplete(1)
-                    .setStatus(7)
+                    .setStatus(OrderStatus.REFUNDING.getCode())
             );
         } else if (OrderStatus.RETURNED == orderStatus) {
             return goodsHistoryMapper.updateByTradeNo8(new GoodsHistoryDO()
                     .setTradeNo(outTradeNo)
                     .setIsPaySuccess(2)
                     .setIsComplete(1)
-                    .setStatus(8)
+                    .setStatus(OrderStatus.RETURNED.getCode())
             );
         }
         return 0;
@@ -900,10 +933,9 @@ public class OrderServiceImpl implements OrderService {
 
                     // 计算总价
                     if (CollectionUtils.isNotEmpty(item.getGoodsList())) {
-                        double total = item.getGoodsList().stream()
-                                .mapToDouble(g -> g.getPrice() * g.getNum())
-                                .sum();
-                        item.setTotalPrice(total);
+                        List<QueryOrderGoodsModel> goodsList = item.getGoodsList();
+                        BigDecimal totalPrice = calculateTotalPrice(goodsList);
+                        item.setTotalPrice(totalPrice);
                     }
                     return item;
                 }).collect(Collectors.toList());

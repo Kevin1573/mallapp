@@ -2,20 +2,24 @@ package com.wx.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.wx.common.model.request.ProductRequest;
-import com.wx.common.model.request.ShopModel;
 import com.wx.orm.entity.GoodsDO;
+import com.wx.orm.entity.UserProfileDO;
 import com.wx.orm.mapper.GoodsMapper;
 import com.wx.service.ProductService;
+import com.wx.service.TokenService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
 public class ProductServiceImpl implements ProductService {
     private final GoodsMapper goodsMapper;
+    private final TokenService tokenService;
 
     @Override
     public List<String> queryProductCategory(ProductRequest request) {
@@ -31,14 +35,21 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public List<String> queryProductBrand(ProductRequest request) {
-        List<String> list = new ArrayList<>();
+    public List<Map<String, String>> queryProductBrand(ProductRequest request) {
+        UserProfileDO userByToken = tokenService.getUserByToken(request.getToken());
+
+        List<Map<String, String>> list = new ArrayList<>();
+
         QueryWrapper<GoodsDO> queryWrapper1 = new QueryWrapper<>();
-        queryWrapper1.select("DISTINCT (brand), brand_url");
-        queryWrapper1.eq("from_mall", request.getFrom());
+        queryWrapper1.select("DISTINCT (brand), brand_pic");
+        queryWrapper1.eq("from_mall", userByToken.getFromShopName());
+        queryWrapper1.eq("first_goods", true);
         List<GoodsDO> goodsDOS = goodsMapper.selectList(queryWrapper1);
         for (GoodsDO goodsDO : goodsDOS) {
-            list.add(goodsDO.getBrand());
+            Map<String, String> map = new HashMap<>();
+            map.put("brand", goodsDO.getBrand());
+            map.put("brand_pic", goodsDO.getBrandPic());
+            list.add(map);
         }
         return list;
     }
