@@ -1,0 +1,27 @@
+# 多商户微信支付配置示例
+# 将此配置添加到您的application.yml或application-dev.yml中
+
+wx:
+  pay:
+    merchants:
+      # 商户1配置
+      merchant1:
+        merchantId: '1230000001'  # 商户号
+        appId: 'wx1234567890abcdef'  # 应用ID
+        privateKeyPath: 'classpath:cert/merchant1/apiclient_key.pem'  # 商户私钥路径
+        publicKeyPath: 'classpath:cert/merchant1/wechatpay_cert.pem'  # 微信支付公钥路径
+        publicKeyId: 'publicKeyId1'  # 微信支付公钥ID
+        merchantSerialNumber: 'serialNumber1'  # 商户证书序列号
+        apiV3Key: 'apiV3Key1'  # API v3密钥
+        notifyUrl: 'https://example.com/pay/v3/multi/callback/merchant1'  # 支付回调地址
+
+      # 商户2配置
+      merchant2:
+        merchantId: '1230000002'
+        appId: 'wx9876543210fedcba'
+        privateKeyPath: 'classpath:cert/merchant2/apiclient_key.pem'
+        publicKeyPath: 'classpath:cert/merchant2/wechatpay_cert.pem'
+        publicKeyId: 'publicKeyId2'
+        merchantSerialNumber: 'serialNumber2'
+        apiV3Key: 'apiV3Key2'
+        notifyUrl: 'https://example.com/pay/v3/multi/callback/merchant2'
