@@ -22,7 +22,7 @@ public class GoodsHistoryDO {
     /**
      * 商品id (-1表示是开会员订单，-2表示报修单)
      */
-    private Long goodsId;
+//    private Long goodsId;
 
     /**
      * 用户id
@@ -69,22 +69,22 @@ public class GoodsHistoryDO {
     /**
      * 商品图片
      */
-    private String goodsPic;
+//    private String goodsPic;
 
     /**
      * 商品描述
      */
-    private String goodsDescription;
+//    private String goodsDescription;
 
     /**
      * 价格，单位为元
      */
-    private Double goodsPrice;
+//    private Double goodsPrice;
 
     /**
      * 商品名称
      */
-    private String goodsName;
+//    private String goodsName;
 
     private Long addrId;
 

@@ -769,11 +769,13 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public void updatePayway(String tradeNo, PayWayEnums paywayEnums) {
-        // update order payway to wxPay
-        goodsHistoryMapper.updateById(new GoodsHistoryDO()
+        int updated = goodsHistoryMapper.updatePayWayByTradeNo(new GoodsHistoryDO()
                 .setTradeNo(tradeNo)
                 .setPayWay(paywayEnums.getValue())
         );
+        if (updated > 0) {
+            log.info("update payway success");
+        }
     }
 
     @Override
