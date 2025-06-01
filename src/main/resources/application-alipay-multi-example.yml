@@ -1,0 +1,86 @@
+# 多商户支付宝支付配置示例
+# 将此配置添加到您的application.yml或application-dev.yml中
+
+alipay:
+  merchants:
+    # 商户1配置
+    merchant1:
+      appId: '2021000000000001'  # 支付宝应用ID
+      privateKey: 'MIIEvQ...'    # 商户私钥，以 MII 开头的 PKCS8 格式私钥
+      publicKey: 'MIIBIj...'     # 支付宝公钥
+      notifyUrl: 'https://example.com/pay/v3/alipay/notify/merchant1'  # 异步通知地址
+      returnUrl: 'https://example.com/pay/success'  # 同步返回地址
+      signType: 'RSA2'  # 签名方式，默认RSA2
+      charset: 'UTF-8'  # 字符编码，默认UTF-8
+      format: 'json'    # 返回格式，默认json
+      sandboxMode: false  # 是否使用沙箱环境
+
+    # 商户2配置（沙箱环境示例）
+    merchant2:
+      appId: '2021000000000002'
+      privateKey: 'MIIEvQ...'
+      publicKey: 'MIIBIj...'
+      notifyUrl: 'https://example.com/pay/v3/alipay/notify/merchant2'
+      returnUrl: 'https://example.com/pay/success'
+      sandboxMode: true  # 启用沙箱环境
+      
+# 配置说明：
+# 1. privateKey: 
+#    - 商户私钥，用于签名
+#    - 必须是PKCS8格式
+#    - 可以使用支付宝开放平台开发助手生成
+#    - 建议使用环境变量或配置中心存储
+
+# 2. publicKey:
+#    - 支付宝公钥，用于验签
+#    - 从支付宝开放平台获取
+#    - 不是应用公钥
+
+# 3. notifyUrl:
+#    - 异步通知地址，用于接收支付结果通知
+#    - 必须是外网可访问的地址
+#    - 建议每个商户使用独立的回调地址
+#    - 格式：https://domain.com/pay/v3/alipay/notify/{merchantId}
+
+# 4. returnUrl:
+#    - 同步返回地址，支付完成后跳转的页面
+#    - 可以配置为前端支付结果页面
+
+# 5. sandboxMode:
+#    - true: 使用沙箱环境（开发测试用）
+#    - false: 使用正式环境
+#    - 沙箱环境的配置从支付宝开放平台沙箱应用中获取
+
+# 安全建议：
+# 1. 私钥和公钥不建议直接写在配置文件中
+# 2. 建议使用环境变量或配置中心：
+#    privateKey: ${ALIPAY_PRIVATE_KEY_MERCHANT1}
+#    publicKey: ${ALIPAY_PUBLIC_KEY_MERCHANT1}
+
+# 沙箱环境说明：
+# 1. 沙箱环境用于开发测试，不会产生真实交易
+# 2. 沙箱环境的配置从支付宝开放平台沙箱应用中获取
+# 3. 沙箱环境的支付宝账号需要在沙箱环境中注册
+
+# 使用示例：
+# 1. 正式环境配置：
+#    alipay:
+#      merchants:
+#        shop1:
+#          appId: ${ALIPAY_APP_ID_SHOP1}
+#          privateKey: ${ALIPAY_PRIVATE_KEY_SHOP1}
+#          publicKey: ${ALIPAY_PUBLIC_KEY_SHOP1}
+#          notifyUrl: https://api.myshop.com/pay/v3/alipay/notify/shop1
+#          returnUrl: https://www.myshop.com/pay/success
+#          sandboxMode: false
+
+# 2. 测试环境配置：
+#    alipay:
+#      merchants:
+#        test1:
+#          appId: ${ALIPAY_SANDBOX_APP_ID_TEST1}
+#          privateKey: ${ALIPAY_SANDBOX_PRIVATE_KEY_TEST1}
+#          publicKey: ${ALIPAY_SANDBOX_PUBLIC_KEY_TEST1}
+#          notifyUrl: https://test-api.myshop.com/pay/v3/alipay/notify/test1
+#          returnUrl: https://test.myshop.com/pay/success
+#          sandboxMode: true
