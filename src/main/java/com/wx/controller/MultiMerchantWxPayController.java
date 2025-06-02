@@ -38,7 +38,7 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @RestController
-@RequestMapping("/pay/v3/multi")
+@RequestMapping("/pay/v3/wxpay")
 @AllArgsConstructor
 public class MultiMerchantWxPayController {
     private final MultiMerchantWxPayConfig multiMerchantConfig;

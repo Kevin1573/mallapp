@@ -104,7 +104,13 @@ public class AdminSericeImpl implements AdminService {
         queryWrapper.select("DISTINCT (trade_no), create_time");
 
         if (Objects.nonNull(request.getStatus())) {
-            queryWrapper.eq("status", request.getStatus());
+            if (request.getStatus() == 13) {
+                queryWrapper.eq("status", 6)
+                        .or()
+                        .eq("status", 7);
+            } else {
+                queryWrapper.eq("status", request.getStatus());
+            }
         } else {
             throw new BizException("请传入订单状态");
         }

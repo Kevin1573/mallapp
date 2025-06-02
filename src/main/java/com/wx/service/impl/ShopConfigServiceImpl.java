@@ -11,4 +11,8 @@ public class ShopConfigServiceImpl
      extends ServiceImpl<ShopConfigMapper, ShopConfigDO>
      implements ShopConfigService {
 
+    @Override
+    public ShopConfigDO queryMerchantConfigByFrom(String from) {
+        return this.baseMapper.selectByFrom(from);
+    }
 }

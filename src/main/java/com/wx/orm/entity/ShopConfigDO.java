@@ -59,4 +59,6 @@ public class ShopConfigDO {
 
     private String email;
 
+    private String paymentFlag; // 支付标识
+
 }

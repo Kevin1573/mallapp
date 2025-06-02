@@ -109,4 +109,6 @@ public class GoodsHistoryDO {
     @TableField(value = "pay_way", jdbcType = JdbcType.TINYINT)
     private Integer payWay;
 
+    private String fromMall;
+
 }

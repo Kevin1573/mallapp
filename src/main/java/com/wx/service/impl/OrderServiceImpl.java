@@ -150,7 +150,8 @@ public class OrderServiceImpl implements OrderService {
                 .setIsPaySuccess(CompleteEnum.FALSE.getCode())
                 .setAddrId(request.getAddrId())
                 .setOrderInfo(JSON.toJSONString(orderInfo))
-                .setGoodsList(JSON.toJSONString(goodsListJson));
+                .setGoodsList(JSON.toJSONString(goodsListJson))
+                .setFromMall(request.getFrom());
 
         LambdaQueryWrapper<GoodsHistoryDO> newQuery = new LambdaQueryWrapper<>();
         newQuery.eq(GoodsHistoryDO::getTradeNo, tradeNo);
@@ -800,7 +801,7 @@ public class OrderServiceImpl implements OrderService {
                 goodsHistoryMapper.selectCount(new LambdaQueryWrapper<GoodsHistoryDO>()
                         .eq(GoodsHistoryDO::getUserId, userProfileDO.getId())
                         .eq(GoodsHistoryDO::getIsPaySuccess, 2)
-                        .eq(GoodsHistoryDO::getStatus, 5)), // 待收货 4
+                        .eq(GoodsHistoryDO::getStatus, 4)), // 待收货 4
                 goodsHistoryMapper.selectCount(new LambdaQueryWrapper<GoodsHistoryDO>()
                         .eq(GoodsHistoryDO::getUserId, userProfileDO.getId())
                         .eq(GoodsHistoryDO::getIsPaySuccess, 2)
@@ -904,9 +905,18 @@ public class OrderServiceImpl implements OrderService {
         // 2. 构建分页查询条件
         Page<GoodsHistoryDO> page = new Page<>(request.getPage(), request.getPageSize());
         LambdaQueryWrapper<GoodsHistoryDO> queryWrapper = new LambdaQueryWrapper<>();
+        if (Objects.nonNull(request.getStatus())) {
+            if (request.getStatus() == 13) {
+                queryWrapper.eq(GoodsHistoryDO::getStatus, 6)
+                        .or()
+                        .eq(GoodsHistoryDO::getStatus, 7);
+            } else {
+                queryWrapper.eq(GoodsHistoryDO::getStatus, request.getStatus());
+            }
+        }
         queryWrapper.eq(GoodsHistoryDO::getUserId, userProfile.getId())
-                .eq(request.getStatus() != null, GoodsHistoryDO::getStatus, request.getStatus())
                 .orderByDesc(GoodsHistoryDO::getCreateTime);
+
 
         if ("showOwner".equals(userProfile.getSource())) {
             queryWrapper.eq(GoodsHistoryDO::getId, userProfile.getId());

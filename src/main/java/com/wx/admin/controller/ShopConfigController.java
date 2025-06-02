@@ -96,7 +96,6 @@ public class ShopConfigController {
      */
     @PostMapping("/add")
     public ApiResponse<Boolean> addConfig(@RequestBody ShopConfigRequest config) {
-        System.out.println(config);
         try {
             // 参数校验
             if (StringUtils.isBlank(config.getShopName())) {

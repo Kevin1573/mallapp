@@ -23,8 +23,8 @@ public class WxPayConfig {
 
         return new RSAPublicKeyConfig.Builder()
                 .merchantId(MERCHANT_ID) //微信支付的商户号
-                .privateKeyFromPath("local".equals(profile) ? PRIVATE_KEY_PATH_LOCAL : PRIVATE_KEY_PATH) // 商户API证书私钥的存放路径
-                .publicKeyFromPath("local".equals(profile) ? LOCAL_PUBLIC_KEY_PATH : PUBLIC_KEY_PATH) //微信支付公钥的存放路径
+                .privateKeyFromPath("dev".equals(profile) ? PRIVATE_KEY_PATH_LOCAL : PRIVATE_KEY_PATH) // 商户API证书私钥的存放路径
+                .publicKeyFromPath("dev".equals(profile) ? LOCAL_PUBLIC_KEY_PATH : PUBLIC_KEY_PATH) //微信支付公钥的存放路径
                 .publicKeyId(PUBLIC_KEY_ID) //微信支付公钥ID
                 .merchantSerialNumber(MERCHANT_SERIAL_NUMBER) //商户API证书序列号
                 .apiV3Key(API_V3_KEY) //APIv3密钥
@@ -34,7 +34,7 @@ public class WxPayConfig {
     @Bean
     public NotificationParser createParser() {
         NotificationConfig notificationConfig = new RSAPublicKeyNotificationConfig.Builder()
-                .publicKeyFromPath("local".equals(profile) ? LOCAL_PUBLIC_KEY_PATH : PUBLIC_KEY_PATH)
+                .publicKeyFromPath("dev".equals(profile) ? LOCAL_PUBLIC_KEY_PATH : PUBLIC_KEY_PATH)
                 .publicKeyId(PUBLIC_KEY_ID)
                 .apiV3Key(API_V3_KEY)
                 .build();

@@ -1,0 +1,28 @@
+wx:
+  pay:
+    merchants:
+      # 商户1配置
+      merchant1:
+        merchantId: '1715243805'  # 商户号
+        appId: 'wx70559cc67cdc94cc'  # 应用ID
+        privateKeyPath: '/root/mallapp/wxCert/apiclient_key.pem'  # 商户私钥路径
+        publicKeyPath: '/root/mallapp/wxCert/pub_key.pem'  # 微信支付公钥路径
+        publicKeyId: 'PUB_KEY_ID_0117152438052025051500351948001800'  # 微信支付公钥ID
+        merchantSerialNumber: '4145FC26AA94354CF3DB18870420E0E80AED7A82'  # 商户证书序列号
+        apiV3Key: '7Uhb6ygv5tfc4rdx3esz2wa1q0pl9okm'  # API v3密钥
+        notifyUrl: 'http://mallapp.pdcspace.com/pay/v3/multi/callback/merchant1'  # 支付回调地址
+
+
+alipay:
+  merchants:
+    # 商户1配置
+    merchant1:
+      appId: '2021000148682383'  # 支付宝应用ID
+      privateKey: "MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCE3tJKl+WoWKnZilx43FzcU7yTJALcAaAQtpjyJVjdpqMJc+mgoaHH/NCUr5VxDMP70LTBRo0auDCwsfVd7Vdf5UMZguN7nLr4UNm6e0Pv8HwTwERtWU4vy/qizOOs7eEgQkX4xyTIDjB4Lc+ShI+56G0YHnaQ58bQeVjAdqIPnAOMrNKjarlznW/x97KNr2dbDLvi0sz/Kr/QE4zFwdVhByFWQGqgl8SMZ8cBdnWXbLKKgTDYzIUNsSNAqJM+LrLQfSedeJWNsU3L9jIO4wEabaLQq2vda2/FZcPgd4qaB2cs4cr0YW/rsV6mYtywDM0fObggO9iEHl539Nis4tVDAgMBAAECggEAYaulq72SzTg3yrjBlvptrGxFb2gGThFHx2FidoVrmKt4p2c0cqa91NOLw/B6CvsWSdI2POkOqniBGjIGqv/fvZc6xtMHQ4OHkSdllYYs/4CoxKAN7M+8ALiRygCQ0DqgxWTSKLjC2ehMSttp/UtCl6c6IoOqJoSqCe9ZhUjvgkbWd0uFtKRWIVjDd/gNPiHGWalNUbDsUem4d0ZPpTbymjiimmx/yRlMFWCFuV1rLDycugdgN9N9owegzMrMw1qJ7KoZpmkTunLnIFDmK3bjj4wUtjsVtB4V1NcPgyVsK2rw0LzmWE8oIXJfqtjnqii23iuS84wuJdX/86Pt+RLQyQKBgQDsQ/jq4HYbcl83lwIjlXuj9HWNUBNLCkKOq+mszlu6HQ5Rdm43vIramjFQxUk3soWBlPySflxkWEsN/r2IBm8xwZ2yMw53yLcIgh7EPxYTJWcybbQ5Qw7idvy6vKUwt694bHvuQbJ+Wu+IfTikNYDzZGGp5z2oaScRP1lDSwQKVQKBgQCP9/fDu2Yb0IUZRSMoDDxZG83BoxkMPMXUcyw2o7zwBQWAr3PwTGUZGUBNgm0v5iXPptgluwrBl1zkCu0U2IlHbVglyz3bB1RlzauLL3OTPX5XgUWvaS6UyI67JrJm42Ui9oGS7w13SxlfcMHBjqhZYIlDzB1QOmcSP6uueukpNwKBgBAi5FFGW0qsmQw26BJ+Fx+vhofMPEUXwkv0OdVvkpw3d87gg86StfkQJuYZU1LWgn/DKSzoLG8+CIJAL7mmltmTG64cBpTvxHB0Up2coWlVWKL9Ex4GEnItJj2qvK2DHhzfa+dt3T77/vgXdVLhxJja9kCgZnmmFOD8rqAF85SxAoGAALdVDi4yddT1tIh5gkt9SVwwC9SJ3Vu4CDSCdcset3ru6hL1Wq6mmhdcEIajkGdurLfBv35MsWXVWnULdN0W4boThCycpChHLTJ2tfyIcKUPqdPEyviU+Lx+qUOqA4UCDch4IIj74ioHeEgRTqss/zTRufqb8rg3pwmWCwolesUCgYEAx1i+K1C2bg4p8cudy50hKA3lKExZV3esiQWTGO0+jJuFZaynbDMorvcXqntnPx6TIqYrMWZ1OFNGo3tRG03/7bLKz58762J5afKgeghypWouvGkpKrbH6vKwuQfFdVI0jolQyXgLDlQ4U/2ukw7H/VO7xxf6pq9TFQMCiHnV9wQ="    # 商户私钥，以 MII 开头的 PKCS8 格式私钥
+      publicKey: "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAko47xPKaS0mcpHNJTKBsZUA02BRpRLMNctmdqbjjMNoChzUYgEM0qcH1fBsz2GUPNRycwMbNsNIP+DXC8k7T86epc7tA1ezkmYWKM93B49M3C2cWYXg+xBB+9yJCyeiTHMan6MPdGtERQgpu97nAtCDmqLR6plHN7rr+D3WRup1LzmrAiAx2ywbzpRabFe9eCwECd2kXKzxPvkTXhO2JItN0hVnpXrOmtuyVxlBrmjVEZRvZlPzPHOvTYBRHOdxEyANvno1lKI4Z8ZlbZ5LO8lPSY5MZqvEipLV0OdWsXdDuKMJsN6+ne8TvMlVh0VpHl0rTpDpOTJIk5nX+9RUn6QIDAQAB"     # 支付宝公钥
+      notifyUrl: 'http://mallapp.pdcspace.com/pay/v3/alipay/notify/merchant1'  # 异步通知地址
+      returnUrl: 'http://mallapp.pdcspace.com/pay/v3/alipay/return'  # 同步返回地址
+      signType: 'RSA2'  # 签名方式，默认RSA2
+      charset: 'UTF-8'  # 字符编码，默认UTF-8
+      format: 'json'    # 返回格式，默认json
+      sandboxMode: true  # 是否使用沙箱环境

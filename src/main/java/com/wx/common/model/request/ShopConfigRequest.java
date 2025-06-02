@@ -58,6 +58,8 @@ public class ShopConfigRequest implements TokenCarrier {
     private Integer page;
     private Integer pageSize;
 
+    private String paymentFlag;
+
     @Override
     public String getToken() {
         return token;

@@ -19,8 +19,10 @@ import com.wx.common.model.response.QueryOrderHistoryModel;
 import com.wx.common.model.response.ReturnResponse;
 import com.wx.common.utils.QrCodeUtil;
 import com.wx.orm.entity.GoodsHistoryDO;
+import com.wx.orm.entity.ShopConfigDO;
 import com.wx.orm.entity.UserProfileDO;
 import com.wx.service.OrderService;
+import com.wx.service.ShopConfigService;
 import com.wx.service.TokenService;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -29,7 +31,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -45,6 +46,7 @@ public class MultiMerchantAlipayController {
     private final OrderService orderService;
     private final TokenService tokenService;
     private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ShopConfigService shopConfigService;
 
     @Data
     public static class AlipayPaymentRequest {
@@ -58,33 +60,38 @@ public class MultiMerchantAlipayController {
 
     @PostMapping("/createOrderNative")
     public Response<String> createOrderNative(@RequestBody AlipayPaymentRequest paymentRequest) {
+        String from = paymentRequest.getFrom();
+        String tradeNo = paymentRequest.getTradeNo();
+        // 通过from 查询订单所属的商户的支付标识
+        ShopConfigDO shopConfig = shopConfigService.queryMerchantConfigByFrom(from);
         // 验证参数
-        if (StringUtils.isBlank(paymentRequest.getMerchantId())) {
+        if (shopConfig == null || StringUtils.isBlank(shopConfig.getPaymentFlag())) {
             return Response.failure("商户ID不能为空");
         }
-        if (StringUtils.isBlank(paymentRequest.getTradeNo())) {
+        if (StringUtils.isBlank(tradeNo)) {
             return Response.failure("tradeNo不能为空");
         }
-        if (paymentRequest.getAmount() == null || paymentRequest.getAmount() <= 0) {
-            return Response.failure("金额必须大于0");
-        }
+//        if (paymentRequest.getAmount() == null || paymentRequest.getAmount() <= 0) {
+//            return Response.failure("金额必须大于0");
+//        }
 
+        String merchantId = shopConfig.getPaymentFlag();
         try {
             // 获取商户配置和客户端
             MultiMerchantAlipayConfig.MerchantConfig merchantConfig = 
-                    multiMerchantConfig.getMerchantConfig(paymentRequest.getMerchantId());
-            AlipayClient alipayClient = multiMerchantConfig.getAlipayClient(paymentRequest.getMerchantId());
+                    multiMerchantConfig.getMerchantConfig(merchantId);
+            AlipayClient alipayClient = multiMerchantConfig.getAlipayClient(merchantId);
 
             // 检查订单状态
             QueryOrderHistoryModel orderHistory = orderService.getOrderDetailById(
-                    GetOrderDetailByTradeNo.builder().tradeNo(paymentRequest.getTradeNo()).build());
+                    new GetOrderDetailByTradeNo(tradeNo));
             if (orderHistory != null && orderHistory.getIsComplete() == 2) {
                 return Response.failure("订单已支付");
             }
 
             // 更新订单状态为等待支付，支付方式为支付宝
-            orderService.updateOrderStatus(paymentRequest.getTradeNo(), OrderStatus.WAITING_PAYMENT);
-            orderService.updatePayway(paymentRequest.getTradeNo(), PayWayEnums.ALIPAY);
+            orderService.updateOrderStatus(tradeNo, OrderStatus.WAITING_PAYMENT);
+            orderService.updatePayway(tradeNo, PayWayEnums.ALIPAY);
 
             // 创建预下单请求
             AlipayTradePrecreateRequest request = new AlipayTradePrecreateRequest();
@@ -93,8 +100,10 @@ public class MultiMerchantAlipayController {
 
             // 设置业务参数
             AlipayTradePrecreateModel model = new AlipayTradePrecreateModel();
-            model.setOutTradeNo(paymentRequest.getTradeNo());
-            model.setTotalAmount(String.format("%.2f", paymentRequest.getAmount() / 100.0));
+            model.setOutTradeNo(tradeNo);
+            if (orderHistory != null) {
+                model.setTotalAmount(String.format("%.2f", orderHistory.getPayAmount()));
+            }
             model.setSubject(StringUtils.isNotBlank(paymentRequest.getSubject()) ?
                     paymentRequest.getSubject() : "商品购买");
             model.setBody(StringUtils.isNotBlank(paymentRequest.getDescription()) ?
@@ -182,39 +191,66 @@ public class MultiMerchantAlipayController {
         }
     }
 
-    @GetMapping("/return/{merchantId}")
-    public void returnUrl(@PathVariable String merchantId,
-                         HttpServletRequest request,
-                         HttpServletResponse response) throws Exception {
-        Map<String, String> params = convertRequestParametersToMap(request);
+//    @GetMapping("/return")
+//    public void returnUrl(HttpServletRequest request,
+//                         HttpServletResponse response) throws Exception {
+//        Map<String, String> params = convertRequestParametersToMap(request);
+//
+//        try {
+//            // 获取商户配置
+//            MultiMerchantAlipayConfig.MerchantConfig merchantConfig =
+//                    multiMerchantConfig.getMerchantConfig(merchantId);
+//
+//            // 验证签名
+//            boolean signVerified = AlipaySignature.rsaCheckV1(
+//                    params,
+//                    merchantConfig.getPublicKey(),
+//                    merchantConfig.getCharset(),
+//                    merchantConfig.getSignType()
+//            );
+//
+//            if (!signVerified) {
+//                response.sendRedirect(merchantConfig.getReturnUrl() + "?status=failure");
+//                return;
+//            }
+//
+//            String outTradeNo = params.get("out_trade_no");
+//            // 重定向到商户指定的页面
+//            response.sendRedirect(merchantConfig.getReturnUrl() + "?status=success&orderNo=" + outTradeNo);
+//
+//        } catch (Exception e) {
+//            log.error("处理支付宝同步返回异常", e);
+//            response.sendRedirect(multiMerchantConfig.getMerchantConfig(merchantId).getReturnUrl()
+//                    + "?status=failure");
+//        }
+//    }
 
-        try {
-            // 获取商户配置
-            MultiMerchantAlipayConfig.MerchantConfig merchantConfig =
-                    multiMerchantConfig.getMerchantConfig(merchantId);
-
-            // 验证签名
-            boolean signVerified = AlipaySignature.rsaCheckV1(
-                    params,
-                    merchantConfig.getPublicKey(),
-                    merchantConfig.getCharset(),
-                    merchantConfig.getSignType()
-            );
-
-            if (!signVerified) {
-                response.sendRedirect(merchantConfig.getReturnUrl() + "?status=failure");
-                return;
-            }
-
-            String outTradeNo = params.get("out_trade_no");
-            // 重定向到商户指定的页面
-            response.sendRedirect(merchantConfig.getReturnUrl() + "?status=success&orderNo=" + outTradeNo);
-
-        } catch (Exception e) {
-            log.error("处理支付宝同步返回异常", e);
-            response.sendRedirect(multiMerchantConfig.getMerchantConfig(merchantId).getReturnUrl()
-                    + "?status=failure");
+    @PostMapping("/return")
+    public Response<ReturnResponse> returnUrl(@RequestBody ReturnRequest request) throws JsonProcessingException {
+        String token = request.getToken();
+        if (Objects.isNull(token)) {
+            return Response.failure("token不能为空");
         }
+
+        UserProfileDO userByToken = tokenService.getUserByToken(token);
+        if (Objects.isNull(userByToken)) {
+            return Response.failure("没有登录");
+        }
+
+        QueryOrderHistoryModel orderDetailById = orderService.getOrderDetailById(GetOrderDetailByTradeNo.builder().tradeNo(request.getTradeNo()).build());
+        if (Objects.isNull(orderDetailById)) {
+            return Response.failure("订单不存在");
+        }
+        if (orderDetailById.getIsPaySuccess() == 2) {
+            ReturnResponse returnResponse = new ReturnResponse(request.getTradeNo(), "2", OrderStatus.PAID.name(),
+                    orderDetailById.getPayAmount(), orderDetailById.getOrderTime());
+
+            return Response.success(returnResponse);
+        }
+        // 处理支付成功后的逻辑
+        ReturnResponse successResponse = new ReturnResponse(request.getTradeNo(), "2", OrderStatus.WAITING_PAYMENT.name(),
+                orderDetailById.getPayAmount(), orderDetailById.getOrderTime());
+        return Response.success(successResponse);
     }
 
     @PostMapping("/query")
