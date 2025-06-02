@@ -237,7 +237,7 @@ public class MultiMerchantAlipayController {
             return Response.failure("没有登录");
         }
 
-        QueryOrderHistoryModel orderDetailById = orderService.getOrderDetailById(GetOrderDetailByTradeNo.builder().tradeNo(request.getTradeNo()).build());
+        QueryOrderHistoryModel orderDetailById = orderService.getOrderDetailById(new GetOrderDetailByTradeNo(request.getTradeNo()));
         if (Objects.isNull(orderDetailById)) {
             return Response.failure("订单不存在");
         }
@@ -268,7 +268,7 @@ public class MultiMerchantAlipayController {
 
         // 查询订单
         QueryOrderHistoryModel orderDetailById = orderService.getOrderDetailById(
-                GetOrderDetailByTradeNo.builder().tradeNo(request.getTradeNo()).build());
+                new GetOrderDetailByTradeNo(request.getTradeNo()));
         if (Objects.isNull(orderDetailById)) {
             return Response.failure("订单不存在");
         }
@@ -298,7 +298,7 @@ public class MultiMerchantAlipayController {
         // TODO: 验证订单金额
 
         // 更新订单状态
-        orderService.updateOrderStatus(outTradeNo, OrderStatus.PAID);
+        orderService.updateOrderStatus(outTradeNo, OrderStatus.WAITING_SHIPMENT);
 
         // 更新销量 goods 表的 sales 字段
         String goodsListStr = orderDetail.getGoodsList();

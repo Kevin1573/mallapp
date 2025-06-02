@@ -174,7 +174,7 @@ public class AlipayController {
             return Response.failure("没有登录");
         }
 
-        QueryOrderHistoryModel orderDetailById = orderService.getOrderDetailById(GetOrderDetailByTradeNo.builder().tradeNo(request.getTradeNo()).build());
+        QueryOrderHistoryModel orderDetailById = orderService.getOrderDetailById(new GetOrderDetailByTradeNo(request.getTradeNo()));
         if (Objects.isNull(orderDetailById)) {
             return Response.failure("订单不存在");
         }

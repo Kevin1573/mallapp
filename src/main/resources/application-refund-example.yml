@@ -1,0 +1,128 @@
+# 退款配置示例
+# 将此配置添加到您的application.yml或application-dev.yml中
+
+# 支付宝多商户配置
+alipay:
+  merchants:
+    merchant1:
+      # ... 其他支付配置 ...
+      notifyUrl: 'https://example.com/pay/v3/alipay/notify/merchant1'  # 支付通知地址
+      refundNotifyUrl: 'https://example.com/refund/notify/alipay/merchant1'  # 退款通知地址
+      # 退款限制配置
+      refund:
+        maxAmount: 50000.00  # 单笔最大退款金额
+        maxDays: 180        # 订单完成后最大可退款天数
+        needAudit: true     # 是否需要人工审核
+
+    merchant2:
+      # ... 其他支付配置 ...
+      notifyUrl: 'https://example.com/pay/v3/alipay/notify/merchant2'
+      refundNotifyUrl: 'https://example.com/refund/notify/alipay/merchant2'
+      refund:
+        maxAmount: 100000.00
+        maxDays: 365
+        needAudit: true
+
+# 微信支付多商户配置
+wx:
+  pay:
+    merchants:
+      merchant1:
+        # ... 其他支付配置 ...
+        notifyUrl: 'https://example.com/pay/v3/wx/callback/merchant1'  # 支付通知地址
+        refundNotifyUrl: 'https://example.com/refund/notify/wxpay/merchant1'  # 退款通知地址
+        # 退款限制配置
+        refund:
+          maxAmount: 50000.00  # 单笔最大退款金额
+          maxDays: 180        # 订单完成后最大可退款天数
+          needAudit: true     # 是否需要人工审核
+
+      merchant2:
+        # ... 其他支付配置 ...
+        notifyUrl: 'https://example.com/pay/v3/wx/callback/merchant2'
+        refundNotifyUrl: 'https://example.com/refund/notify/wxpay/merchant2'
+        refund:
+          maxAmount: 100000.00
+          maxDays: 365
+          needAudit: true
+
+# 退款业务配置
+refund:
+  # 全局退款限制
+  global:
+    enabled: true                # 是否启用退款功能
+    maxRefundTimes: 3           # 单个订单最大退款次数
+    partialRefundAllowed: true  # 是否允许部分退款
+    minRefundAmount: 0.01       # 最小退款金额
+
+  # 退款原因配置
+  reasons:
+    - code: "QUALITY_ISSUES"
+      name: "商品质量问题"
+      needEvidence: true        # 是否需要上传凭证
+
+    - code: "WRONG_DELIVERY"
+      name: "错误发货"
+      needEvidence: false
+
+    - code: "CUSTOMER_REQUEST"
+      name: "客户申请"
+      needEvidence: false
+
+  # 退款审核配置
+  audit:
+    enabled: true               # 是否启用审核流程
+    autoApproveBelow: 1000.00  # 小于此金额自动审核通过
+    timeoutHours: 48           # 审核超时时间（小时）
+
+  # 退款通知配置
+  notification:
+    email:
+      enabled: true
+      template: "refund-notification"
+    sms:
+      enabled: true
+      template: "refund-notification"
+
+  # 退款状态自动检查配置
+  statusCheck:
+    enabled: true
+    initialDelay: 60           # 首次检查延迟（秒）
+    fixedDelay: 300           # 固定检查间隔（秒）
+    maxAttempts: 10           # 最大检查次数
+
+# 数据库表结构说明：
+
+# 退款记录表(refund_record)
+# CREATE TABLE refund_record (
+#     id BIGINT PRIMARY KEY AUTO_INCREMENT,
+#     refund_no VARCHAR(64) NOT NULL COMMENT '退款单号',
+#     trade_no VARCHAR(64) NOT NULL COMMENT '原订单号',
+#     merchant_id VARCHAR(32) NOT NULL COMMENT '商户ID',
+#     refund_amount DECIMAL(10,2) NOT NULL COMMENT '退款金额',
+#     refund_reason VARCHAR(256) COMMENT '退款原因',
+#     refund_status VARCHAR(32) NOT NULL COMMENT '退款状态',
+#     payment_type VARCHAR(32) NOT NULL COMMENT '支付方式',
+#     notify_url VARCHAR(256) COMMENT '回调地址',
+#     notify_result TEXT COMMENT '回调结果',
+#     create_time DATETIME NOT NULL COMMENT '创建时间',
+#     update_time DATETIME NOT NULL COMMENT '更新时间',
+#     operator_id VARCHAR(32) COMMENT '操作人ID',
+#     remark VARCHAR(512) COMMENT '备注',
+#     INDEX idx_trade_no (trade_no),
+#     INDEX idx_refund_no (refund_no),
+#     INDEX idx_merchant_id (merchant_id)
+# ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='退款记录表';
+
+# 退款审核记录表(refund_audit_record)
+# CREATE TABLE refund_audit_record (
+#     id BIGINT PRIMARY KEY AUTO_INCREMENT,
+#     refund_no VARCHAR(64) NOT NULL COMMENT '退款单号',
+#     audit_status VARCHAR(32) NOT NULL COMMENT '审核状态',
+#     auditor_id VARCHAR(32) COMMENT '审核人ID',
+#     audit_time DATETIME COMMENT '审核时间',
+#     audit_remark VARCHAR(512) COMMENT '审核备注',
+#     create_time DATETIME NOT NULL COMMENT '创建时间',
+#     update_time DATETIME NOT NULL COMMENT '更新时间',
+#     INDEX idx_refund_no (refund_no)
+# ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='退款审核记录表';

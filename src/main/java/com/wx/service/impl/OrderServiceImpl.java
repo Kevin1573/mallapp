@@ -757,12 +757,12 @@ public class OrderServiceImpl implements OrderService {
                     .setIsComplete(1)
                     .setStatus(OrderStatus.REFUNDING.getCode())
             );
-        } else if (OrderStatus.RETURNED == orderStatus) {
+        } else if (OrderStatus.REFUNDED == orderStatus) {
             return goodsHistoryMapper.updateByTradeNo8(new GoodsHistoryDO()
                     .setTradeNo(outTradeNo)
                     .setIsPaySuccess(2)
                     .setIsComplete(1)
-                    .setStatus(OrderStatus.RETURNED.getCode())
+                    .setStatus(OrderStatus.REFUNDED.getCode())
             );
         }
         return 0;

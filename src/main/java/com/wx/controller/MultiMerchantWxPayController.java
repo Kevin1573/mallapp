@@ -35,6 +35,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
+import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -93,7 +94,7 @@ public class MultiMerchantWxPayController {
         try {
             // 检查订单状态
             QueryOrderHistoryModel orderHistory = orderService.getOrderDetailById(
-                    GetOrderDetailByTradeNo.builder().tradeNo(paymentRequest.getTradeNo()).build());
+                    new GetOrderDetailByTradeNo(paymentRequest.getTradeNo()));
 
             if (orderHistory == null ) {
                 return Response.failure("订单不存在");
@@ -109,7 +110,7 @@ public class MultiMerchantWxPayController {
             // 构建支付请求
             PrepayRequest request = new PrepayRequest();
             Amount amount = new Amount();
-            amount.setTotal(orderHistory.getPayAmount().intValue() * 100);
+            amount.setTotal(orderHistory.getPayAmount().multiply(BigDecimal.valueOf(100)).intValue());
             request.setAmount(amount);
             request.setAppid(merchantConfig.getAppId());
             request.setMchid(merchantConfig.getMerchantId());
@@ -155,7 +156,7 @@ public class MultiMerchantWxPayController {
 
         // 查询订单
         QueryOrderHistoryModel orderDetailById = orderService.getOrderDetailById(
-                GetOrderDetailByTradeNo.builder().tradeNo(request.getTradeNo()).build());
+                new GetOrderDetailByTradeNo(request.getTradeNo()));
         if (Objects.isNull(orderDetailById)) {
             return Response.failure("订单不存在");
         }
@@ -279,7 +280,7 @@ public class MultiMerchantWxPayController {
         // TODO: 验证订单金额
 
         // 更新订单状态
-        orderService.updateOrderStatus(outTradeNo, OrderStatus.PAID);
+        orderService.updateOrderStatus(outTradeNo, OrderStatus.WAITING_SHIPMENT);
 
         // 更新销量 goods 表的 sales 字段
         String goodsListStr = orderDetail.getGoodsList();

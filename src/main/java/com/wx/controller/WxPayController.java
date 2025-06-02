@@ -57,7 +57,7 @@ public class WxPayController {
         if (StringUtils.isBlank(tradeNo)) {
             return Response.failure("tradeNo不能为空");
         }
-        QueryOrderHistoryModel orderHistory = orderService.getOrderDetailById(GetOrderDetailByTradeNo.builder().tradeNo(tradeNo).build());
+        QueryOrderHistoryModel orderHistory = orderService.getOrderDetailById(new GetOrderDetailByTradeNo(tradeNo));
         if (orderHistory != null && orderHistory.getIsComplete() == 2) {
             return Response.failure("订单已支付");
         }
@@ -107,7 +107,7 @@ public class WxPayController {
             return Response.failure("没有登录");
         }
 
-        QueryOrderHistoryModel orderDetailById = orderService.getOrderDetailById(GetOrderDetailByTradeNo.builder().tradeNo(request.getTradeNo()).build());
+        QueryOrderHistoryModel orderDetailById = orderService.getOrderDetailById(new GetOrderDetailByTradeNo(request.getTradeNo()));
         if (Objects.isNull(orderDetailById)) {
             return Response.failure("订单不存在");
         }

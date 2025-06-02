@@ -3,8 +3,8 @@ package com.wx.common.enums;
 import lombok.Getter;
 
 public enum PayWayEnums {
-    ALIPAY("ALIPAY", "支付宝", 1),
-    WECHAT("WECHAT", "微信", 2),
+    WECHAT("WECHAT", "微信", 1),
+    ALIPAY("ALIPAY", "支付宝", 2),
     ;
 
     @Getter
