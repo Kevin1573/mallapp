@@ -22,11 +22,13 @@ import com.wx.common.model.response.QueryOrderHistoryModel;
 import com.wx.common.model.response.ReturnResponse;
 import com.wx.common.utils.QrCodeUtil;
 import com.wx.orm.entity.GoodsHistoryDO;
+import com.wx.orm.entity.ShopConfigDO;
 import com.wx.orm.entity.UserProfileDO;
 import com.wx.service.OrderService;
+import com.wx.service.ShopConfigService;
 import com.wx.service.TokenService;
-import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.ResponseEntity;
@@ -39,11 +41,12 @@ import java.util.stream.Collectors;
 @Slf4j
 @RestController
 @RequestMapping("/pay/v3/wxpay")
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class MultiMerchantWxPayController {
     private final MultiMerchantWxPayConfig multiMerchantConfig;
     private final OrderService orderService;
     private final TokenService tokenService;
+    private final ShopConfigService shopConfigService;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Data
@@ -58,19 +61,26 @@ public class MultiMerchantWxPayController {
     @PostMapping("/createOrderNative")
     public Response<String> createOrderNative(@RequestBody MultiMerchantPaymentRequest paymentRequest) {
         // 验证参数
-        if (StringUtils.isBlank(paymentRequest.getMerchantId())) {
-            return Response.failure("商户ID不能为空");
-        }
+//        if (StringUtils.isBlank(paymentRequest.getMerchantId())) {
+//            return Response.failure("商户ID不能为空");
+//        }
         if (StringUtils.isBlank(paymentRequest.getFrom())) {
             return Response.failure("from不能为空");
         }
         if (StringUtils.isBlank(paymentRequest.getTradeNo())) {
             return Response.failure("tradeNo不能为空");
         }
-        if (paymentRequest.getAmount() == null || paymentRequest.getAmount() <= 0) {
-            return Response.failure("金额必须大于0");
+//        if (paymentRequest.getAmount() == null || paymentRequest.getAmount() <= 0) {
+//            return Response.failure("金额必须大于0");
+//        }
+
+        ShopConfigDO shopConfig = shopConfigService.queryMerchantConfigByFrom(paymentRequest.getFrom());
+        // 验证参数
+        if (shopConfig == null || StringUtils.isBlank(shopConfig.getPaymentFlag())) {
+            return Response.failure("商户ID不能为空");
         }
 
+        paymentRequest.setMerchantId(shopConfig.getPaymentFlag());
         // 获取商户配置
         MultiMerchantWxPayConfig.MerchantConfig merchantConfig = multiMerchantConfig.getMerchantConfig(paymentRequest.getMerchantId());
         if (merchantConfig == null) {
@@ -84,7 +94,11 @@ public class MultiMerchantWxPayController {
             // 检查订单状态
             QueryOrderHistoryModel orderHistory = orderService.getOrderDetailById(
                     GetOrderDetailByTradeNo.builder().tradeNo(paymentRequest.getTradeNo()).build());
-            if (orderHistory != null && orderHistory.getIsComplete() == 2) {
+
+            if (orderHistory == null ) {
+                return Response.failure("订单不存在");
+            }
+            if ( orderHistory.getIsComplete() == 2) {
                 return Response.failure("订单已支付");
             }
 
@@ -95,7 +109,7 @@ public class MultiMerchantWxPayController {
             // 构建支付请求
             PrepayRequest request = new PrepayRequest();
             Amount amount = new Amount();
-            amount.setTotal(paymentRequest.getAmount());
+            amount.setTotal(orderHistory.getPayAmount().intValue() * 100);
             request.setAmount(amount);
             request.setAppid(merchantConfig.getAppId());
             request.setMchid(merchantConfig.getMerchantId());
