@@ -12,6 +12,8 @@ public class QueryGoodsModel {
      */
     private String goodsPic;
 
+    private String goodsTitle;
+
     /**
      * 商品描述
      */

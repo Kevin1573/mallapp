@@ -15,6 +15,8 @@ public class GoodsDOResponse {
      */
     private String goodsPic;
 
+    private String goodsTitle;
+
     /**
      * 商品名称
      */
@@ -81,6 +83,9 @@ public class GoodsDOResponse {
 
     private String fromMall;
 
+    public GoodsDOResponse() {
+    }
+
     @Data
     public static class GoodsSubDO {
         private Long id;
@@ -101,6 +106,7 @@ public class GoodsDOResponse {
         private Boolean  firstGoods;
 
         private String goodsPic;
+        private String goodsTitle;
 
         private String specifications;
         private String ext;

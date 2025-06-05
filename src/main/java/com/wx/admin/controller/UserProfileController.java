@@ -130,12 +130,12 @@ public class UserProfileController {
             if (userProfile.getId() == null) {
                 return ApiResponse.fail(400, "用户ID不能为空");
             }
-            if (StringUtils.isBlank(userProfile.getPhone())) {
+            if (StringUtils.isBlank(userProfile.getNickName())) {
                 return ApiResponse.fail(400, "手机号不能为空");
             }
-            if (!userProfile.getPhone().matches("^1[3-9]\\d{9}$")) {
-                return ApiResponse.fail(400, "手机号格式不正确");
-            }
+//            if (!userProfile.getPhone().matches("^1[3-9]\\d{9}$")) {
+//                return ApiResponse.fail(400, "手机号格式不正确");
+//            }
             if (StringUtils.isBlank(userProfile.getSource())) {
                 return ApiResponse.fail(400, "用户来源不能为空");
             }

@@ -13,6 +13,7 @@ public class QueryCarOrdersResponse {
      * 商品图片
      */
     private String goodsPic;
+    private String goodsTitle;
 
     /**
      * 商品描述

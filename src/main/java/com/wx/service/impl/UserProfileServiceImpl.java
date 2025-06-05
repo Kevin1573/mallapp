@@ -11,6 +11,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
+import java.util.List;
+
 @Service
 public class UserProfileServiceImpl extends ServiceImpl<UserProfileMapper, UserProfileDO>
         implements UserProfileService {
@@ -52,6 +55,19 @@ public class UserProfileServiceImpl extends ServiceImpl<UserProfileMapper, UserP
             throw new RuntimeException("用户不存在");
         }
         return user;
+    }
+
+    @Override
+    public List<UserProfileDO> getUserByNickName(String contactPhone) {
+        // 按昵称查询
+        QueryWrapper<UserProfileDO> wrapper = new QueryWrapper<>();
+        wrapper.eq("nick_name", contactPhone);
+
+        List<UserProfileDO> users = list(wrapper);
+        if (!users.isEmpty()) {
+            return users;
+        }
+        return Collections.emptyList();
     }
 
     // 在保存前加密密码（添加在 service 层）

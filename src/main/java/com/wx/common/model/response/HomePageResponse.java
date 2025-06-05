@@ -32,4 +32,8 @@ public class HomePageResponse {
      * 组合推荐列表
      */
     private List<ShopModel> reconModels;
+
+    private String logoUri;
+
+    private String recommendedGoodTitle;
 }

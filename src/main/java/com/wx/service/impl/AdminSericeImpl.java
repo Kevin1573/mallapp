@@ -175,6 +175,8 @@ public class AdminSericeImpl implements AdminService {
             GoodsHistoryDO goodsHistoryDO1 = goodsHistoryDOS.get(0);
             JSONObject orderInfo = JSON.parseObject(goodsHistoryDO1.getOrderInfo());
             UserProfileDO userProfileDO = userProfileMapper.selectById(goodsHistoryDO1.getUserId());
+
+
             QueryOrderHistoryModel queryOrderHistoryModel = new QueryOrderHistoryModel();
             queryOrderHistoryModel.setOrderTime(goodsHistoryDO1.getCreateTime());
             queryOrderHistoryModel.setLogistics(goodsHistoryDO1.getLogistics());
@@ -184,6 +186,18 @@ public class AdminSericeImpl implements AdminService {
             queryOrderHistoryModel.setIsPaySuccess(goodsHistoryDO1.getIsPaySuccess());
             queryOrderHistoryModel.setIsComplete(goodsHistoryDO1.getIsComplete());
             queryOrderHistoryModel.setTotalPrice(totalPrice1);
+            if (userProfileDO.getPosition() == null) {
+                queryOrderHistoryModel.setPayAmount(totalPrice1.multiply(new BigDecimal("1")));
+            } else {
+                RebateDO rebateDO = rebateMapper.selectById(userProfileDO.getPosition());
+                if (rebateDO == null) {
+                    queryOrderHistoryModel.setPayAmount(totalPrice1.multiply(new BigDecimal("1")));
+                }
+                else {
+                    queryOrderHistoryModel.setPayAmount(totalPrice1.multiply(new BigDecimal(rebateDO.getRatio().toString())));
+                }
+            }
+
             queryOrderHistoryModel.setRealName(userProfileDO.getNickName());
             queryOrderHistoryModel.setRealPhone(userProfileDO.getPhone());
             queryOrderHistoryModel.setAddr(orderInfo.getString("addr"));
@@ -199,6 +213,24 @@ public class AdminSericeImpl implements AdminService {
         response.setTotal(historyDOPage.getTotal());
         response.setLimit(request.getLimit());
         return response;
+    }
+
+    public  BigDecimal calculatePayAmount(Double freight, BigDecimal totalPrice, Long position) {
+        BigDecimal bigDecimal = totalPrice.add(freight == null ? BigDecimal.ZERO : BigDecimal.valueOf(freight));
+
+        BigDecimal payAmount= null;
+        if (position == null) {
+            payAmount = bigDecimal.multiply(new BigDecimal("1"));
+        } else {
+            RebateDO rebateDO = rebateMapper.selectById(position);
+            if (rebateDO == null) {
+                payAmount = bigDecimal.multiply(new BigDecimal("1"));
+            }
+            else {
+                payAmount = bigDecimal.multiply(new BigDecimal(rebateDO.getRatio().toString()));
+            }
+        }
+        return payAmount;
     }
 
     @Override

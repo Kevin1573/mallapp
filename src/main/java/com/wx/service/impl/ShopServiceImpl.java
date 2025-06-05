@@ -91,8 +91,9 @@ public class ShopServiceImpl implements ShopService {
         dto.setId(goodsDO.getId());
         dto.setName(goodsDO.getName());
         dto.setGoodsPic(goodsDO.getGoodsPic());
+        dto.setGoodsTitle(goodsDO.getGoodsTitle());
         dto.setPrice(BigDecimal.valueOf(goodsDO.getPrice()));
-        dto.setSales(Math.toIntExact(Objects.isNull(goodsDO.getSales()) ? 0 : goodsDO.getSales()));
+        dto.setSales(Math.toIntExact(goodsDO.getSales()));
         return dto;
     }
 
@@ -154,6 +155,7 @@ public class ShopServiceImpl implements ShopService {
         ShopConfigDO shopConfigDO = new ShopConfigDO();
         shopConfigDO.setFromMall(request.getFromMall());
         shopConfigDO.setRecommendedGoods(recommendedJson);
+        shopConfigDO.setRecommendedGoodTitle(request.getRecommendedGoodTitle());
         int updated = shopConfigMapper.updateRecommendedGoodsByFromMall(shopConfigDO);
         return updated > 0;
     }

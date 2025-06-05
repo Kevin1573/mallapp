@@ -15,6 +15,7 @@ public class QueryOrderGoodsModel {
     private String description;
     private Boolean firstGoods;
     private String goodsPic;
+    private String goodsTitle;
     private String name;
     private BigDecimal price;
     private Long sales; // 销量

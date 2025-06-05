@@ -177,4 +177,8 @@ public interface OrderService {
     Page<OrderListItem> queryOrderList(OrderListRequest request, UserProfileDO userProfile);
 
     GoodsDO getOrderById(Long orderId);
+
+    boolean reduceInventory(Long goodsId, Integer num);
+
+    boolean addInventory(Long goodsId, Integer num);
 }

@@ -104,6 +104,7 @@ public class OrderServiceImpl implements OrderService {
             queryOrderGoodsModel.setDescription(goodsDO.getDescription());
             queryOrderGoodsModel.setFirstGoods(goodsDO.getFirstGoods());
             queryOrderGoodsModel.setGoodsPic(goodsDO.getGoodsPic());
+            queryOrderGoodsModel.setGoodsTitle(goodsDO.getGoodsTitle());
             queryOrderGoodsModel.setName(goodsDO.getName());
             queryOrderGoodsModel.setPrice(BigDecimal.valueOf(goodsDO.getPrice()));
             queryOrderGoodsModel.setSales(goodsDO.getSales());
@@ -162,12 +163,13 @@ public class OrderServiceImpl implements OrderService {
         }
         goodsHistoryMapper.insert(goodsHistoryDO);
 
-        // 减少库存
+        // 检查库存
         for (OrderGoodsModelRequest modelRequest : request.getModelRequestList()) {
             GoodsDO goodsDO = goodsMapper.selectById(modelRequest.getGoodsId());
             Long num = modelRequest.getNum();
-            goodsDO.setInventory(goodsDO.getInventory() - num);
-            goodsMapper.updateById(goodsDO);
+            if(goodsDO.getInventory() <= num) {
+                throw new BizException("商品库存不足");
+            }
         }
 
 
@@ -285,10 +287,9 @@ public class OrderServiceImpl implements OrderService {
             model.setGoodsUnit(goodsDO.getGoodsUnit());
             model.setFirstGoods(goodsDO.getFirstGoods());
             model.setRecommendGoods(goodsDO.getRecommendGoods());
-
             model.setGoodsPic(goodsDO.getGoodsPic());
+            model.setGoodsTitle(goodsDO.getGoodsTitle());
             model.setBrandPic(goodsDO.getBrandPic());
-
 
             modelList.add(model);
         }
@@ -476,6 +477,7 @@ public class OrderServiceImpl implements OrderService {
             queryCarOrdersResponse.setName(goodsDO.getName());
             queryCarOrdersResponse.setDescription(goodsDO.getDescription());
             queryCarOrdersResponse.setGoodsPic(goodsDO.getGoodsPic());
+            queryCarOrdersResponse.setGoodsTitle(goodsDO.getGoodsTitle());
             queryCarOrdersResponse.setPrice(goodsDO.getPrice());
             queryCarOrdersResponse.setTotalPrice(shoppingCarDO.getNum() * goodsDO.getPrice());
             queryCarOrdersResponse.setSpecifications(goodsDO.getSpecifications());
@@ -501,6 +503,7 @@ public class OrderServiceImpl implements OrderService {
         if (goodsHistoryDOList == null || goodsHistoryDOList.isEmpty()) {
             throw new BizException("订单不存在");
         }
+
 
         List<QueryOrderGoodsModel> queryOrderGoodsModelList = new ArrayList<>();
         for (GoodsHistoryDO goodsHistoryDO : goodsHistoryDOList) {
@@ -528,6 +531,7 @@ public class OrderServiceImpl implements OrderService {
         queryOrderHistoryModel.setIsComplete(goodsHistoryDO1.getIsComplete());
         queryOrderHistoryModel.setStatus(goodsHistoryDO1.getStatus());
         queryOrderHistoryModel.setTotalPrice(calculateTotalPrice(queryOrderGoodsModelList));
+        queryOrderHistoryModel.setPayAmount(goodsHistoryDO1.getPayAmount());
         queryOrderHistoryModel.setAddr(orderInfo.getString("addr"));
         queryOrderHistoryModel.setPhone(orderInfo.getString("phone"));
         queryOrderHistoryModel.setUserName(orderInfo.getString("name"));
@@ -544,6 +548,8 @@ public class OrderServiceImpl implements OrderService {
                 .reduce(BigDecimal.ZERO, BigDecimal::add)
                 .setScale(2, RoundingMode.DOWN);
     }
+
+
 
     @Override
     public CommitOrderResponse commitOrder(OrderGoodsRequest request) {
@@ -736,6 +742,13 @@ public class OrderServiceImpl implements OrderService {
                     .setIsComplete(1)
                     .setStatus(OrderStatus.PAID.getCode())
             );
+        } else if (OrderStatus.WAITING_SHIPMENT == orderStatus) {
+            return goodsHistoryMapper.updateByTradeNo4(new GoodsHistoryDO()
+                    .setTradeNo(outTradeNo)
+                    .setIsPaySuccess(2)
+                    .setIsComplete(1)
+                    .setStatus(OrderStatus.WAITING_SHIPMENT.getCode())
+            );
         } else if (OrderStatus.SHIPPED == orderStatus) {
             return goodsHistoryMapper.updateByTradeNo4(new GoodsHistoryDO()
                     .setTradeNo(outTradeNo)
@@ -805,13 +818,13 @@ public class OrderServiceImpl implements OrderService {
                 goodsHistoryMapper.selectCount(new LambdaQueryWrapper<GoodsHistoryDO>()
                         .eq(GoodsHistoryDO::getUserId, userProfileDO.getId())
                         .eq(GoodsHistoryDO::getIsPaySuccess, 2)
-                        .eq(GoodsHistoryDO::getIsPaySuccess, 5)), // 已完成 5
+                        .eq(GoodsHistoryDO::getStatus, 5)), // 已完成 5
                 goodsHistoryMapper.selectCount(new LambdaQueryWrapper<GoodsHistoryDO>()
                         .eq(GoodsHistoryDO::getUserId, userProfileDO.getId())
                         .eq(GoodsHistoryDO::getIsPaySuccess, 2)
-                        .eq(GoodsHistoryDO::getIsPaySuccess, 6)  // 退货中 6
+                        .eq(GoodsHistoryDO::getStatus, 6)  // 退货中 6
                         .or()
-                        .eq(GoodsHistoryDO::getIsPaySuccess, 7)) // 已退款 7
+                        .eq(GoodsHistoryDO::getStatus, 7)) // 已退款 7
         );
     }
 
@@ -959,11 +972,6 @@ public class OrderServiceImpl implements OrderService {
         Page<OrderListItem> pageResult = new Page<>(page.getCurrent(),
                 page.getSize(), historyPage.getTotal());
         pageResult.setRecords(items);
-//        OrderListResponse response = new OrderListResponse();
-//        response.setRecords(items);
-//        response.setTotal(historyPage.getTotal());
-//        response.setPage(request.getPage());
-//        response.setLimit(request.getLimit());
         return pageResult;
     }
 
@@ -973,5 +981,36 @@ public class OrderServiceImpl implements OrderService {
                 new LambdaQueryWrapper<GoodsDO>().eq(GoodsDO::getId, orderId));
     }
 
+    @Transactional
+    @Override
+    public boolean reduceInventory(Long goodsId, Integer num) {
+        // 开启事务
+        GoodsDO goodsDO = goodsMapper.selectByIdForUpdate(goodsId);
+        if (goodsDO == null || goodsDO.getInventory() <= num) {
+            log.info("扣库存失败,库存不足或商品不存在");
+            return false; // 库存不足或商品不存在
+        }
+        // 更新库存和销量
+        goodsDO.setSales(goodsDO.getSales() + num);
+        goodsDO.setInventory(goodsDO.getInventory() - num);
+        int updated  = goodsMapper.updateById(goodsDO);
 
+        return updated > 0 ;
+    }
+
+    // 增加库存
+
+    @Transactional
+    @Override
+    public boolean addInventory(Long goodsId, Integer num) {
+        // 开启事务
+        GoodsDO goodsDO = goodsMapper.selectByIdForUpdate(goodsId);
+        if (goodsDO == null || goodsDO.getInventory() <= num) {
+            return false; // 库存不足或商品不存在
+        }
+        // 更新库存
+        goodsDO.setInventory(goodsDO.getInventory() + num);
+        int updated = goodsMapper.updateInventoryWithReturn(goodsDO.getId(), num);
+        return updated > 0;
+    }
 }

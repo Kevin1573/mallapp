@@ -1,7 +1,6 @@
 package com.wx.admin.controller;
 
 
-import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.conditions.query.QueryChainWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -96,6 +95,7 @@ public class GoodsController {
             goodsDOItem.setName(record.getName());
             goodsDOItem.setDescription(record.getDescription());
             goodsDOItem.setGoodsPic(record.getGoodsPic());
+            goodsDOItem.setGoodsTitle(record.getGoodsTitle());
             goodsDOItem.setBrand(record.getBrand());
             goodsDOItem.setCategory(record.getCategory());
             goodsDOItem.setGoodsUnit(record.getGoodsUnit());
@@ -110,6 +110,7 @@ public class GoodsController {
                 goodsSubDO.setFirstGoods(res.getFirstGoods());
                 goodsSubDO.setPrice(res.getPrice());
                 goodsSubDO.setGoodsPic(res.getGoodsPic());
+                goodsSubDO.setGoodsTitle(res.getGoodsTitle());
                 goodsSubDO.setInventory(res.getInventory());
                 goodsSubDO.setSales(res.getSales());
                 goodsSubDO.setSpecifications(res.getSpecifications());
@@ -165,6 +166,19 @@ public class GoodsController {
             if (StringUtils.isBlank(goods.getName())) {
                 return ApiResponse.fail(400, "商品名称不能为空");
             }
+
+            // 商品名称不能重复
+            QueryWrapper<GoodsDO> wrapper = new QueryWrapper<>();
+            wrapper.eq("name", goods.getName());
+            wrapper.eq("from_mall", goods.getFromMall());
+            GoodsDO goodsDO = goodsService.getOne(wrapper);
+            if (goodsDO != null) {
+                if (goodsDO.getSpecifications() != null
+                        && goodsDO.getSpecifications().equals(goods.getSpecifications())) {
+                    return ApiResponse.fail(400, "商品规格不能重复");
+                }
+            }
+
             if (goods.getPrice() == null || goods.getPrice() <= 0) {
                 return ApiResponse.fail(400, "商品价格必须大于0");
             }
@@ -172,7 +186,6 @@ public class GoodsController {
                 return ApiResponse.fail(400, "库存不能为负数");
             }
 
-            System.out.println(JSON.toJSONString(goods));
             boolean result = goodsService.save(goods);
 
             return result ? ApiResponse.success(true) : ApiResponse.fail(500, "创建失败");
@@ -258,4 +271,5 @@ public class GoodsController {
         // 实现图片上传逻辑
         return ApiResponse.success("图片上传成功");
     }
+
 }

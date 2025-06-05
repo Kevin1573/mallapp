@@ -45,4 +45,6 @@ public class ShopConfigDOResponse {
 
     private String paymentFlag;
 
+    private String logoUri;
+
 }

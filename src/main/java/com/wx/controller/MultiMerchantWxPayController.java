@@ -240,6 +240,8 @@ public class MultiMerchantWxPayController {
         String transactionId = transaction.getTransactionId();
         int amount = transaction.getAmount().getTotal(); // 总金额(分)
 
+        orderService.updateOrderStatus(outTradeNo, OrderStatus.PAID);
+
         // 解析附加数据，验证商户ID
         try {
             String attachStr = transaction.getAttach();
@@ -281,6 +283,7 @@ public class MultiMerchantWxPayController {
 
         // 更新订单状态
         orderService.updateOrderStatus(outTradeNo, OrderStatus.WAITING_SHIPMENT);
+        log.warn("订单状态更新成功: {}  => OrderStatus.WAITING_SHIPMENT", outTradeNo);
 
         // 更新销量 goods 表的 sales 字段
         String goodsListStr = orderDetail.getGoodsList();
@@ -295,7 +298,11 @@ public class MultiMerchantWxPayController {
         );
 
         for (QueryOrderGoodsModel goodsModel : queryOrderGoodsModels) {
-            orderService.updateSales(goodsModel.getId(), goodsModel.getNum());
+//            orderService.updateSales(goodsModel.getId(), goodsModel.getNum());
+            boolean reduced = orderService.reduceInventory(goodsModel.getId(), Math.toIntExact(goodsModel.getNum()));
+            if (!reduced) {
+                return false;
+            }
         }
 
         return true;

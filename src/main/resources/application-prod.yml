@@ -11,6 +11,7 @@ wx:
         merchantSerialNumber: '4145FC26AA94354CF3DB18870420E0E80AED7A82'  # 商户证书序列号
         apiV3Key: '7Uhb6ygv5tfc4rdx3esz2wa1q0pl9okm'  # API v3密钥
         notifyUrl: 'http://mallapp.pdcspace.com/pay/v3/wxpay/callback/merchant1'  # 支付回调地址
+        refundNotifyUrl: 'http://mallapp.pdcspace.com/pay/refund/notify/wxpay/merchant1'  # 退款通知地址
 
 
 alipay:

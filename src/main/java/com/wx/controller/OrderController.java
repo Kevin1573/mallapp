@@ -1,13 +1,18 @@
 package com.wx.controller;
 
 import com.alibaba.fastjson.JSON;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.wx.common.model.ApiResponse;
 import com.wx.common.model.Response;
 import com.wx.common.model.request.*;
 import com.wx.common.model.response.*;
+import com.wx.orm.entity.GoodsDO;
 import com.wx.orm.entity.UserAddrDO;
+import com.wx.service.GoodsService;
 import com.wx.service.OrderService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -19,6 +24,7 @@ import java.util.List;
 public class OrderController {
 
     private final OrderService orderService;
+    private final GoodsService goodsService;
 
     @PostMapping("/orderGoods")
     public Response<OrderGoodsResponse> orderGoods(@RequestBody OrderGoodsRequest request) {
@@ -249,5 +255,30 @@ public class OrderController {
             log.error("confirmReceipt exception, request = {}", JSON.toJSONString(request), e);
             return Response.failure("confirmReceipt exception");
         }
+    }
+
+    @GetMapping("/reduceInventory")
+    public Response<Boolean> testGoodsInventoryNum() throws JsonProcessingException {
+        boolean reduced = orderService.reduceInventory(41L, 2);
+        if (!reduced) {
+            return Response.failure("库存不足");
+        }
+        return Response.success(true);
+    }
+
+    // 通过规格+商品名称, 批量查询商品详情
+    @PostMapping("/queryGoodsBySpecs")
+    public ApiResponse<List<GoodsDO>> findGoodsBySpecs(@RequestBody List<GoodsSpecsRequest> request) {
+        for (GoodsSpecsRequest requestItem : request) {
+            if (StringUtils.isBlank(requestItem.getSpecs())) {
+                return ApiResponse.fail(400, "规格不能为空");
+            }
+            if (StringUtils.isBlank(requestItem.getName())) {
+                return ApiResponse.fail(400, "商品名称不能为空");
+            }
+        }
+
+        List<GoodsDO> goodsDOResponses = goodsService.findGoodsBySpecs(request);
+        return ApiResponse.success(goodsDOResponses);
     }
 }

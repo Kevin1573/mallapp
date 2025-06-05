@@ -22,6 +22,8 @@ public class GoodsDO {
      */
     private String goodsPic;
 
+    // 商品标题
+    private String goodsTitle;
     /**
      * 商品描述
      */
@@ -76,7 +78,7 @@ public class GoodsDO {
     /**
      * 销量
      */
-    private Long sales;
+    private long sales;
 
     /**
      * 是否首次创建

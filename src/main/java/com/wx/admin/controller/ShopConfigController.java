@@ -113,14 +113,16 @@ public class ShopConfigController {
             ShopConfigDO shopConfigDO = new ShopConfigDO();
             BeanUtil.copyProperties(config, shopConfigDO);
             shopConfigDO.setFromMall(new UUIDGenerator().next());
-            boolean result = shopConfigService.save(shopConfigDO);
+//            boolean result = shopConfigService.save(shopConfigDO);
+//
+//            if (result) {
+//                // 初始化 商铺的用户等级折扣信息
+//                shopService.initShopUserLevelDiscount(shopConfigDO.getFromMall());
+//                // 初始化一个主店铺账户
+//                shopService.initShopAccount(shopConfigDO.getContactPhone(), shopConfigDO.getFromMall());
+//            }
 
-            if (result) {
-                // 初始化 商铺的用户等级折扣信息
-                shopService.initShopUserLevelDiscount(shopConfigDO.getFromMall());
-                // 初始化一个主店铺账户
-                shopService.initShopAccount(shopConfigDO.getContactPhone(), shopConfigDO.getFromMall());
-            }
+            boolean result = shopConfigService.createShopAndAccount(shopConfigDO);
 
             return result ? ApiResponse.success(true) : ApiResponse.fail(500, "创建失败");
         } catch (Exception e) {

@@ -37,6 +37,8 @@ public class ShopConfigDO {
 
     private String recommendedGoods;
 
+    private String recommendedGoodTitle;
+
     private String aboutUsText;
 
     private String aboutUsPic;
@@ -60,5 +62,7 @@ public class ShopConfigDO {
     private String email;
 
     private String paymentFlag; // 支付标识
+
+    private String logoUri;
 
 }

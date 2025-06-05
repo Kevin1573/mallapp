@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.wx.common.exception.BizException;
 import com.wx.common.model.request.GoodsRequest;
+import com.wx.common.model.request.GoodsSpecsRequest;
 import com.wx.orm.entity.GoodsDO;
 import com.wx.orm.mapper.GoodsMapper;
 import com.wx.service.GoodsService;
@@ -11,6 +12,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 @Service
 public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, GoodsDO> implements GoodsService {
@@ -72,5 +77,34 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, GoodsDO> implemen
 //        }
 
         return "https://example.com/uploads/" + file.getOriginalFilename();
+    }
+
+    @Override
+    public List<GoodsDO> findGoodsBySpecs(String specs, String name) {
+        return new ArrayList<>(lambdaQuery()
+                .eq(StringUtils.isNotBlank(name), GoodsDO::getName, name)
+                .eq(StringUtils.isNotBlank(specs), GoodsDO::getSpecifications, specs)
+                .list());
+
+    }
+
+    @Override
+    public List<GoodsDO> findGoodsBySpecs(List<GoodsSpecsRequest> request) {
+        // 实现根据规格查询商品逻辑
+        if (request == null || request.isEmpty()) {
+            return Collections.emptyList();
+        }
+        List<GoodsDO> list = new ArrayList<>();
+        for (GoodsSpecsRequest specsRequest : request) {
+            List<GoodsDO> oneGoods = lambdaQuery()
+                    .eq(StringUtils.isNotBlank(specsRequest.getName()), GoodsDO::getName, specsRequest.getName())
+                    .eq(StringUtils.isNotBlank(specsRequest.getSpecs()), GoodsDO::getSpecifications, specsRequest.getSpecs())
+                    .list();
+            if (oneGoods != null && !oneGoods.isEmpty()) {
+                list.add(oneGoods.get(0));
+            }
+        }
+
+        return list;
     }
 }

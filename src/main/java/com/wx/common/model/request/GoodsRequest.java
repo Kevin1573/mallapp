@@ -36,6 +36,7 @@ public class GoodsRequest implements TokenCarrier {
     private Integer page;
     private Integer pageSize;
 
+
     @Override
     public String getToken() {
         return token;

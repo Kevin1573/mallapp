@@ -60,6 +60,7 @@ public class HomePageServiceImpl implements HomePageService {
             ShopModel model = new ShopModel();
             model.setId(goodsDO.getId());
             model.setPic(goodsDO.getGoodsPic());
+            model.setTitle(goodsDO.getGoodsTitle());
             model.setName(goodsDO.getName());
             model.setPrice(goodsDO.getPrice());
             model.setGoodsUnit(goodsDO.getGoodsUnit());
@@ -101,6 +102,7 @@ public class HomePageServiceImpl implements HomePageService {
             ShopModel model = new ShopModel();
             model.setId(recommendationDO.getId());
             model.setPic(recommendationDO.getGoodsPic());
+            model.setTitle(recommendationDO.getGoodsTitle());
             model.setName(recommendationDO.getName());
             model.setPrice(recommendationDO.getPrice());
             model.setGoodsUnit(recommendationDO.getGoodsUnit());

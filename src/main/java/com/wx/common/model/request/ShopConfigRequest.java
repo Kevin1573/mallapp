@@ -60,6 +60,8 @@ public class ShopConfigRequest implements TokenCarrier {
 
     private String paymentFlag;
 
+    private String logoUri;
+
     @Override
     public String getToken() {
         return token;

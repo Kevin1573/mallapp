@@ -5,6 +5,8 @@ import com.alipay.api.AlipayClient;
 import com.alipay.api.domain.AlipayTradeRefundModel;
 import com.alipay.api.request.AlipayTradeRefundRequest;
 import com.alipay.api.response.AlipayTradeRefundResponse;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wechat.pay.java.service.refund.RefundService;
 import com.wechat.pay.java.service.refund.model.AmountReq;
 import com.wechat.pay.java.service.refund.model.CreateRequest;
@@ -16,7 +18,9 @@ import com.wx.common.enums.OrderStatus;
 import com.wx.common.enums.PayWayEnums;
 import com.wx.common.model.Response;
 import com.wx.common.model.request.GetOrderDetailByTradeNo;
+import com.wx.common.model.request.QueryOrderGoodsModel;
 import com.wx.common.model.response.QueryOrderHistoryModel;
+import com.wx.orm.entity.GoodsHistoryDO;
 import com.wx.orm.entity.ShopConfigDO;
 import com.wx.service.OrderService;
 import com.wx.service.ShopConfigService;
@@ -28,10 +32,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import java.math.BigDecimal;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -180,6 +181,8 @@ public class RefundController {
             if (Status.SUCCESS.equals(refund.getStatus())) {
                 // 更新订单状态
                 orderService.updateOrderStatus(request.getTradeNo(), OrderStatus.REFUNDED);
+                // 增加库存
+                addGoodsInventory(order);
                 return Response.success(new RefundResponse(
                         refundNo,
                         refund.getStatus().name(),
@@ -196,6 +199,38 @@ public class RefundController {
             return Response.failure(
                     refundNo + " 退款失败: " + e.getMessage()
             );
+        }
+    }
+
+    private static final ObjectMapper objectMapper = new ObjectMapper();
+
+    private void addGoodsInventory(QueryOrderHistoryModel order) {
+        // 查询订单是否存在
+        GoodsHistoryDO orderDetail = orderService.queryOrderByTradeNo(order.getTradeNo());
+        if (Objects.isNull(orderDetail)) {
+            log.error("订单不存在: {}", order.getTradeNo());
+        }
+        // 更新销量 goods 表的 sales 字段
+        String goodsListStr = orderDetail.getGoodsList();
+        String normalizedJson = goodsListStr
+                .replace("\\\"", "\"")
+                .replace("\"[", "[")
+                .replace("]\"", "]");
+
+        try{
+            List<QueryOrderGoodsModel> queryOrderGoodsModels = objectMapper.readValue(
+                    normalizedJson,
+                    new TypeReference<List<QueryOrderGoodsModel>>() {}
+            );
+            for (QueryOrderGoodsModel goodsModel : queryOrderGoodsModels) {
+//            orderService.updateSales(goodsModel.getId(), goodsModel.getNum());
+                boolean added = orderService.addInventory(goodsModel.getId(), Math.toIntExact(goodsModel.getNum()));
+                if (!added) {
+                    throw new Exception("更新库存失败");
+                }
+            }
+        } catch (Exception e) {
+            log.error("解析订单商品列表异常", e);
         }
     }
 

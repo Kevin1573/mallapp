@@ -8,6 +8,7 @@ public class ShopModel {
     private String name;
 
     private String pic;
+    private String title;
 
     private Double price;
 

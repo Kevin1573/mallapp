@@ -60,7 +60,7 @@ public class Response<T> implements Serializable {
         result.setSuccess(false);
         result.setErrorMessage(errorMessage);
         result.setErrorCode("500");
-        result.setHttpCode(200);
+        result.setHttpCode(500);
         return result;
     }
 

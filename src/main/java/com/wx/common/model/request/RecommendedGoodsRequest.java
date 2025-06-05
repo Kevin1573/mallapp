@@ -18,6 +18,7 @@ public class RecommendedGoodsRequest {
     private Long id;
     private String fromMall;
     private RecommendedGoods[] recommendedGoodsIds;
+    private String recommendedGoodTitle;
 
     @Data
     public static class RecommendedGoods {
