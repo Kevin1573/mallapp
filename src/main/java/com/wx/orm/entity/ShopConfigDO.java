@@ -65,4 +65,8 @@ public class ShopConfigDO {
 
     private String logoUri;
 
+    private String title;
+
+    private String btnText;
+
 }

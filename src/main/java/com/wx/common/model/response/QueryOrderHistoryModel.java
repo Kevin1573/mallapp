@@ -69,5 +69,7 @@ public class QueryOrderHistoryModel {
 
     private BigDecimal payAmount;
 
+    private String fromMall;
+
 }
 

@@ -6,4 +6,5 @@ import lombok.Data;
 public class OrderRequest {
 
     private String tradeNo;
+    private String token;
 }

@@ -13,7 +13,7 @@ public class QueryGoodsByIdResponse {
     /**
      * 商品图片
      */
-    private List<String> goodsPics;
+    private String goodsPics;
 
     /**
      * 商品描述

@@ -36,4 +36,7 @@ public class HomePageResponse {
     private String logoUri;
 
     private String recommendedGoodTitle;
+
+    private String title;
+    private String btnText;
 }

@@ -2,10 +2,7 @@ package com.wx.service;
 
 import com.alibaba.fastjson.JSONObject;
 import com.wx.common.model.ShopConfigResponse;
-import com.wx.common.model.request.BestSellingGoodsRequest;
-import com.wx.common.model.request.RecommendedGoodsRequest;
-import com.wx.common.model.request.ShopConfigRequest;
-import com.wx.common.model.request.ShopRebateRequest;
+import com.wx.common.model.request.*;
 import com.wx.common.model.response.ShopConfigDOResponse;
 import com.wx.orm.entity.GoodsDO;
 import com.wx.orm.entity.RebateDO;
@@ -35,4 +32,6 @@ public interface ShopService {
     void initShopAccount(String contactPhone, String fromMall);
 
     BigDecimal getFreight(String fromShopName);
+
+    Boolean prepareRefund(OrderRequest request);
 }

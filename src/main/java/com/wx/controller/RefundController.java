@@ -74,10 +74,6 @@ public class RefundController {
             if (StringUtils.isBlank(request.getTradeNo())) {
                 return Response.failure("订单号不能为空");
             }
-            if (StringUtils.isBlank(request.getFrom())) {
-                return Response.failure("来源标识不能为空");
-            }
-
             // 查询订单信息
             QueryOrderHistoryModel order = orderService.getOrderDetailById(
                     new GetOrderDetailByTradeNo(request.getTradeNo()));
@@ -99,7 +95,7 @@ public class RefundController {
 //            }
 
             // 获取商户配置
-            ShopConfigDO shopConfig = shopConfigService.queryMerchantConfigByFrom(request.getFrom());
+            ShopConfigDO shopConfig = shopConfigService.queryMerchantConfigByFrom(order.getFromMall());
             if (shopConfig == null || StringUtils.isBlank(shopConfig.getPaymentFlag())) {
                 return Response.failure("商户配置不存在");
             }
@@ -118,7 +114,13 @@ public class RefundController {
 
         } catch (Exception e) {
             log.error("申请退款异常", e);
-            return Response.failure("申请退款失败: " + e.getMessage());
+            if (e.getMessage() != null) {
+                if (e.getMessage().contains("PROCESSING")) {
+                    return Response.success(null, "退款处理中，请稍后查询退款状态");
+                }
+                return Response.halfSuccess("正在退款中...");
+            }
+            return Response.failure("申请退款失败");
         }
     }
 
@@ -248,6 +250,18 @@ public class RefundController {
         log.info("微信退款回调通知");
         String requestBody = getRequestBody(request);
         log.info("  => {}", requestBody);
+        if (StringUtils.isNotBlank(requestBody)) {
+            if (requestBody.contains("REFUND.SUCCESS")) {
+                // 更新订单状态
+                // 从退款回调信息中, 解密微信退款单号
+                String refundNo = requestBody.substring(requestBody.indexOf("refund_id=") + 10, requestBody.indexOf("&"));
+                log.info("  => {}", refundNo);
+
+                //orderService.updateOrderStatus(request.gettradeNo(), OrderStatus.REFUNDED);
+                log.info("退款成功");
+            }
+        }
+
         return "success";
     }
 

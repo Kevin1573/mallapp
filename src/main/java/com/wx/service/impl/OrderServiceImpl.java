@@ -427,8 +427,8 @@ public class OrderServiceImpl implements OrderService {
             BeanUtils.copyProperties(goodsDO, response);
 //            List<GoodsDO> sameGoodsUnitCollections = goodsDOS.stream().filter(goodsDO1 -> goodsDO1.getGoodsUnit().equals(goodsDO.getGoodsUnit()))
 //                    .collect(Collectors.toList());
-            List<String> goodsPics = Collections.singletonList(goodsDO.getGoodsPic()); // sameGoodsUnitCollections.stream().map(GoodsDO::getGoodsPic).distinct().collect(Collectors.toList());
-            response.setGoodsPics(goodsPics); // 商品主图
+            //List<String> goodsPics = Collections.singletonList(); // sameGoodsUnitCollections.stream().map(GoodsDO::getGoodsPic).distinct().collect(Collectors.toList());
+            response.setGoodsPics(goodsDO.getGoodsPic()); // 商品主图
             List<String> brandPics = Collections.singletonList(goodsDO.getBrandPic());// sameGoodsUnitCollections.stream().map(GoodsDO::getBrandPic).distinct().collect(Collectors.toList());
             response.setBrandPics(brandPics); // 品牌主图
             response.setInventory(goodsDO.getInventory());
@@ -538,6 +538,7 @@ public class OrderServiceImpl implements OrderService {
         queryOrderHistoryModel.setPayAmount(goodsHistoryDO1.getPayAmount());
         queryOrderHistoryModel.setIsPaySuccess(goodsHistoryDO1.getIsPaySuccess());
         queryOrderHistoryModel.setPayWay(goodsHistoryDO1.getPayWay());
+        queryOrderHistoryModel.setFromMall(goodsHistoryDO1.getFromMall());
         return queryOrderHistoryModel;
     }
 
@@ -736,7 +737,7 @@ public class OrderServiceImpl implements OrderService {
                     .setIsComplete(OrderStatus.WAITING_PAYMENT.getCode())
             );
         } else if (OrderStatus.PAID == orderStatus) {
-            return goodsHistoryMapper.updateByTradeNo2(new GoodsHistoryDO()
+            return goodsHistoryMapper.updateByTradeNo1(new GoodsHistoryDO()
                     .setTradeNo(outTradeNo)
                     .setIsPaySuccess(2)
                     .setIsComplete(1)

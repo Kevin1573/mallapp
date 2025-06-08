@@ -36,6 +36,8 @@ public class Response<T> implements Serializable {
      */
     private Boolean success;
 
+    private String message;
+
 
     public Response() {
     }
@@ -55,12 +57,29 @@ public class Response<T> implements Serializable {
         return result;
     }
 
+    public static <T> Response<T> success(T data, String message) {
+        Response<T> result = new Response<>();
+        result.setSuccess(true);
+        result.setData(data);
+        result.setMessage(message);
+        result.setHttpCode(200);
+        return result;
+    }
+
     public static <T> Response<T> failure(String errorMessage) {
         Response<T> result = new Response<>();
         result.setSuccess(false);
         result.setErrorMessage(errorMessage);
         result.setErrorCode("500");
         result.setHttpCode(500);
+        return result;
+    }
+
+    public static <T> Response<T> halfSuccess(String message) {
+        Response<T> result = new Response<>();
+        result.setSuccess(true);
+        result.setMessage(message);
+        result.setHttpCode(200);
         return result;
     }
 

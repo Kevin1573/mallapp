@@ -2,11 +2,9 @@ package com.wx.service.impl;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.wx.common.enums.OrderStatus;
 import com.wx.common.model.ShopConfigResponse;
-import com.wx.common.model.request.BestSellingGoodsRequest;
-import com.wx.common.model.request.RecommendedGoodsRequest;
-import com.wx.common.model.request.ShopConfigRequest;
-import com.wx.common.model.request.ShopRebateRequest;
+import com.wx.common.model.request.*;
 import com.wx.common.model.response.ShopConfigDOResponse;
 import com.wx.dto.BestSellingGoods;
 import com.wx.orm.entity.GoodsDO;
@@ -206,6 +204,13 @@ public class ShopServiceImpl implements ShopService {
             return BigDecimal.valueOf(shopConfigDO.getFreight());
         }
         return BigDecimal.ZERO;
+    }
+
+    @Override
+    public Boolean prepareRefund(OrderRequest request) {
+        // 修改订单的状态, 为退款中
+        int updated = orderService.updateOrderStatus(request.getTradeNo(), OrderStatus.REFUNDING);
+        return updated > 0;
     }
 
 

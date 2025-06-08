@@ -47,4 +47,5 @@ public class ShopConfigDOResponse {
 
     private String logoUri;
 
+    private String btnText;
 }
