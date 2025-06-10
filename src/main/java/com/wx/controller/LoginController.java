@@ -35,7 +35,7 @@ public class LoginController {
     }
 
     @RequestMapping(value = "/register", method = {RequestMethod.POST})
-    public Response register(@RequestBody LoginRequest request) {
+    public Response<?> register(@RequestBody LoginRequest request) {
         try {
             loginService.register(request);
             return Response.success();

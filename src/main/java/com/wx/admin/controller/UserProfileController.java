@@ -159,6 +159,10 @@ public class UserProfileController {
 
             // 设置更新时间并保存
             userProfile.setModifyTime(new Date());
+
+            // 查询用户等级
+            RebateDO rebateDO = rebateService.queryRebateById(userProfile.getPosition());
+            userProfile.setPositionDescription(rebateDO.getDescription());
             boolean result = userProfileService.updateById(userProfile);
 
             // 返回前清除敏感信息

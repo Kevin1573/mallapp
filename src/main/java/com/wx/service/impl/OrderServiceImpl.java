@@ -124,10 +124,10 @@ public class OrderServiceImpl implements OrderService {
         }
 
         // 计算商品的实际支付金额
-        BigDecimal payAmount = BigDecimal.ZERO;
-        for (QueryOrderGoodsModel queryOrderGoodsModel : goodsList) {
-            payAmount = payAmount.add(queryOrderGoodsModel.getPrice().multiply(BigDecimal.valueOf(queryOrderGoodsModel.getNum())));
-        }
+//        BigDecimal payAmount = BigDecimal.ZERO;
+//        for (QueryOrderGoodsModel queryOrderGoodsModel : goodsList) {
+//            payAmount = payAmount.add(queryOrderGoodsModel.getPrice().multiply(BigDecimal.valueOf(queryOrderGoodsModel.getNum())));
+//        }
 
         // 获取用户的折扣率
         Long position = userByToken.getPosition();
@@ -136,11 +136,12 @@ public class OrderServiceImpl implements OrderService {
         // 获取店铺的运费
         BigDecimal freight = shopService.getFreight(request.getFrom());
         BigDecimal payAmount2;
-        if (rebateDO == null || Objects.isNull(rebateDO.getRatio())) {
-            payAmount2 = payAmount.add(freight).setScale(2, RoundingMode.DOWN);
-        } else {
-            payAmount2 = payAmount.multiply(BigDecimal.valueOf(rebateDO.getRatio())).add(freight).setScale(2, RoundingMode.DOWN);
-        }
+//        if (rebateDO == null || Objects.isNull(rebateDO.getRatio())) {
+//            payAmount2 = payAmount.add(freight).setScale(2, RoundingMode.DOWN);
+//        } else {
+//            payAmount2 = payAmount.multiply(BigDecimal.valueOf(rebateDO.getRatio())).add(freight).setScale(2, RoundingMode.DOWN);
+//        }
+        payAmount2 = calculateOrderAmount(goodsList, freight, rebateDO == null ? BigDecimal.ZERO : BigDecimal.valueOf(rebateDO.getRatio()));
         GoodsHistoryDO goodsHistoryDO = new GoodsHistoryDO()
                 .setUserId(userByToken.getId())
                 .setIsComplete(CompleteEnum.FALSE.getCode())
@@ -167,7 +168,7 @@ public class OrderServiceImpl implements OrderService {
         for (OrderGoodsModelRequest modelRequest : request.getModelRequestList()) {
             GoodsDO goodsDO = goodsMapper.selectById(modelRequest.getGoodsId());
             Long num = modelRequest.getNum();
-            if(goodsDO.getInventory() <= num) {
+            if (goodsDO.getInventory() <= num) {
                 throw new BizException("商品库存不足");
             }
         }
@@ -238,6 +239,72 @@ public class OrderServiceImpl implements OrderService {
 //        userPointHisMapper.insert(userPointHisDO);
 
         return orderGoodsResponse;
+    }
+
+
+    public static void main(String[] args) {
+//        BigDecimal payAmount2;
+//        BigDecimal payAmount = BigDecimal.valueOf(0.01);
+//        payAmount2 = payAmount.setScale(2, RoundingMode.HALF_UP);
+//        System.out.println(payAmount2);
+//        payAmount2 = payAmount.multiply(BigDecimal.valueOf(0.451)).setScale(2, RoundingMode.HALF_UP);
+//        System.out.println(payAmount2);
+
+        // 测试 caculateOrderAmount
+        BigDecimal payAmount = BigDecimal.valueOf(0.01);
+        BigDecimal freight = BigDecimal.valueOf(0.01);
+        BigDecimal rebate = BigDecimal.valueOf(0.451);
+        List<QueryOrderGoodsModel> orderGoodsModels = new ArrayList<>();
+        QueryOrderGoodsModel model = new QueryOrderGoodsModel();
+        model.setPrice(payAmount);
+        model.setNum(1L);
+        orderGoodsModels.add(model);
+
+        BigDecimal orderAmount = calculateOrderAmount(orderGoodsModels, freight, rebate);
+        System.out.println(orderAmount);
+
+        // 测试更极端的情况
+        BigDecimal payAmount2 = BigDecimal.valueOf(0.01);
+        BigDecimal freight2 = BigDecimal.valueOf(0);
+        BigDecimal rebate2 = BigDecimal.valueOf(0.25);
+        List<QueryOrderGoodsModel> orderGoodsModels2 = new ArrayList<>();
+        QueryOrderGoodsModel model2 = new QueryOrderGoodsModel();
+        model2.setPrice(payAmount2);
+        model2.setNum(1L);
+        orderGoodsModels2.add(model2);
+        BigDecimal orderAmount2 = calculateOrderAmount(orderGoodsModels2, freight2, rebate2);
+        System.out.println(orderAmount2);
+
+        // 测试 rebate = 0
+        BigDecimal payAmount3 = BigDecimal.valueOf(0.01);
+        BigDecimal freight3 = BigDecimal.valueOf(0);
+        BigDecimal rebate3 = BigDecimal.valueOf(0);
+        List<QueryOrderGoodsModel> orderGoodsModels3 = new ArrayList<>();
+        QueryOrderGoodsModel model3 = new QueryOrderGoodsModel();
+        model3.setPrice(payAmount3);
+        model3.setNum(1L);
+        orderGoodsModels3.add(model3);
+        BigDecimal orderAmount3 = calculateOrderAmount(orderGoodsModels3, freight3, rebate3);
+        System.out.println(orderAmount3);
+
+    }
+
+    private static BigDecimal calculateOrderAmount(List<QueryOrderGoodsModel> orderGoodsModels, BigDecimal freight, BigDecimal rebate) {
+        BigDecimal payAmount = BigDecimal.ZERO;
+        for (QueryOrderGoodsModel modelRequest : orderGoodsModels) {
+            payAmount = payAmount.add(modelRequest.getPrice().multiply(BigDecimal.valueOf(modelRequest.getNum())));
+        }
+        if (Objects.nonNull(rebate) && rebate.compareTo(BigDecimal.ZERO) > 0) {
+            payAmount = payAmount.multiply(rebate).setScale(2, RoundingMode.HALF_UP);
+            // 如果payAmount < 0.01, 则直接将结果置为0.01
+            if (payAmount.compareTo(BigDecimal.ZERO) == 0) {
+                payAmount = BigDecimal.valueOf(0.01);
+            }
+        }
+        if (Objects.nonNull(freight)) {
+            payAmount = payAmount.add(freight);
+        }
+        return payAmount;
     }
 
     @Override
@@ -551,7 +618,6 @@ public class OrderServiceImpl implements OrderService {
     }
 
 
-
     @Override
     public CommitOrderResponse commitOrder(OrderGoodsRequest request) {
         // 查询出对应的用户信息和商品信息
@@ -772,7 +838,8 @@ public class OrderServiceImpl implements OrderService {
                     .setStatus(OrderStatus.REFUNDING.getCode())
             );
         } else if (OrderStatus.REFUNDED == orderStatus) {
-            return goodsHistoryMapper.updateByTradeNo8(new GoodsHistoryDO()
+            // status 6 to 7
+            return goodsHistoryMapper.updateByTradeNo627(new GoodsHistoryDO()
                     .setTradeNo(outTradeNo)
                     .setIsPaySuccess(2)
                     .setIsComplete(1)
@@ -928,9 +995,10 @@ public class OrderServiceImpl implements OrderService {
                 queryWrapper.eq(GoodsHistoryDO::getStatus, request.getStatus());
             }
         }
-        queryWrapper.eq(GoodsHistoryDO::getUserId, userProfile.getId())
-                .orderByDesc(GoodsHistoryDO::getCreateTime);
-
+        if (!"root".equalsIgnoreCase(userProfile.getSource())) {
+            queryWrapper.eq(GoodsHistoryDO::getFromMall, userProfile.getFromShopName());
+        }
+        queryWrapper.orderByDesc(GoodsHistoryDO::getCreateTime);
 
         if ("showOwner".equals(userProfile.getSource())) {
             queryWrapper.eq(GoodsHistoryDO::getId, userProfile.getId());
@@ -994,9 +1062,9 @@ public class OrderServiceImpl implements OrderService {
         // 更新库存和销量
         goodsDO.setSales(goodsDO.getSales() + num);
         goodsDO.setInventory(goodsDO.getInventory() - num);
-        int updated  = goodsMapper.updateById(goodsDO);
+        int updated = goodsMapper.updateById(goodsDO);
 
-        return updated > 0 ;
+        return updated > 0;
     }
 
     // 增加库存

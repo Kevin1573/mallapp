@@ -31,6 +31,8 @@ public class RebateDO {
 
     private String fromMall;
 
+    private Boolean defaultPosition = false;
+
     private Date createTime;
 
     private Date modifyTime;

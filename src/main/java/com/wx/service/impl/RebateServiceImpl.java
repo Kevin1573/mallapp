@@ -23,6 +23,7 @@ public class RebateServiceImpl implements RebateService {
         rebateDO.setDescription("一级折扣比例");
         rebateDO.setCreateTime(new java.util.Date());
         rebateDO.setFromMall(fromMall);
+        rebateDO.setDefaultPosition(true);
         rebateMapper.insert(rebateDO);
         rebateDO = new RebateDO();
         rebateDO.setRatio(0.90);

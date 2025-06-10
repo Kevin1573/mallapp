@@ -80,7 +80,7 @@ public class LoginServiceImpl implements LoginService {
         resonse.setHeadUrl(userProfileDO1.getHeadUrl());
         resonse.setUserId(userProfileDO1.getId());
         resonse.setToken(userProfileDO1.getToken());
-        //resonse.setPosition(rebateMapper.selectById(userProfileDO1.getPosition()).getDescription());
+        // resonse.setPosition(rebateMapper.selectById(userProfileDO1.getPosition()).getDescription());
         resonse.setPhone(userProfileDO1.getPhone());
         resonse.setNickName(userProfileDO1.getNickName());
         resonse.setFromMall(userProfileDO1.getFromShopName());
@@ -105,7 +105,14 @@ public class LoginServiceImpl implements LoginService {
         userProfileDO.setFromShopName(request.getFrom());
         userProfileDO.setHeadUrl(request.getHeadUrl());
         userProfileDO.setToken(UUID.randomUUID().toString());
-        userProfileDO.setPosition(0L);
+
+        // 查询商铺默认的用户等级
+        LambdaQueryWrapper<RebateDO> query = new LambdaQueryWrapper<RebateDO>().eq(RebateDO::getFromMall, request.getFrom())
+                .eq(RebateDO::getDefaultPosition, true);
+        RebateDO rebateDO = rebateMapper.selectOne(query);
+        userProfileDO.setPosition(rebateDO.getId());
+        userProfileDO.setPositionDescription(rebateDO.getDescription());
+        userProfileDO.setSource("normal");
         userProfileDO.setCreateTime(new Date());
         userProfileDO.setModifyTime(new Date());
         userProfileMapper.insert(userProfileDO);

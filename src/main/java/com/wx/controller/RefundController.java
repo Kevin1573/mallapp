@@ -191,15 +191,18 @@ public class RefundController {
                         "退款成功"
                 ));
             } else {
-                log.error("微信退款失败: {}", refund);
-                return Response.failure(
-                        refundNo + " 退款失败: " + refund.getStatus().name()
+                log.error("微信退款中: {}", refund);
+                if ("PROCESSING".equals(refund.getStatus().name())) {
+                    orderService.updateOrderStatus(request.getTradeNo(), OrderStatus.REFUNDED);
+                }
+                return Response.halfSuccess(
+                        refundNo + " 退款中: " + refund.getStatus().name()
                 );
             }
         } catch (Exception e) {
             log.error("微信退款异常", e);
             return Response.failure(
-                    refundNo + " 退款失败: " + e.getMessage()
+                    refundNo + " 退款失败 请联系管理员"
             );
         }
     }
