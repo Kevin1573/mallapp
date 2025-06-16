@@ -8,7 +8,8 @@ public enum OrderStatus {
     SHIPPED(4, "已发货"),
     COMPLETED(5, "已完成"),
     REFUNDING(6, "退款中"),
-    REFUNDED(7, "已退货");
+    REFUNDED(7, "已退货"),
+    CANCEL(8, "已取消");
 
     //    WAITING_PAYMENT, // 10 等待支付
 //    PAID, // 20 已支付

@@ -30,7 +30,7 @@ public class LoginController {
             return Response.success(loginService.login(request));
         } catch (Exception e) {
             log.error("Login exception, request = {}", JSON.toJSONString(request), e);
-            return Response.failure("Login exception");
+            return Response.failure("Login exception: "+ e.getMessage());
         }
     }
 

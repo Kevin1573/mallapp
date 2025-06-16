@@ -111,9 +111,8 @@ public class AdminSericeImpl implements AdminService {
             } else {
                 queryWrapper.eq("status", request.getStatus());
             }
-        } else {
-            throw new BizException("请传入订单状态");
         }
+        // 没有订单状态默认查全部
 
 //        if (Objects.nonNull(request.getNickname())) {
 //            queryWrapper.apply("JSON_EXTRACT(order_info, '$.name') = {0}", request.getNickname());

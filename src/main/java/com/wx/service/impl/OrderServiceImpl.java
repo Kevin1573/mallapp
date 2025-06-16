@@ -109,6 +109,7 @@ public class OrderServiceImpl implements OrderService {
             queryOrderGoodsModel.setPrice(BigDecimal.valueOf(goodsDO.getPrice()));
             queryOrderGoodsModel.setSales(goodsDO.getSales());
             queryOrderGoodsModel.setNum(num);
+            queryOrderGoodsModel.setSpecifications(goodsDO.getSpecifications());
 
             goodsList.add(queryOrderGoodsModel);
         }
@@ -316,10 +317,16 @@ public class OrderServiceImpl implements OrderService {
         queryWrapper.like(StringUtils.isNotBlank(request.getGoodsName()), GoodsDO::getName, request.getGoodsName());
 
         // 1. 分类筛选
-        queryWrapper.eq(StringUtils.isNotBlank(request.getCategory()), GoodsDO::getCategory, request.getCategory());
+        if (StringUtils.isNotBlank(request.getCategory())) {
+            String[] category = request.getCategory().split(",");
+            queryWrapper.in(GoodsDO::getCategory, (Object[]) category);
+        }
 
         // 2. 品牌筛选（假设有 brand 字段）
-        queryWrapper.eq(StringUtils.isNotBlank(request.getBrand()), GoodsDO::getBrand, request.getBrand());
+        if (StringUtils.isNotBlank(request.getBrandName())) {
+            String[] brands = request.getBrandName().split(",");
+            queryWrapper.in(GoodsDO::getBrand, (Object[]) brands);
+        }
 
         // 3. 预算区间筛选（新增逻辑）
         if (StringUtils.isNotBlank(request.getBudget())) {
@@ -850,6 +857,11 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    public int updateOrderLogistics(String outTradeNo, String logisticsCode) {
+        return goodsHistoryMapper.updateLogisticsCode(outTradeNo, logisticsCode);
+    }
+
+    @Override
     public void updatePayway(String tradeNo, PayWayEnums paywayEnums) {
         int updated = goodsHistoryMapper.updatePayWayByTradeNo(new GoodsHistoryDO()
                 .setTradeNo(tradeNo)
@@ -874,7 +886,8 @@ public class OrderServiceImpl implements OrderService {
         return new ShopCartStatResponse(
                 goodsHistoryMapper.selectCount(new LambdaQueryWrapper<GoodsHistoryDO>()
                         .eq(GoodsHistoryDO::getUserId, userProfileDO.getId())
-                        .eq(GoodsHistoryDO::getIsPaySuccess, 1)), // 待付款 1
+                        .eq(GoodsHistoryDO::getIsPaySuccess, 1)
+                        .eq(GoodsHistoryDO::getIsComplete, 1)), // 待付款 1
                 goodsHistoryMapper.selectCount(new LambdaQueryWrapper<GoodsHistoryDO>()
                         .eq(GoodsHistoryDO::getUserId, userProfileDO.getId())
                         .eq(GoodsHistoryDO::getIsPaySuccess, 2)
@@ -924,7 +937,7 @@ public class OrderServiceImpl implements OrderService {
                 .setId(goodsHistoryDO.getId())
 //                .setIsPaySuccess(2)
                 .setIsComplete(2)
-                .setStatus(5));
+                .setStatus(8)); // 已取消
     }
 
     @Override
@@ -997,12 +1010,25 @@ public class OrderServiceImpl implements OrderService {
         }
         if (!"root".equalsIgnoreCase(userProfile.getSource())) {
             queryWrapper.eq(GoodsHistoryDO::getFromMall, userProfile.getFromShopName());
+        } else {
+            queryWrapper.eq(StringUtils.isNotBlank(request.getFromMall()), GoodsHistoryDO::getFromMall, request.getFromMall());
         }
         queryWrapper.orderByDesc(GoodsHistoryDO::getCreateTime);
 
         if ("showOwner".equals(userProfile.getSource())) {
             queryWrapper.eq(GoodsHistoryDO::getId, userProfile.getId());
         }
+
+        String userPhone = request.getUserPhone();
+        // 通过昵称查询用户
+        if (StringUtils.isNotBlank(userPhone)) {
+            UserProfileDO userDO = userProfileMapper.selectOne(new LambdaQueryWrapper<UserProfileDO>().eq(UserProfileDO::getNickName, userPhone));
+            if (Objects.nonNull(userDO)) {
+                queryWrapper.eq(GoodsHistoryDO::getUserId, userDO.getId());
+            }
+        }
+
+        queryWrapper.like(StringUtils.isNotBlank(request.getTradeNo()), GoodsHistoryDO::getTradeNo, request.getTradeNo());
         // 3. 执行分页查询
         IPage<GoodsHistoryDO> historyPage = goodsHistoryMapper.selectPage(page, queryWrapper);
 

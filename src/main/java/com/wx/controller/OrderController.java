@@ -1,6 +1,7 @@
 package com.wx.controller;
 
 import com.alibaba.fastjson.JSON;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.wx.common.model.ApiResponse;
 import com.wx.common.model.Response;
@@ -280,5 +281,19 @@ public class OrderController {
 
         List<GoodsDO> goodsDOResponses = goodsService.findGoodsBySpecs(request);
         return ApiResponse.success(goodsDOResponses);
+    }
+
+    // 根据订单时间段查询订单
+    @PostMapping("/queryGoodsByTime")
+    public ApiResponse<Page<GoodsDO>> queryGoodsByTime(@RequestBody GoodsQueryRequest request) {
+        Page<GoodsDO> goodsDOResponses = goodsService.findGoodsByTime(request);
+        return ApiResponse.success(goodsDOResponses);
+    }
+
+    // 统计时间区间内的总金额
+    @PostMapping("/totalAmountGoodsByTime")
+    public ApiResponse<Double> totalGoodsByTime(@RequestBody GoodsQueryRequest request) {
+        Double totalAmount = goodsService.totalGoodsByTime(request);
+        return ApiResponse.success(totalAmount);
     }
 }

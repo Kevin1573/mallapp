@@ -3,6 +3,7 @@ package com.wx.service.impl;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.wx.common.exception.BizException;
+import com.wx.common.model.request.GoodsQueryRequest;
 import com.wx.common.model.request.GoodsRequest;
 import com.wx.common.model.request.GoodsSpecsRequest;
 import com.wx.orm.entity.GoodsDO;
@@ -106,5 +107,18 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, GoodsDO> implemen
         }
 
         return list;
+    }
+
+    @Override
+    public Page<GoodsDO> findGoodsByTime(GoodsQueryRequest request) {
+        return lambdaQuery()
+                .between( GoodsDO::getCreateTime, request.getStartTime(), request.getEndTime())
+                .page(request.toPage());
+    }
+
+    @Override
+    public Double totalGoodsByTime(GoodsQueryRequest request) {
+        Double totalAmount = getBaseMapper().calculateTotalAmount(request.getStartTime(), request.getEndTime());
+        return totalAmount == null ? 0.0 : totalAmount;
     }
 }

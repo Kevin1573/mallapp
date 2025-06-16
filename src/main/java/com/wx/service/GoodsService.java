@@ -2,6 +2,7 @@ package com.wx.service;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.wx.common.model.request.GoodsQueryRequest;
 import com.wx.common.model.request.GoodsRequest;
 import com.wx.common.model.request.GoodsSpecsRequest;
 import com.wx.orm.entity.GoodsDO;
@@ -36,4 +37,8 @@ public interface GoodsService extends IService<GoodsDO> {
     List<GoodsDO> findGoodsBySpecs(String specs, String name);
 
     List<GoodsDO> findGoodsBySpecs(List<GoodsSpecsRequest> request);
+
+    Page<GoodsDO> findGoodsByTime(GoodsQueryRequest request);
+
+    Double totalGoodsByTime(GoodsQueryRequest request);
 }

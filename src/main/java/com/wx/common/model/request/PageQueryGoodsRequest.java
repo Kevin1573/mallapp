@@ -25,7 +25,7 @@ public class PageQueryGoodsRequest {
     private String category;
 
     // 品牌
-    private String brand;
+    private String brandName;
 
     // 预算区间 0,100
     @Pattern(regexp = "^\\d+,\\d+$", message = "预算区间格式错误")

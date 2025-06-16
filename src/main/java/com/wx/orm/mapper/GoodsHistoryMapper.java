@@ -31,4 +31,7 @@ public interface GoodsHistoryMapper extends BaseMapper<GoodsHistoryDO> {
 
     @Update("update goods_history set pay_way = #{payWay} where trade_no = #{tradeNo}")
     int updatePayWayByTradeNo(GoodsHistoryDO goodsHistoryDO);
+
+    @Update("update goods_history set logistics = #{logisticsCode} where trade_no = #{tradeNo}")
+    int updateLogisticsCode(String tradeNo, String logisticsCode);
 }

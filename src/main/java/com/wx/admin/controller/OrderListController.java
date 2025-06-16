@@ -6,6 +6,7 @@ import com.wx.common.model.ApiResponse;
 import com.wx.common.model.OrderListItem;
 import com.wx.common.model.PageResponse;
 import com.wx.common.model.request.OrderListRequest;
+import com.wx.common.model.request.OrderLogisticsInfoRequest;
 import com.wx.orm.entity.UserProfileDO;
 import com.wx.service.OrderService;
 import com.wx.service.TokenService;
@@ -69,6 +70,14 @@ public class OrderListController {
             return ApiResponse.fail(400, "订单状态不正确");
         }
         int updated = orderService.updateOrderStatus(request.getTradeNo(), orderStatus);
+        return ApiResponse.success(updated > 0);
+    }
+
+
+    @PostMapping("/updateLogistics")
+    public ApiResponse<Boolean> updateOrder(@RequestBody OrderLogisticsInfoRequest request) {
+
+        int updated = orderService.updateOrderLogistics(request.getTradeNo(), request.getLogisticsCode());
         return ApiResponse.success(updated > 0);
     }
 }

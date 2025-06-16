@@ -9,4 +9,6 @@ public class OrderListRequest {
     private String token;
     private String tradeNo;
     private Integer status;
+    private String fromMall;
+    private String userPhone;
 }

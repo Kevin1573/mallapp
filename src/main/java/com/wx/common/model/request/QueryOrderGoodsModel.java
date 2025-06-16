@@ -20,6 +20,7 @@ public class QueryOrderGoodsModel {
     private BigDecimal price;
     private Long sales; // 销量
     private Long num;
+    private String specifications;
     public QueryOrderGoodsModel() {}
     @JsonCreator // 方案一：带参构造+注解
     public QueryOrderGoodsModel(

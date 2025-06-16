@@ -159,6 +159,7 @@ public interface OrderService {
     void packorder(OrderRequest request);
 
     int updateOrderStatus(String outTradeNo, OrderStatus orderStatus);
+    int updateOrderLogistics(String outTradeNo, String logisticsCode);
 
     void updatePayway(String tradeNo, PayWayEnums paywayEnums);
 
