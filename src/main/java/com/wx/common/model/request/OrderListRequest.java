@@ -11,4 +11,7 @@ public class OrderListRequest {
     private Integer status;
     private String fromMall;
     private String userPhone;
+
+    private String startTime;
+    private String endTime;
 }

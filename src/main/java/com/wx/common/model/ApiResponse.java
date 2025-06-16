@@ -6,6 +6,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
+
 // 统一响应基类（非分页）
 @Data
 @AllArgsConstructor
@@ -30,6 +32,11 @@ public class ApiResponse<T> {
     public static <T> PageResponse<T> page(IPage<T> page) {
         return new PageResponse<>(page);
     }
+
+    public static <T> PageResponse<T> page(IPage<T> page, BigDecimal totalAmount) {
+        return new PageResponse<>(page, totalAmount);
+    }
+
 
     public static <T> PageResponse<T> failPage(int code, String message) {
         return new PageResponse<>(code, message, new Page<>());

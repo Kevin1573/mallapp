@@ -8,10 +8,13 @@ import com.wx.common.model.PageResponse;
 import com.wx.common.model.request.OrderListRequest;
 import com.wx.common.model.request.OrderLogisticsInfoRequest;
 import com.wx.orm.entity.UserProfileDO;
+import com.wx.service.GoodsHistoryService;
 import com.wx.service.OrderService;
 import com.wx.service.TokenService;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.bind.annotation.*;
+
+import java.math.BigDecimal;
 
 @RestController
 @RequestMapping("/order")
@@ -19,10 +22,12 @@ public class OrderListController {
 
     private final OrderService orderService;
     private final TokenService tokenService;
+    private final GoodsHistoryService goodsHistoryService;
 
-    public OrderListController(OrderService orderService, TokenService tokenService) {
+    public OrderListController(OrderService orderService, TokenService tokenService, GoodsHistoryService goodsHistoryService) {
         this.orderService = orderService;
         this.tokenService = tokenService;
+        this.goodsHistoryService = goodsHistoryService;
     }
 
     @PostMapping("/list")
@@ -43,7 +48,9 @@ public class OrderListController {
             return ApiResponse.failPage(400, "用户没有登录, 或者token 失效");
         }
 
-        return ApiResponse.page(orderService.queryOrderList(request, userByToken));
+        BigDecimal totalAmount = goodsHistoryService.totalAmountGoodsByTime(request, userByToken);
+
+        return ApiResponse.page(orderService.queryOrderList(request, userByToken), totalAmount);
     }
 
     @PostMapping("/updateState")

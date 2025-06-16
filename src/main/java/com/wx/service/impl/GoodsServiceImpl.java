@@ -6,8 +6,10 @@ import com.wx.common.exception.BizException;
 import com.wx.common.model.request.GoodsQueryRequest;
 import com.wx.common.model.request.GoodsRequest;
 import com.wx.common.model.request.GoodsSpecsRequest;
+import com.wx.common.model.request.QueryOrderHistoryRequest;
 import com.wx.orm.entity.GoodsDO;
 import com.wx.orm.mapper.GoodsMapper;
+import com.wx.orm.mapper.UserProfileMapper;
 import com.wx.service.GoodsService;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
@@ -21,17 +23,23 @@ import java.util.List;
 @Service
 public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, GoodsDO> implements GoodsService {
 
+    private final UserProfileMapper userProfileMapper;
+
+    public GoodsServiceImpl(UserProfileMapper userProfileMapper) {
+        this.userProfileMapper = userProfileMapper;
+    }
+
     @Override
     public Page<GoodsDO> complexPageSearch(GoodsRequest condition) {
         return lambdaQuery()
-            .like(StringUtils.isNotBlank(condition.getKeyword()), GoodsDO::getName, condition.getKeyword())
-            .or()
-            .like(StringUtils.isNotBlank(condition.getKeyword()), GoodsDO::getDescription, condition.getKeyword())
-            .eq(condition.getCategory() != null, GoodsDO::getCategory, condition.getCategory())
-            .eq(condition.getStatus() != null, GoodsDO::getStatus, condition.getStatus())
-            .ge(condition.getMinPrice() != null, GoodsDO::getPrice, condition.getMinPrice())
-            .le(condition.getMaxPrice() != null, GoodsDO::getPrice, condition.getMaxPrice())
-            .page(condition.toPage());
+                .like(StringUtils.isNotBlank(condition.getKeyword()), GoodsDO::getName, condition.getKeyword())
+                .or()
+                .like(StringUtils.isNotBlank(condition.getKeyword()), GoodsDO::getDescription, condition.getKeyword())
+                .eq(condition.getCategory() != null, GoodsDO::getCategory, condition.getCategory())
+                .eq(condition.getStatus() != null, GoodsDO::getStatus, condition.getStatus())
+                .ge(condition.getMinPrice() != null, GoodsDO::getPrice, condition.getMinPrice())
+                .le(condition.getMaxPrice() != null, GoodsDO::getPrice, condition.getMaxPrice())
+                .page(condition.toPage());
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -41,16 +49,16 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, GoodsDO> implemen
         if (goods == null) {
             throw new BizException("商品不存在");
         }
-        
+
         // 上下架校验逻辑
         if (targetStatus == 1 && goods.getInventory() <= 0) {
             throw new BizException("库存不足无法上架");
         }
-        
+
         return lambdaUpdate()
-            .set(GoodsDO::getStatus, targetStatus)
-            .eq(GoodsDO::getId, goodsId)
-            .update();
+                .set(GoodsDO::getStatus, targetStatus)
+                .eq(GoodsDO::getId, goodsId)
+                .update();
     }
 
     @Override
@@ -61,9 +69,9 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, GoodsDO> implemen
     @Override
     public boolean increaseSales(Long goodsId, Integer quantity) {
         return lambdaUpdate()
-            .setSql("sales = sales + " + quantity)
-            .eq(GoodsDO::getId, goodsId)
-            .update();
+                .setSql("sales = sales + " + quantity)
+                .eq(GoodsDO::getId, goodsId)
+                .update();
     }
 
     // 实现示例
@@ -112,13 +120,14 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, GoodsDO> implemen
     @Override
     public Page<GoodsDO> findGoodsByTime(GoodsQueryRequest request) {
         return lambdaQuery()
-                .between( GoodsDO::getCreateTime, request.getStartTime(), request.getEndTime())
+                .between(GoodsDO::getCreateTime, request.getStartTime(), request.getEndTime())
                 .page(request.toPage());
     }
 
     @Override
-    public Double totalGoodsByTime(GoodsQueryRequest request) {
+    public Double totalGoodsByTime(QueryOrderHistoryRequest request) {
         Double totalAmount = getBaseMapper().calculateTotalAmount(request.getStartTime(), request.getEndTime());
         return totalAmount == null ? 0.0 : totalAmount;
     }
+
 }

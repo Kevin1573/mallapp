@@ -2,10 +2,9 @@ package com.wx.service;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.wx.common.model.request.GoodsQueryRequest;
-import com.wx.common.model.request.GoodsRequest;
-import com.wx.common.model.request.GoodsSpecsRequest;
+import com.wx.common.model.request.*;
 import com.wx.orm.entity.GoodsDO;
+import com.wx.orm.entity.UserProfileDO;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
@@ -40,5 +39,5 @@ public interface GoodsService extends IService<GoodsDO> {
 
     Page<GoodsDO> findGoodsByTime(GoodsQueryRequest request);
 
-    Double totalGoodsByTime(GoodsQueryRequest request);
+    Double totalGoodsByTime(QueryOrderHistoryRequest request);
 }

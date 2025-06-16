@@ -24,6 +24,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -50,6 +51,7 @@ public class AdminSericeImpl implements AdminService {
     private RebateMapper rebateMapper;
     @Autowired
     private UserAddrMapper userAddrMapper;
+
 
     @Override
     public void initData() {
@@ -122,6 +124,11 @@ public class AdminSericeImpl implements AdminService {
         if (Objects.nonNull(user)) {
             queryWrapper.eq("user_id", user.getId());
         }
+
+        if (StringUtils.hasLength(request.getStartTime())&&StringUtils.hasLength(request.getEndTime())) {
+            queryWrapper.between("create_time", request.getStartTime(), request.getEndTime());
+        }
+
         Page<GoodsHistoryDO> page = new Page<>(request.getPage(), request.getLimit());
         IPage<GoodsHistoryDO> historyDOPage = goodsHistoryMapper.selectPage(page, queryWrapper);
         List<GoodsHistoryDO> records = historyDOPage.getRecords();
@@ -211,6 +218,8 @@ public class AdminSericeImpl implements AdminService {
         response.setPage(request.getPage() > pages ? pages : request.getPage());
         response.setTotal(historyDOPage.getTotal());
         response.setLimit(request.getLimit());
+//        Double totalAmount = goodsService.totalGoodsByTime(request);
+//        response.setTotalAmount(totalAmount);
         return response;
     }
 

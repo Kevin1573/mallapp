@@ -8,7 +8,7 @@ public class QueryOrderHistoryRequest {
     private Long page;
 
     private Long limit;
-//
+
 //    /**
 //     * 定单是否完成，1未完成 2完成
 //     */
@@ -24,6 +24,9 @@ public class QueryOrderHistoryRequest {
 //     */
 //
 //    private Integer isPack;
+
+    private String startTime;
+    private String endTime;
 
 
     //订单状态，1待付款 2待发货 3待收货 4已完成 5退货单

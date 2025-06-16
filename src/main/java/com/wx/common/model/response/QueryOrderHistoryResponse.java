@@ -9,6 +9,8 @@ public class QueryOrderHistoryResponse {
 
    private List<QueryOrderHistoryModel> records;
 
+   private Double totalAmount;
+
    private Long page;
 
    private Long total;

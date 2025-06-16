@@ -291,9 +291,9 @@ public class OrderController {
     }
 
     // 统计时间区间内的总金额
-    @PostMapping("/totalAmountGoodsByTime")
-    public ApiResponse<Double> totalGoodsByTime(@RequestBody GoodsQueryRequest request) {
-        Double totalAmount = goodsService.totalGoodsByTime(request);
-        return ApiResponse.success(totalAmount);
-    }
+//    @PostMapping("/totalAmountGoodsByTime")
+//    public ApiResponse<Double> totalGoodsByTime(@RequestBody GoodsQueryRequest request) {
+//        Double totalAmount = goodsService.totalGoodsByTime(request);
+//        return ApiResponse.success(totalAmount);
+//    }
 }

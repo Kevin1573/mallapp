@@ -58,6 +58,7 @@ public class OrderServiceImpl implements OrderService {
     @Autowired
     private ShopService shopService;
 
+
     @Override
     @Transactional(rollbackFor = Exception.class)
     public OrderGoodsResponse orderGoods(OrderGoodsRequest request) {
@@ -990,84 +991,87 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public Page<OrderListItem> queryOrderList(OrderListRequest request, UserProfileDO userProfile) {
-        // 1. 用户身份验证
+        try {
+            // 1. 用户身份验证
 //        UserProfileDO user = tokenService.getUserByToken(request.getToken());
 //        if (user == null) {
 //            throw new BizException("无效的token");
 //        }
 
-        // 2. 构建分页查询条件
-        Page<GoodsHistoryDO> page = new Page<>(request.getPage(), request.getPageSize());
-        LambdaQueryWrapper<GoodsHistoryDO> queryWrapper = new LambdaQueryWrapper<>();
-        if (Objects.nonNull(request.getStatus())) {
-            if (request.getStatus() == 13) {
-                queryWrapper.eq(GoodsHistoryDO::getStatus, 6)
-                        .or()
-                        .eq(GoodsHistoryDO::getStatus, 7);
-            } else {
-                queryWrapper.eq(GoodsHistoryDO::getStatus, request.getStatus());
+            // 2. 构建分页查询条件
+            Page<GoodsHistoryDO> page = new Page<>(request.getPage(), request.getPageSize());
+            LambdaQueryWrapper<GoodsHistoryDO> queryWrapper = new LambdaQueryWrapper<>();
+            if (Objects.nonNull(request.getStatus())) {
+                if (request.getStatus() == 13) {
+                    queryWrapper.eq(GoodsHistoryDO::getStatus, 6)
+                            .or()
+                            .eq(GoodsHistoryDO::getStatus, 7);
+                } else {
+                    queryWrapper.eq(GoodsHistoryDO::getStatus, request.getStatus());
+                }
             }
-        }
-        if (!"root".equalsIgnoreCase(userProfile.getSource())) {
-            queryWrapper.eq(GoodsHistoryDO::getFromMall, userProfile.getFromShopName());
-        } else {
-            queryWrapper.eq(StringUtils.isNotBlank(request.getFromMall()), GoodsHistoryDO::getFromMall, request.getFromMall());
-        }
-        queryWrapper.orderByDesc(GoodsHistoryDO::getCreateTime);
-
-        if ("showOwner".equals(userProfile.getSource())) {
-            queryWrapper.eq(GoodsHistoryDO::getId, userProfile.getId());
-        }
-
-        String userPhone = request.getUserPhone();
-        // 通过昵称查询用户
-        if (StringUtils.isNotBlank(userPhone)) {
-            UserProfileDO userDO = userProfileMapper.selectOne(new LambdaQueryWrapper<UserProfileDO>().eq(UserProfileDO::getNickName, userPhone));
-            if (Objects.nonNull(userDO)) {
-                queryWrapper.eq(GoodsHistoryDO::getUserId, userDO.getId());
+            if (!"root".equalsIgnoreCase(userProfile.getSource())) {
+                queryWrapper.eq(GoodsHistoryDO::getFromMall, userProfile.getFromShopName());
             }
+//        else {
+//            queryWrapper.eq(StringUtils.isNotBlank(request.getFromMall()), GoodsHistoryDO::getFromMall, request.getFromMall());
+//        }
+            queryWrapper.orderByDesc(GoodsHistoryDO::getCreateTime);
+
+            String userPhone = request.getUserPhone();
+            // 通过昵称查询用户
+            if (StringUtils.isNotBlank(userPhone)) {
+                UserProfileDO userDO = userProfileMapper.selectOne(new LambdaQueryWrapper<UserProfileDO>().eq(UserProfileDO::getNickName, userPhone));
+                if (Objects.nonNull(userDO)) {
+                    queryWrapper.eq(GoodsHistoryDO::getUserId, userDO.getId());
+                }
+            }
+
+            queryWrapper.like(StringUtils.isNotBlank(request.getTradeNo()), GoodsHistoryDO::getTradeNo, request.getTradeNo());
+            // 3. 执行分页查询
+            IPage<GoodsHistoryDO> historyPage = goodsHistoryMapper.selectPage(page, queryWrapper);
+
+            // 4. 数据转换
+            List<OrderListItem> items = historyPage.getRecords()
+                    .stream().map(history -> {
+                        OrderListItem item = new OrderListItem();
+                        BeanUtils.copyProperties(history, item);
+
+                        // 解析商品列表
+                        try {
+                            String goodsJson = history.getGoodsList()
+                                    .replace("\\\"", "\"")
+                                    .replace("\"[", "[")
+                                    .replace("]\"", "]");
+                            List<QueryOrderGoodsModel> goodsList = objectMapper.readValue(
+                                    goodsJson,
+                                    new TypeReference<List<QueryOrderGoodsModel>>() {
+                                    }
+                            );
+                            item.setGoodsList(goodsList);
+                        } catch (JsonProcessingException e) {
+                            log.error("解析商品列表失败", e);
+                        }
+
+                        // 计算总价
+                        if (CollectionUtils.isNotEmpty(item.getGoodsList())) {
+                            List<QueryOrderGoodsModel> goodsList = item.getGoodsList();
+                            BigDecimal totalPrice = calculateTotalPrice(goodsList);
+                            item.setTotalPrice(totalPrice);
+                        }
+                        return item;
+                    }).collect(Collectors.toList());
+
+
+            // 5. 构建响应
+            Page<OrderListItem> pageResult = new Page<>(page.getCurrent(),
+                    page.getSize(), historyPage.getTotal());
+            pageResult.setRecords(items);
+            return pageResult;
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-
-        queryWrapper.like(StringUtils.isNotBlank(request.getTradeNo()), GoodsHistoryDO::getTradeNo, request.getTradeNo());
-        // 3. 执行分页查询
-        IPage<GoodsHistoryDO> historyPage = goodsHistoryMapper.selectPage(page, queryWrapper);
-
-        // 4. 数据转换
-        List<OrderListItem> items = historyPage.getRecords()
-                .stream().map(history -> {
-                    OrderListItem item = new OrderListItem();
-                    BeanUtils.copyProperties(history, item);
-
-                    // 解析商品列表
-                    try {
-                        String goodsJson = history.getGoodsList()
-                                .replace("\\\"", "\"")
-                                .replace("\"[", "[")
-                                .replace("]\"", "]");
-                        List<QueryOrderGoodsModel> goodsList = objectMapper.readValue(
-                                goodsJson,
-                                new TypeReference<List<QueryOrderGoodsModel>>() {
-                                }
-                        );
-                        item.setGoodsList(goodsList);
-                    } catch (JsonProcessingException e) {
-                        log.error("解析商品列表失败", e);
-                    }
-
-                    // 计算总价
-                    if (CollectionUtils.isNotEmpty(item.getGoodsList())) {
-                        List<QueryOrderGoodsModel> goodsList = item.getGoodsList();
-                        BigDecimal totalPrice = calculateTotalPrice(goodsList);
-                        item.setTotalPrice(totalPrice);
-                    }
-                    return item;
-                }).collect(Collectors.toList());
-
-        // 5. 构建响应
-        Page<OrderListItem> pageResult = new Page<>(page.getCurrent(),
-                page.getSize(), historyPage.getTotal());
-        pageResult.setRecords(items);
-        return pageResult;
+        return  new Page<>();
     }
 
     @Override

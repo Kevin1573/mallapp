@@ -21,6 +21,8 @@ public interface GoodsMapper extends BaseMapper<GoodsDO> {
     @Update("UPDATE goods SET sales = sales - #{num}, inventory = inventory + #{num} WHERE id = #{id}")
     int updateInventoryWithReturn(@Param("id") Long goodsId, @Param("num") Integer num);
 
-    @Select("select sum(pay_amount) as totalAmount from goods_history where create_time between #{startTime} and #{endTime}")
+    @Select("select sum(pay_amount) as totalAmount from goods_history " +
+            "where create_time between #{startTime} and #{endTime} " +
+            "and status = 5 ")
     Double calculateTotalAmount(@Param("startTime") String startTime, @Param("endTime") String endTime);
 }
