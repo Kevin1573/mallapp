@@ -13,7 +13,10 @@ wx:
 #        notifyUrl: 'http://mallapp.pdcspace.com/pay/v3/multi/callback/merchant1'  # 支付回调地址
         notifyUrl: 'http://j2c869a7.natappfree.cc/pay/v3/wxpay/callback/merchant1'  # 支付回调地址
         refundNotifyUrl: 'http://j2c869a7.natappfree.cc/pay/refund/notify/wxpay/merchant1'  # 退款通知地址
-
+  miniapp:
+    app-id: wx1234567890abcdef  # 替换为你的小程序AppID
+    app-secret: 1234567890abcdef1234567890abcdef  # 替换为你的小程序AppSecret
+    token-expire-time: 604800  # token过期时间(秒)，7天
 
 alipay:
   merchants:

@@ -39,7 +39,10 @@ wx:
         apiV3Key: '7Uhb6ygv5tfc4rdx3esz2wa1q0pl9okm'  # API v3密钥
 #        notifyUrl: 'http://mallapp.pdcspace.com/pay/v3/multi/callback/merchant1'  # 支付回调地址
         notifyUrl: 'http://j2c869a7.natappfree.cc/pay/v3/multi/callback/merchant1'  # 支付回调地址
-
+  miniapp:
+    app-id: wx1234567890abcdef  # 替换为你的小程序AppID
+    app-secret: 1234567890abcdef1234567890abcdef  # 替换为你的小程序AppSecret
+    token-expire-time: 604800  # token过期时间(秒)，7天
 
 alipay:
   merchants:
@@ -94,3 +97,25 @@ logging:
     org.springframework.web: info
     com.github.binarywang.demo.wx.pay: debug
     com.github.binarywang.wxpay: debug
+
+
+#spring:
+#  datasource:
+#    url: jdbc:mysql://localhost:3306/miniapp?useSSL=false&serverTimezone=UTC&characterEncoding=utf8
+#    username: root
+#    password: root
+#    driver-class-name: com.mysql.cj.jdbc.Driver
+#  jpa:
+#    show-sql: true
+#    hibernate:
+#      ddl-auto: update
+#    properties:
+#      hibernate:
+#        dialect: org.hibernate.dialect.MySQL5InnoDBDialect
+#  redis:
+#    host: localhost
+#    port: 6379
+#    password:
+#    database: 0
+#    timeout: 3000
+
