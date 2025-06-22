@@ -18,13 +18,12 @@ public class SessionServiceImpl implements SessionService {
 
     @Override
     @Transactional
-    public SessionInfo createSession(String openid, String sessionKey) {
+    public SessionInfo createSession(String openid, String sessionKey, String token) {
         // 清理旧的会话
         sessionMapper.deleteByOpenid(openid);
-
         // 创建新会话
         SessionInfo session = new SessionInfo();
-        session.setToken(generateToken());
+        session.setToken(token == null ? generateToken(): token);
         session.setOpenid(openid);
         session.setSessionKey(sessionKey);
         session.setCreateTime(new Date());

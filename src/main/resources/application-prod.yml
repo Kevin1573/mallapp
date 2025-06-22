@@ -13,6 +13,14 @@ wx:
         notifyUrl: 'https://www.pdcspace.com/api/pay/v3/wxpay/callback/merchant1'  # 支付回调地址
         refundNotifyUrl: 'https://www.pdcspace.com/api/pay/refund/notify/wxpay/merchant1'  # 退款通知地址
 
+  miniapp:
+    app-id: wx70559cc67cdc94cc
+    app-secret: d4d9f79290334d62cf091902f1c6e26d
+    token-expire-time: 604800  # token过期时间(秒)，7天
+  miniapp-pay:
+    appId: 'wx70559cc67cdc94cc'
+    mchId: "1715243805"
+    notifyUrl: "https://www.pdcspace.com/api/pay/v3/wxpay/callback/merchant1"
 
 alipay:
   merchants:
@@ -27,3 +35,5 @@ alipay:
       charset: 'UTF-8'  # 字符编码，默认UTF-8
       format: 'json'    # 返回格式，默认json
       sandboxMode: false  # 是否使用沙箱环境
+
+

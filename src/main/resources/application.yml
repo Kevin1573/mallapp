@@ -1,5 +1,6 @@
 server:
   port: 9998
+#  active-profiles: dev
 #  ssl:
 #    client-auth: none
 #    enabled: true
@@ -39,10 +40,10 @@ wx:
         apiV3Key: '7Uhb6ygv5tfc4rdx3esz2wa1q0pl9okm'  # API v3密钥
 #        notifyUrl: 'http://mallapp.pdcspace.com/pay/v3/multi/callback/merchant1'  # 支付回调地址
         notifyUrl: 'http://j2c869a7.natappfree.cc/pay/v3/multi/callback/merchant1'  # 支付回调地址
-  miniapp:
-    app-id: wx1234567890abcdef  # 替换为你的小程序AppID
-    app-secret: 1234567890abcdef1234567890abcdef  # 替换为你的小程序AppSecret
-    token-expire-time: 604800  # token过期时间(秒)，7天
+#  miniapp:
+#    app-id: wx1234567890abcdef  # 替换为你的小程序AppID
+#    app-secret: 1234567890abcdef1234567890abcdef  # 替换为你的小程序AppSecret
+#    token-expire-time: 604800  # token过期时间(秒)，7天
 
 alipay:
   merchants:

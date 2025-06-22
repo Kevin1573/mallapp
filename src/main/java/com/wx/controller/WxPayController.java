@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wechat.pay.java.core.notification.NotificationParser;
 import com.wechat.pay.java.core.notification.RequestParam;
 import com.wechat.pay.java.service.partnerpayments.nativepay.model.Transaction;
+import com.wechat.pay.java.service.payments.jsapi.JsapiService;
 import com.wechat.pay.java.service.payments.nativepay.NativePayService;
 import com.wechat.pay.java.service.payments.nativepay.model.Amount;
 import com.wechat.pay.java.service.payments.nativepay.model.PrepayRequest;
@@ -25,7 +26,7 @@ import com.wx.orm.entity.GoodsHistoryDO;
 import com.wx.orm.entity.UserProfileDO;
 import com.wx.service.OrderService;
 import com.wx.service.TokenService;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.ResponseEntity;
@@ -40,9 +41,10 @@ import static com.wx.common.config.PayConstants.*;
 @Slf4j
 @RestController
 @RequestMapping("/pay/v3")
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class WxPayController {
     private final NativePayService payService;
+    private final JsapiService jsapiService;
     private final OrderService orderService;
     private final NotificationParser notificationParser;
     private final TokenService tokenService;
@@ -94,6 +96,50 @@ public class WxPayController {
             return Response.failure("生成二维码异常...");
         }
     }
+
+    @PostMapping("/createOrderJSAPI")
+    public Response<String> createOrderJSAPI(@RequestBody PaymentRequest paymentRequest) throws JsonProcessingException {
+        String from = paymentRequest.getFrom();
+        if (StringUtils.isBlank(from)) {
+            return Response.failure("from不能为空");
+        }
+        String tradeNo = paymentRequest.getTradeNo();
+        if (StringUtils.isBlank(tradeNo)) {
+            return Response.failure("tradeNo不能为空");
+        }
+        QueryOrderHistoryModel orderHistory = orderService.getOrderDetailById(new GetOrderDetailByTradeNo(tradeNo));
+        if (orderHistory != null && orderHistory.getIsComplete() == 2) {
+            return Response.failure("订单已支付");
+        }
+
+        // update order status to waiting payment, update pay_way to wxPay
+        orderService.updateOrderStatus(tradeNo, OrderStatus.WAITING_PAYMENT);
+        orderService.updatePayway(tradeNo, PayWayEnums.WECHAT);
+        // 通过from 查出对应的商户配置
+        try {
+            com.wechat.pay.java.service.payments.jsapi.model.PrepayRequest request2 = new com.wechat.pay.java.service.payments.jsapi.model.PrepayRequest();
+            request2.setAppid(APP_ID);
+            request2.setMchid(MERCHANT_ID);
+            request2.setDescription("商品描述(from db)");
+            request2.setNotifyUrl(CALLBACK_URL);
+            request2.setOutTradeNo(tradeNo);
+            Map<String, String> attachMap = new HashMap<>();
+            attachMap.put("orderId", tradeNo);
+            attachMap.put("mchId", "购买商品所在的商户号(mallapp)");
+            request2.setAttach(JSON.toJSONString(attachMap));
+            com.wechat.pay.java.service.payments.jsapi.model.PrepayResponse prepay = jsapiService.prepay(request2);
+            String prepayId = prepay.getPrepayId();
+            if (StringUtils.isNoneBlank(prepayId)) {
+                // 更新订单的支付方式 为 1 wx
+                orderService.updatePayway(tradeNo, PayWayEnums.WECHAT);
+            }
+            return Response.success(prepayId);
+        } catch (Exception e) {
+            log.error("本次调用又出错了...", e);
+            return Response.failure("生成二维码异常...");
+        }
+    }
+
 
     @PostMapping("/return")
     public Response<ReturnResponse> returnUrl(@RequestBody ReturnRequest request) throws JsonProcessingException {

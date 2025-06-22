@@ -1,8 +1,10 @@
 package com.wx.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.wx.common.model.request.UserProfileRequest;
+import com.wx.miniapp.dto.WxUserInfo;
 import com.wx.orm.entity.UserProfileDO;
 import com.wx.orm.mapper.UserProfileMapper;
 import com.wx.service.TokenService;
@@ -12,6 +14,7 @@ import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 
 @Service
@@ -98,6 +101,51 @@ public class UserProfileServiceImpl extends ServiceImpl<UserProfileMapper, UserP
             entity.setPassword(original.getPassword());
         }
         return super.updateById(entity);
+    }
+
+    @Override
+    public UserProfileDO getUserByOpenId(String openid) {
+        LambdaQueryWrapper<UserProfileDO> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(UserProfileDO::getOpenId, openid);
+        return this.getOne(queryWrapper);
+    }
+
+    /**
+     * 创建或更新用户信息
+     *
+     * @param openid   用户openid
+     * @param token
+     * @param userInfo 微信用户信息
+     * @return 用户ID
+     */
+    @Override
+    public Long createOrUpdateUser(String openid, String token, WxUserInfo userInfo) {
+        LambdaQueryWrapper<UserProfileDO> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(UserProfileDO::getOpenId, openid);
+        UserProfileDO user = this.getOne(queryWrapper);
+
+        if (user == null) {
+            user = new UserProfileDO();
+            user.setOpenId(openid);
+            user.setToken(token);
+            user.setCreateTime(new Date());
+        }
+
+        // 更新用户信息
+        if (userInfo != null) {
+            user.setNickName(userInfo.getNickName());
+            user.setHeadUrl(userInfo.getAvatarUrl());
+        }
+
+        this.saveOrUpdate(user);
+        return user.getId();
+    }
+
+    @Override
+    public UserProfileDO getUserByToken(String token) {
+        LambdaQueryWrapper<UserProfileDO> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(UserProfileDO::getToken, token);
+        return this.getOne(queryWrapper);
     }
 
 }

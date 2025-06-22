@@ -30,10 +30,6 @@ public class UserService extends ServiceImpl<UserMapper, User> {
         if (userInfo != null) {
             user.setNickname(userInfo.getNickName());
             user.setAvatarUrl(userInfo.getAvatarUrl());
-            user.setGender(userInfo.getGender());
-            user.setCity(userInfo.getCity());
-            user.setProvince(userInfo.getProvince());
-            user.setCountry(userInfo.getCountry());
             user.setUnionid(userInfo.getUnionId());
         }
 

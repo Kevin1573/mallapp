@@ -1,10 +1,15 @@
 package com.wx.miniapp.service;
 
 import com.wx.common.model.ApiResponse;
+import com.wx.common.utils.JsonUtil;
 import com.wx.miniapp.config.WxMiniAppConfig;
+import com.wx.miniapp.dto.AuthRegisterRequest;
 import com.wx.miniapp.dto.WxUserInfo;
 import com.wx.miniapp.entity.SessionInfo;
 import com.wx.miniapp.util.WxMiniAppUtil;
+import com.wx.orm.entity.UserProfileDO;
+import com.wx.service.UserProfileService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -12,6 +17,7 @@ import org.springframework.util.StringUtils;
 import java.util.HashMap;
 import java.util.Map;
 
+@Slf4j
 @Service
 public class MiniAppAuthService {
 
@@ -20,6 +26,9 @@ public class MiniAppAuthService {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private UserProfileService userProfileService;
 
     @Autowired
     private SessionService sessionService;
@@ -38,12 +47,19 @@ public class MiniAppAuthService {
                 return ApiResponse.fail(400, "code不能为空");
             }
 
+            log.info("code: {}", code);
+            log.info("encryptedData: {}", encryptedData);
+            log.info("wxMiniAppConfig.getAppSecret(): {}", wxMiniAppConfig.getAppSecret());
+            log.info("wxMiniAppConfig.getAppId(): {}", wxMiniAppConfig.getAppId());
             // 2. 使用code换取session_key和openid
-            Map<String, String> authInfo = WxMiniAppUtil.code2Session(
-                    wxMiniAppConfig.getAppId(),
-                    wxMiniAppConfig.getAppSecret(),
-                    code);
-
+//            Map<String, String> authInfo = WxMiniAppUtil.code2Session(
+//                    wxMiniAppConfig.getAppId(),
+//                    wxMiniAppConfig.getAppSecret(),
+//                    code);
+            Map<String, String> authInfo = new HashMap<>();
+            authInfo.put("openid", "oua2r7fL0g5w79eyUQ0qcYIR-wsQ");
+            authInfo.put("session_key", "0UjGy1Hks9fjtr8TBSFTdA==");
+            log.info("{}", JsonUtil.toStr(authInfo));
             if (!StringUtils.hasText(authInfo.get("openid"))) {
                 return ApiResponse.fail(500, "获取openid失败");
             }
@@ -62,15 +78,19 @@ public class MiniAppAuthService {
             }
 
             // 4. 创建或更新用户信息
-            Long userId = userService.createOrUpdateUser(openid, userInfo);
+//            Long userId = userService.createOrUpdateUser(openid, userInfo);
+
+            UserProfileDO userByOpenId = userProfileService.getUserByOpenId(openid);
 
             // 5. 生成自定义登录态
-            SessionInfo session = sessionService.createSession(openid, sessionKey);
+            SessionInfo session = sessionService.createSession(openid, sessionKey, userByOpenId == null ? null : userByOpenId.getToken());
+
+            Long userId = userProfileService.createOrUpdateUser(openid,session.getToken(), userInfo);
 
             // 6. 返回登录结果
             Map<String, Object> result = new HashMap<>();
             result.put("token", session.getToken());
-            result.put("userInfo", userInfo);
+            result.put("userId", userId);
 
             return ApiResponse.success(result);
         } catch (Exception e) {
@@ -98,5 +118,14 @@ public class MiniAppAuthService {
         } catch (Exception e) {
             return ApiResponse.fail(500, "检查登录状态失败");
         }
+    }
+
+    public ApiResponse<?> register(AuthRegisterRequest request) {
+        String token = request.getToken();
+        // 1. 根据token查询openid
+        UserProfileDO userProfileDO = userProfileService.getUserByToken(token);
+        // 2. 根据code查询用户信息
+
+        return null;
     }
 }

@@ -33,7 +33,7 @@ public class WxMiniAppUtil {
 
         ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
         JSONObject json = JSON.parseObject(response.getBody());
-
+        System.out.println(json);
         Map<String, String> result = new HashMap<>();
         if (json != null) {
             result.put("openid", json.getString("openid"));

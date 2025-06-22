@@ -15,4 +15,12 @@ public class JsonUtil {
             throw new RuntimeException(e);
         }
     }
+
+    public static String toStr(Object jsonObj) {
+        try {
+            return OBJECT_MAPPER.writeValueAsString(jsonObj);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+    }
 }

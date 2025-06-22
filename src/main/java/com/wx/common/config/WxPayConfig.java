@@ -2,9 +2,12 @@ package com.wx.common.config;
 
 import com.wechat.pay.java.core.Config;
 import com.wechat.pay.java.core.RSAPublicKeyConfig;
+import com.wechat.pay.java.core.cipher.RSASigner;
 import com.wechat.pay.java.core.notification.NotificationConfig;
 import com.wechat.pay.java.core.notification.NotificationParser;
 import com.wechat.pay.java.core.notification.RSAPublicKeyNotificationConfig;
+import com.wechat.pay.java.core.util.PemUtil;
+import com.wechat.pay.java.service.payments.jsapi.JsapiService;
 import com.wechat.pay.java.service.payments.nativepay.NativePayService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -45,6 +48,20 @@ public class WxPayConfig {
     @Bean
     public NativePayService nativePayService(Config config) {
         return new NativePayService.Builder().config(config).build();
+    }
+
+    @Bean
+    public JsapiService jsapiService(Config config) {
+        return new JsapiService.Builder().config(config).build();
+    }
+
+    @Bean
+    public RSASigner createSigner() {
+        return new RSASigner(
+                MERCHANT_ID,
+                PemUtil.loadPrivateKeyFromPath("dev".equals(profile) ?
+                        PRIVATE_KEY_PATH_LOCAL : PRIVATE_KEY_PATH)
+        );
     }
 
 }

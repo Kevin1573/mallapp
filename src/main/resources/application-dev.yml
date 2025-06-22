@@ -14,9 +14,15 @@ wx:
         notifyUrl: 'http://j2c869a7.natappfree.cc/pay/v3/wxpay/callback/merchant1'  # 支付回调地址
         refundNotifyUrl: 'http://j2c869a7.natappfree.cc/pay/refund/notify/wxpay/merchant1'  # 退款通知地址
   miniapp:
-    app-id: wx1234567890abcdef  # 替换为你的小程序AppID
-    app-secret: 1234567890abcdef1234567890abcdef  # 替换为你的小程序AppSecret
+#    app-id: wx1234567890abcdef  # 替换为你的小程序AppID
+#    app-secret: 1234567890abcdef1234567890abcdef  # 替换为你的小程序AppSecret
+    app-id: wx3681af7917801822
+    app-secret: 47b04397685a3974cae9076a3e8ce6af
     token-expire-time: 604800  # token过期时间(秒)，7天
+  miniapp-pay:
+    appId: 'wx70559cc67cdc94cc'
+    mchId: "1715243805"
+    notifyUrl: "http://j2c869a7.natappfree.cc/pay/v3/wxpay/callback/merchant1"
 
 alipay:
   merchants:

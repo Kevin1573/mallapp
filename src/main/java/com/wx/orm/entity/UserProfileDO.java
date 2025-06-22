@@ -1,9 +1,6 @@
 package com.wx.orm.entity;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableField;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
+import com.baomidou.mybatisplus.annotation.*;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 import lombok.experimental.Accessors;
@@ -47,8 +44,10 @@ public class UserProfileDO {
 
     private String positionDescription;
 
+    @TableField(fill = FieldFill.INSERT)
     private Date createTime;
 
+    @TableField(fill = FieldFill.INSERT_UPDATE)
     private Date modifyTime;
 
     /**
@@ -60,6 +59,9 @@ public class UserProfileDO {
      * 登录标示
      */
     private String token;
+
+    @TableField("open_id")
+    private String openId;
 
     @NotBlank(message = "用户来源不能为空")
     private String source;

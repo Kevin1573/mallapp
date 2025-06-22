@@ -5,11 +5,13 @@ import com.wx.miniapp.entity.SessionInfo;
 public interface SessionService {
     /**
      * 创建会话
-     * @param openid 用户openid
+     *
+     * @param openid     用户openid
      * @param sessionKey 微信session_key
+     * @param token
      * @return 创建的会话信息
      */
-    SessionInfo createSession(String openid, String sessionKey);
+    SessionInfo createSession(String openid, String sessionKey, String token);
 
     /**
      * 获取会话信息
