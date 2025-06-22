@@ -16,8 +16,10 @@ wx:
   miniapp:
 #    app-id: wx1234567890abcdef  # 替换为你的小程序AppID
 #    app-secret: 1234567890abcdef1234567890abcdef  # 替换为你的小程序AppSecret
-    app-id: wx3681af7917801822
-    app-secret: 47b04397685a3974cae9076a3e8ce6af
+#    app-id: wx3681af7917801822
+#    app-secret: 47b04397685a3974cae9076a3e8ce6af
+    app-id: wxedc2e7e07b364ea6
+    app-secret: 1599615e74cc8d3e595ed13fa9df7266
     token-expire-time: 604800  # token过期时间(秒)，7天
   miniapp-pay:
     appId: 'wx70559cc67cdc94cc'

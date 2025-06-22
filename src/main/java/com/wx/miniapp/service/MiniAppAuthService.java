@@ -16,6 +16,7 @@ import org.springframework.util.StringUtils;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 @Slf4j
 @Service
@@ -28,6 +29,9 @@ public class MiniAppAuthService {
     private UserService userService;
 
     @Autowired
+    private WechatTokenService wechatTokenService;
+
+    @Autowired
     private UserProfileService userProfileService;
 
     @Autowired
@@ -35,9 +39,10 @@ public class MiniAppAuthService {
 
     /**
      * 微信小程序登录处理
-     * @param code 临时登录凭证
+     *
+     * @param code          临时登录凭证
      * @param encryptedData 加密的用户数据
-     * @param iv 加密算法的初始向量
+     * @param iv            加密算法的初始向量
      * @return 登录结果
      */
     public ApiResponse<?> login(String code, String encryptedData, String iv) {
@@ -52,13 +57,13 @@ public class MiniAppAuthService {
             log.info("wxMiniAppConfig.getAppSecret(): {}", wxMiniAppConfig.getAppSecret());
             log.info("wxMiniAppConfig.getAppId(): {}", wxMiniAppConfig.getAppId());
             // 2. 使用code换取session_key和openid
-//            Map<String, String> authInfo = WxMiniAppUtil.code2Session(
-//                    wxMiniAppConfig.getAppId(),
-//                    wxMiniAppConfig.getAppSecret(),
-//                    code);
-            Map<String, String> authInfo = new HashMap<>();
-            authInfo.put("openid", "oua2r7fL0g5w79eyUQ0qcYIR-wsQ");
-            authInfo.put("session_key", "0UjGy1Hks9fjtr8TBSFTdA==");
+            Map<String, String> authInfo = WxMiniAppUtil.code2Session(
+                    wxMiniAppConfig.getAppId(),
+                    wxMiniAppConfig.getAppSecret(),
+                    code);
+//            Map<String, String> authInfo = new HashMap<>();
+//            authInfo.put("openid", "oua2r7fL0g5w79eyUQ0qcYIR-wsQ");
+//            authInfo.put("session_key", "0UjGy1Hks9fjtr8TBSFTdA==");
             log.info("{}", JsonUtil.toStr(authInfo));
             if (!StringUtils.hasText(authInfo.get("openid"))) {
                 return ApiResponse.fail(500, "获取openid失败");
@@ -85,7 +90,7 @@ public class MiniAppAuthService {
             // 5. 生成自定义登录态
             SessionInfo session = sessionService.createSession(openid, sessionKey, userByOpenId == null ? null : userByOpenId.getToken());
 
-            Long userId = userProfileService.createOrUpdateUser(openid,session.getToken(), userInfo);
+            Long userId = userProfileService.createOrUpdateUser(openid, session.getToken(), userInfo);
 
             // 6. 返回登录结果
             Map<String, Object> result = new HashMap<>();
@@ -100,6 +105,7 @@ public class MiniAppAuthService {
 
     /**
      * 检查登录状态
+     *
      * @param token 用户token
      * @return 检查结果
      */
@@ -120,12 +126,24 @@ public class MiniAppAuthService {
         }
     }
 
+    @Autowired
+    private WechatInfoService wechatInfoService;
+
     public ApiResponse<?> register(AuthRegisterRequest request) {
         String token = request.getToken();
         // 1. 根据token查询openid
         UserProfileDO userProfileDO = userProfileService.getUserByToken(token);
+        if (Objects.isNull(userProfileDO)) {
+            return ApiResponse.fail(400, "token无效");
+        }
         // 2. 根据code查询用户信息
+        String phoneNumber = wechatInfoService.getPhoneNumber(request.getCode());
 
-        return null;
+        // 3. 创建用户
+        WxUserInfo wxUserInfo = new WxUserInfo();
+        wxUserInfo.setNickName(phoneNumber);
+        Long userId = userProfileService.createOrUpdateUser(userProfileDO.getOpenId(), token, wxUserInfo);
+        return ApiResponse.success(userId);
+        // 新用户
     }
 }

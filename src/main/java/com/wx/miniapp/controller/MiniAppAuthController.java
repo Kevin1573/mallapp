@@ -37,4 +37,5 @@ public class MiniAppAuthController {
     public ApiResponse<?> checkSession(@RequestHeader("Authorization") String token) {
         return miniAppAuthService.checkSession(token);
     }
+
 }
