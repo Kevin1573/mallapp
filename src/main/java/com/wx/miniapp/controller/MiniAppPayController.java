@@ -28,8 +28,8 @@ public class MiniAppPayController {
 
     @PostMapping("/create")
     public Map<String, String> createPayment(@RequestBody CreatePaymentRequest request) {
-        return payService.createJsapiPayment(request.getOpenid(),
-                request.getOrderNo(), request.getAmount(), request.getDescription());
+        return payService.createJsapiPayment(request.getToken(),
+                request.getOrderNo(), request.getFrom());
     }
 
     @PostMapping("/notify")

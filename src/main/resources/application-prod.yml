@@ -20,6 +20,7 @@ wx:
   miniapp-pay:
     appId: 'wx70559cc67cdc94cc'
     mchId: "1715243805"
+    payFlag: "merchant1"
     notifyUrl: "https://www.pdcspace.com/api/pay/v3/wxpay/callback/merchant1"
 
 alipay:

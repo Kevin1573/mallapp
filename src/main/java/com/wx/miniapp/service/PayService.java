@@ -11,7 +11,7 @@ public interface PayService {
      * @param description 商品描述
      * @return 小程序支付所需参数
      */
-    Map<String, String> createJsapiPayment(String openid, String orderNo, int amount, String description);
+    Map<String, String> createJsapiPayment(String token, String orderNo, String from);
 
     /**
      * 验证支付回调签名

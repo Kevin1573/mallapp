@@ -26,7 +26,10 @@ public class WxPayUtil {
      * 生成支付签名
      */
     public  String generateSignature(Map<String, String> params) {
-        String message = buildSignMessage(params);
+//        String message = buildSignMessage(params);
+        String message = String.format("%s\n%s\n%s\n%s\n",
+                params.get("appId"), params.get("timeStamp"), params.get("nonceStr"), params.get("package") );
+        System.out.println("generate signature: "+message);
         return signer.sign(message).getSign();
     }
 

@@ -148,4 +148,11 @@ public class UserProfileServiceImpl extends ServiceImpl<UserProfileMapper, UserP
         return this.getOne(queryWrapper);
     }
 
+    @Override
+    public UserProfileDO getUserByFromMall(String fromMall) {
+        LambdaQueryWrapper<UserProfileDO> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(UserProfileDO::getFromShopName, fromMall);
+        return this.getOne(queryWrapper);
+    }
+
 }

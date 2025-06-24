@@ -17,4 +17,7 @@ public interface UserProfileService extends IService<UserProfileDO> {
     Long createOrUpdateUser(String openid, String token, WxUserInfo userInfo);
 
     UserProfileDO getUserByToken(String token);
+
+    UserProfileDO getUserByFromMall(String fromMall);
+
 }

@@ -8,4 +8,6 @@ public class CreatePaymentRequest {
     private String orderNo;
     private int amount;
     private String description;
+    private String from;
+    private String token;
 }
